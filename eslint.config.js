@@ -8,18 +8,19 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   { ignores: ['dist', 'node_modules', '.vscode'] },
+
   js.configs.recommended,
+
   ...tseslint.configs.recommended,
   {
     files: ['**/*.{ts,tsx}'],
-    languageOptions: {
-      ecmaVersion: 2020,
-      globals: globals.browser,
-    },
     plugins: {
       react: reactPlugin,
       'react-hooks': reactHooksPlugin,
       'react-refresh': reactRefreshPlugin,
+    },
+    languageOptions: {
+      globals: globals.browser,
     },
     rules: {
       ...reactPlugin.configs.recommended.rules,
