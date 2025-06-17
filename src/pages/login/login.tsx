@@ -15,7 +15,6 @@ type LoginFormInputs = {
   password: string;
 };
 
-// --- INTERFACES DE PROPS ATUALIZADAS ---
 interface FormInputProps {
   id: keyof LoginFormInputs;
   type: 'email' | 'password';
@@ -36,8 +35,6 @@ const LoginPage: FC = () => {
   const [apiError, setApiError] = useState('');
   const navigate = useNavigate();
 
-  // --- useForm SEM RESOLVER ---
-  // O resolver do Zod foi removido.
   const {
     register,
     handleSubmit,
@@ -55,7 +52,7 @@ const LoginPage: FC = () => {
     try {
       const user = await AuthService.login(data);
       alert(`Login bem-sucedido! Bem-vindo(a), ${user.name}!`);
-      navigate('/dashboard');
+      navigate('/');
     } catch (err) {
       if (err instanceof Error) {
         setApiError(err.message);
