@@ -12,6 +12,14 @@ interface UserInfo {
   roles: string[];
 }
 
+// Útil para quando você busca os detalhes completos do usuário em outras partes da aplicação
+interface UserProfile extends UserInfo {
+  jobTitle: string;
+  seniority: string;
+  businessUnit: string;
+  // Adicione quaisquer outros campos que seu getProfile() possa retornar
+}
+
 // Resposta completa do endpoint de login (LoginResponseDto)
 interface AuthResponse {
   token: string;
