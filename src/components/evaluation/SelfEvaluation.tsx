@@ -1,65 +1,228 @@
 import React, { useState, useEffect } from 'react';
 import EvaluationService, { type CreateSelfAssessmentDto, type SelfAssessmentResponse } from '../../services/EvaluationService';
 
-interface CriterionProps {
+interface CriterionItemProps {
+  number: number;
   title: string;
   score: number | null;
   justification: string;
   onScoreChange: (score: number) => void;
   onJustificationChange: (justification: string) => void;
-  isFilled?: boolean;
+  isExpanded: boolean;
+  onToggleExpand: () => void;
+  isFilled: boolean;
 }
 
-const Criterion: React.FC<CriterionProps> = ({
+const CriterionItem: React.FC<CriterionItemProps> = ({
+  number,
   title,
   score,
   justification,
   onScoreChange,
   onJustificationChange,
-  isFilled = false,
+  isExpanded,
+  onToggleExpand,
+  isFilled
 }) => {
   return (
-    <div style={{ marginBottom: '20px', border: '1px solid #ccc', padding: '15px', borderRadius: '8px', position: 'relative' }}>
-      <h3 style={{ marginBottom: '10px' }}>{title}</h3>
-      <p style={{ fontSize: '0.9em', color: '#555', marginBottom: '10px' }}>Dê uma avaliação de 1 a 5 com base no critério</p>
-      <div style={{ marginBottom: '15px' }}>
-        {[1, 2, 3, 4, 5].map((s) => (
-          <span
-            key={s}
-            style={{
-              cursor: 'pointer',
-              fontSize: '28px',
-              color: s <= (score || 0) ? '#ffc107' : '#e0e0e0',
-              marginRight: '8px',
-              transition: 'color 0.2s ease-in-out',
-            }}
-            onClick={() => onScoreChange(s)}
-          >
-            ★
+    <div style={{ 
+      marginBottom: '12px', 
+      border: '1px solid #e0e0e0', 
+      borderRadius: '8px',
+      backgroundColor: '#ffffff'
+    }}>
+      <div 
+        style={{ 
+          padding: '16px 20px', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          cursor: 'pointer',
+          borderBottom: isExpanded ? '1px solid #e0e0e0' : 'none'
+        }}
+        onClick={onToggleExpand}
+      >
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div style={{
+            width: '24px',
+            height: '24px',
+            borderRadius: '50%',
+            backgroundColor: isFilled ? '#28a745' : '#6c757d',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '12px',
+            fontWeight: 'bold',
+            marginRight: '12px'
+          }}>
+            {isFilled ? '✓' : number}
+          </div>
+          <span style={{ 
+            fontSize: '14px', 
+            fontWeight: '500',
+            color: '#333'
+          }}>
+            {title}
           </span>
-        ))}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          {isFilled && (
+            <span style={{ 
+              fontSize: '16px', 
+              fontWeight: 'bold', 
+              marginRight: '12px',
+              color: '#28a745'
+            }}>
+              {score}
+            </span>
+          )}
+          <span style={{ 
+            fontSize: '18px', 
+            color: '#6c757d',
+            transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform 0.2s ease'
+          }}>
+            ▼
+          </span>
+        </div>
       </div>
-      <p style={{ fontSize: '0.9em', color: '#555', marginBottom: '5px' }}>Justifique sua nota</p>
-      <textarea
-        value={justification}
-        onChange={(e) => onJustificationChange(e.target.value)}
-        placeholder="Justifique sua nota..."
-        rows={4}
-        style={{ width: 'calc(100% - 16px)', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', resize: 'vertical' }}
-      />
-      {isFilled && (
-        <div style={{
-          position: 'absolute',
-          top: '15px',
-          right: '15px',
-          backgroundColor: '#d4edda',
-          color: '#155724',
-          padding: '5px 10px',
-          borderRadius: '20px',
-          fontSize: '0.8em',
-          fontWeight: 'bold',
+      
+      {isExpanded && (
+        <div style={{ padding: '20px' }}>
+          <p style={{ 
+            fontSize: '14px', 
+            color: '#666', 
+            marginBottom: '16px',
+            lineHeight: '1.4'
+          }}>
+            Dê uma avaliação de 1 a 5 com base no critério
+          </p>
+          
+          <div style={{ marginBottom: '20px' }}>
+            {[1, 2, 3, 4, 5].map((s) => (
+              <span
+                key={s}
+                style={{
+                  cursor: 'pointer',
+                  fontSize: '28px',
+                  color: s <= (score || 0) ? '#ffc107' : '#e0e0e0',
+                  marginRight: '8px',
+                  transition: 'color 0.2s ease-in-out',
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onScoreChange(s);
+                }}
+              >
+                ★
+              </span>
+            ))}
+          </div>
+          
+          <p style={{ 
+            fontSize: '14px', 
+            color: '#666', 
+            marginBottom: '8px',
+            fontWeight: '500'
+          }}>
+            Justifique sua nota
+          </p>
+          <textarea
+            value={justification}
+            onChange={(e) => {
+              e.stopPropagation();
+              onJustificationChange(e.target.value);
+            }}
+            onClick={(e) => e.stopPropagation()}
+            placeholder="Justifique sua nota..."
+            rows={4}
+            style={{ 
+              width: '100%', 
+              padding: '12px', 
+              border: '1px solid #ddd', 
+              borderRadius: '6px', 
+              resize: 'vertical',
+              fontSize: '14px',
+              fontFamily: 'inherit'
+            }}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
+interface CriteriaCardProps {
+  title: string;
+  filledCount: number;
+  totalCount: number;
+  isMinimized: boolean;
+  onToggleMinimize: () => void;
+  children: React.ReactNode;
+}
+
+const CriteriaCard: React.FC<CriteriaCardProps> = ({
+  title,
+  filledCount,
+  totalCount,
+  isMinimized,
+  onToggleMinimize,
+  children
+}) => {
+  const progressColor = filledCount === totalCount ? '#28a745' : '#dc3545';
+  const progressText = filledCount === totalCount ? 'preenchidos' : 'preenchidos';
+  
+  return (
+    <div style={{ 
+      marginBottom: '24px',
+      border: '1px solid #e0e0e0',
+      borderRadius: '12px',
+      backgroundColor: '#ffffff',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.04)'
+    }}>
+      <div 
+        style={{ 
+          padding: '20px 24px', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          cursor: 'pointer',
+          borderBottom: isMinimized ? 'none' : '1px solid #e0e0e0'
+        }}
+        onClick={onToggleMinimize}
+      >
+        <h3 style={{ 
+          margin: 0, 
+          fontSize: '18px', 
+          fontWeight: '600',
+          color: '#2c5aa0'
         }}>
-          Preenchido
+          {title}
+        </h3>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <span style={{ 
+            fontSize: '14px', 
+            color: progressColor,
+            marginRight: '16px',
+            fontWeight: '500'
+          }}>
+            {filledCount}/{totalCount} {progressText}
+          </span>
+          <span style={{ 
+            fontSize: '16px', 
+            color: '#6c757d',
+            transform: isMinimized ? 'rotate(0deg)' : 'rotate(180deg)',
+            transition: 'transform 0.2s ease'
+          }}>
+            ▼
+          </span>
+        </div>
+      </div>
+      
+      {!isMinimized && (
+        <div style={{ padding: '16px 24px 24px' }}>
+          {children}
         </div>
       )}
     </div>
@@ -97,6 +260,15 @@ const SelfEvaluation: React.FC<SelfEvaluationProps> = ({
     resultados: { score: null as number | null, justification: '' },
     evolucaoDaRocketCorp: { score: null as number | null, justification: '' },
   });
+
+  // Estados para controlar expansão dos cards e itens
+  const [cardStates, setCardStates] = useState({
+    posture: false,
+    execution: false,
+    peopleAndManagement: false
+  });
+
+  const [expandedItems, setExpandedItems] = useState<{[key: string]: boolean}>({});
 
   useEffect(() => {
     if (initialSelfAssessmentData) {
@@ -138,6 +310,29 @@ const SelfEvaluation: React.FC<SelfEvaluationProps> = ({
     ).length;
   };
 
+  const toggleCardState = (card: 'posture' | 'execution' | 'peopleAndManagement') => {
+    setCardStates(prev => ({ ...prev, [card]: !prev[card] }));
+  };
+
+  const toggleItemExpansion = (itemKey: string) => {
+    setExpandedItems(prev => ({ ...prev, [itemKey]: !prev[itemKey] }));
+  };
+
+  const criteriaLabels = {
+    sentimentoDeDono: 'Sentimento de Dono',
+    resilienciaNasAdversidades: 'Resiliência nas adversidades',
+    organizacaoNoTrabalho: 'Organização no trabalho',
+    capacidadeDeAprender: 'Capacidade de aprender',
+    serTeamPlayer: 'Ser "team player"',
+    entregarComQualidade: 'Entregar com qualidade',
+    atenderAosPrazos: 'Atender aos prazos',
+    fazerMaisComMenos: 'Fazer mais com menos',
+    pensarForaDaCaixa: 'Pensar fora da caixa',
+    gente: 'Gente',
+    resultados: 'Resultados',
+    evolucaoDaRocketCorp: 'Evolução da Rocket Corp'
+  };
+
   const totalPostureCriteria = Object.keys(postureCriteria).length;
   const filledPostureCriteria = countFilledCriteria(postureCriteria);
 
@@ -171,65 +366,101 @@ const SelfEvaluation: React.FC<SelfEvaluationProps> = ({
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2 style={{ color: '#333' }}>Critérios de Postura</h2>
-        <span style={{ fontSize: '0.9em', color: filledPostureCriteria === totalPostureCriteria ? '#28a745' : '#dc3545' }}>
-          {filledPostureCriteria}/{totalPostureCriteria} preenchidos
-        </span>
-      </div>
-      {Object.entries(postureCriteria).map(([key, value]) => (
-        <Criterion
-          key={key}
-          title={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-          score={value.score}
-          justification={value.justification}
-          onScoreChange={(s) => updateCriterion('posture', key, 'score', s)}
-          onJustificationChange={(j) => updateCriterion('posture', key, 'justification', j)}
-          isFilled={value.score !== null && value.justification.trim() !== ''}
-        />
-      ))}
+    <div style={{ 
+      padding: '0', 
+      backgroundColor: '#f8f9fa',
+      minHeight: '100vh'
+    }}>
+      {/* Card de Critérios de Postura */}
+      <CriteriaCard
+        title="Critérios de Postura"
+        filledCount={filledPostureCriteria}
+        totalCount={totalPostureCriteria}
+        isMinimized={cardStates.posture}
+        onToggleMinimize={() => toggleCardState('posture')}
+      >
+        {Object.entries(postureCriteria).map(([key, value], index) => (
+          <CriterionItem
+            key={key}
+            number={index + 1}
+            title={criteriaLabels[key as keyof typeof criteriaLabels]}
+            score={value.score}
+            justification={value.justification}
+            onScoreChange={(s) => updateCriterion('posture', key, 'score', s)}
+            onJustificationChange={(j) => updateCriterion('posture', key, 'justification', j)}
+            isExpanded={expandedItems[`posture-${key}`] || false}
+            onToggleExpand={() => toggleItemExpansion(`posture-${key}`)}
+            isFilled={value.score !== null && value.justification.trim() !== ''}
+          />
+        ))}
+      </CriteriaCard>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', marginTop: '40px' }}>
-        <h2 style={{ color: '#333' }}>Critérios de Execução</h2>
-        <span style={{ fontSize: '0.9em', color: filledExecutionCriteria === totalExecutionCriteria ? '#28a745' : '#dc3545' }}>
-          {filledExecutionCriteria}/{totalExecutionCriteria} preenchidos
-        </span>
-      </div>
-      {Object.entries(executionCriteria).map(([key, value]) => (
-        <Criterion
-          key={key}
-          title={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-          score={value.score}
-          justification={value.justification}
-          onScoreChange={(s) => updateCriterion('execution', key, 'score', s)}
-          onJustificationChange={(j) => updateCriterion('execution', key, 'justification', j)}
-          isFilled={value.score !== null && value.justification.trim() !== ''}
-        />
-      ))}
+      {/* Card de Critérios de Execução */}
+      <CriteriaCard
+        title="Critérios de Execução"
+        filledCount={filledExecutionCriteria}
+        totalCount={totalExecutionCriteria}
+        isMinimized={cardStates.execution}
+        onToggleMinimize={() => toggleCardState('execution')}
+      >
+        {Object.entries(executionCriteria).map(([key, value], index) => (
+          <CriterionItem
+            key={key}
+            number={index + 1}
+            title={criteriaLabels[key as keyof typeof criteriaLabels]}
+            score={value.score}
+            justification={value.justification}
+            onScoreChange={(s) => updateCriterion('execution', key, 'score', s)}
+            onJustificationChange={(j) => updateCriterion('execution', key, 'justification', j)}
+            isExpanded={expandedItems[`execution-${key}`] || false}
+            onToggleExpand={() => toggleItemExpansion(`execution-${key}`)}
+            isFilled={value.score !== null && value.justification.trim() !== ''}
+          />
+        ))}
+      </CriteriaCard>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', marginTop: '40px' }}>
-        <h2 style={{ color: '#333' }}>Critérios de Gente e Gestão</h2>
-        <span style={{ fontSize: '0.9em', color: filledPeopleAndManagementCriteria === totalPeopleAndManagementCriteria ? '#28a745' : '#dc3545' }}>
-          {filledPeopleAndManagementCriteria}/{totalPeopleAndManagementCriteria} preenchidos
-        </span>
-      </div>
-      {Object.entries(peopleAndManagementCriteria).map(([key, value]) => (
-        <Criterion
-          key={key}
-          title={key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-          score={value.score}
-          justification={value.justification}
-          onScoreChange={(s) => updateCriterion('peopleAndManagement', key, 'score', s)}
-          onJustificationChange={(j) => updateCriterion('peopleAndManagement', key, 'justification', j)}
-          isFilled={value.score !== null && value.justification.trim() !== ''}
-        />
-      ))}
+      {/* Card de Critérios de Gente e Gestão */}
+      <CriteriaCard
+        title="Critérios de Gente e Gestão"
+        filledCount={filledPeopleAndManagementCriteria}
+        totalCount={totalPeopleAndManagementCriteria}
+        isMinimized={cardStates.peopleAndManagement}
+        onToggleMinimize={() => toggleCardState('peopleAndManagement')}
+      >
+        {Object.entries(peopleAndManagementCriteria).map(([key, value], index) => (
+          <CriterionItem
+            key={key}
+            number={index + 1}
+            title={criteriaLabels[key as keyof typeof criteriaLabels]}
+            score={value.score}
+            justification={value.justification}
+            onScoreChange={(s) => updateCriterion('peopleAndManagement', key, 'score', s)}
+            onJustificationChange={(j) => updateCriterion('peopleAndManagement', key, 'justification', j)}
+            isExpanded={expandedItems[`peopleAndManagement-${key}`] || false}
+            onToggleExpand={() => toggleItemExpansion(`peopleAndManagement-${key}`)}
+            isFilled={value.score !== null && value.justification.trim() !== ''}
+          />
+        ))}
+      </CriteriaCard>
 
-      <div style={{ marginTop: '40px', textAlign: 'right' }}>
+      <div style={{ 
+        marginTop: '32px', 
+        textAlign: 'right',
+        padding: '0 24px 24px'
+      }}>
         <button
           onClick={handleSubmit}
-          style={{ padding: '12px 25px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '1em', fontWeight: 'bold' }}
+          style={{ 
+            padding: '12px 32px', 
+            backgroundColor: '#007bff', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '6px', 
+            cursor: 'pointer', 
+            fontSize: '14px', 
+            fontWeight: '600',
+            boxShadow: '0 2px 4px rgba(0,123,255,0.3)'
+          }}
         >
           Salvar Autoavaliação
         </button>
