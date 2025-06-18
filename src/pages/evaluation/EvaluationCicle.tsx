@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; 
 import SelfEvaluation from '../../components/evaluation/SelfEvaluation';
-import EvaluationService, { type UserEvaluationsByCycleResponse } from '../../services/EvaluationService'; 
+import Sidebar from '../../components/evaluation/Sidebar';
+import EvaluationService, { type UserEvaluationsByCycleResponse } from '../../services/EvaluationService';
 
 type ActiveTab = 'self' | '360' | 'mentoring' | 'references';
 
 const EvaluationCicle: React.FC = () => {
-  const navigate = useNavigate(); 
 
   const [activeTab, setActiveTab] = useState<ActiveTab>('self');
   const [cycleData, setCycleData] = useState<UserEvaluationsByCycleResponse | null>(null);
@@ -16,7 +15,7 @@ const EvaluationCicle: React.FC = () => {
   const fetchCycleData = async () => {
     setLoading(true);
     setError(null);
-    const currentCycleId = "2025.1"; 
+    const currentCycleId = "2025.1";
     try {
       const data = await EvaluationService.getUserEvaluationsByCycle(currentCycleId);
       setCycleData(data);
@@ -30,44 +29,20 @@ const EvaluationCicle: React.FC = () => {
 
   useEffect(() => {
     fetchCycleData();
-  }, []); 
+  }, []);
 
   if (loading) return <div style={{ padding: '20px', textAlign: 'center' }}>Carregando ciclo de avaliação...</div>;
   if (error) return <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>Erro: {error}</div>;
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
-      <div style={{ width: '250px', backgroundColor: '#ffffff', padding: '20px', borderRight: '1px solid #eee', boxShadow: '2px 0 5px rgba(0,0,0,0.05)' }}>
-        <h2 style={{ color: '#333', marginBottom: '30px' }}>RPE</h2>
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          <li style={{ marginBottom: '15px', display: 'flex', alignItems: 'center', color: '#666', fontWeight: 'bold' }}>
-            <span style={{ marginRight: '10px' }}>📊</span> Dashboard
-          </li>
-          <li
-            style={{ marginBottom: '15px', display: 'flex', alignItems: 'center', backgroundColor: '#e0f7fa', padding: '10px', borderRadius: '5px', cursor: 'pointer', color: '#007bff' }}
-            onClick={() => navigate('/evaluation')} 
-          >
-            <span style={{ marginRight: '10px' }}>📝</span> Avaliação de ciclo <span style={{ marginLeft: 'auto', backgroundColor: '#007bff', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7em' }}>1</span>
-          </li>
-          <li style={{ marginBottom: '15px', display: 'flex', alignItems: 'center', color: '#666' }}>
-            <span style={{ marginRight: '10px' }}>📈</span> Evolução
-          </li>
-        </ul>
-        <div style={{ marginTop: '50px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px', color: '#666' }}>
-            <span style={{ marginRight: '10px', fontSize: '1.2em' }}>👤</span> Colaborador 1
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', color: '#dc3545', cursor: 'pointer' }}>
-            <span style={{ marginRight: '10px', fontSize: '1.2em' }}>➡️</span> Logout
-          </div>
-        </div>
-      </div>
+      <Sidebar />
 
-      <div style={{ flex: 1, padding: '30px', backgroundColor: '#ffffff' }}>
+      <div style={{ flex: 1, padding: '30px', backgroundColor: '#ffffff', marginLeft: '232px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
           <h1 style={{ color: '#333', fontSize: '2em' }}>Ciclo {cycleData?.cycle || '2025.1'}</h1>
           <button
-            onClick={() => {}}
+            onClick={() => { /* Lógica para o botão global de envio, se houver */ }}
             style={{ padding: '12px 25px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontSize: '1em', fontWeight: 'bold' }}
           >
             Concluir e enviar
