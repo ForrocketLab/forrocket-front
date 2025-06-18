@@ -10,7 +10,8 @@ const HomePage = () => {
     <div className='p-10'>
       <h1 className='text-3xl font-bold'>Home</h1>
       <p className='mt-4 text-lg'>
-        Token atual:
+        Token atual: {auth.user?.roles.join(', ') || 'Nenhum token disponível'}
+        <br />
         <br />
         <code className='text-sm text-gray-700'>{auth.isAuthenticated ? 'Autenticado' : 'Não autenticado'}</code>
       </p>

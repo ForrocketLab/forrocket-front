@@ -9,6 +9,8 @@ import {
 import { useNavigate, Link } from 'react-router-dom';
 import AuthService from '../../services/AuthService';
 import { Mail, Lock } from 'lucide-react';
+import { ROLES } from '../../types/roles';
+import { useAuth } from '../../hooks/useAuth';
 
 type LoginFormInputs = {
   email: string;
@@ -31,9 +33,9 @@ interface FormButtonProps {
 }
 
 const LoginPage: FC = () => {
+  const { login } = useAuth(); // Pegue a função login do contexto!
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
-  const navigate = useNavigate();
 
   const {
     register,
@@ -50,9 +52,7 @@ const LoginPage: FC = () => {
     setLoading(true);
     setApiError('');
     try {
-      const user = await AuthService.login(data);
-      alert(`Login bem-sucedido! Bem-vindo(a), ${user.name}!`);
-      navigate('/');
+      await login(data);
     } catch (err) {
       if (err instanceof Error) {
         setApiError(err.message);
