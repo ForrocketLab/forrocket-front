@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect, type FC, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthService from '../services/AuthService';
+import { ROLES } from '../types/roles';
 
 export interface AuthContextType {
   isAuthenticated: boolean;
@@ -27,43 +28,41 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      const storedToken = localStorage.getItem('authToken');
-      if (storedToken) {
+    const validateToken = async () => {
+      const token = AuthService.getToken();
+      if (token) {
         try {
+          // Se o token existe, busca os dados do usuário
           const userProfile = await AuthService.getProfile();
-          setUser(userProfile);
-          setToken(storedToken);
+          setUser(userProfile); // Restaura a sessão do usuário
         } catch (error) {
-          localStorage.removeItem('authToken');
-          console.error('Sessão inválida, fazendo logout.');
+          // Se o token for inválido/expirado, o getProfile falhará.
+          // O authService já deve fazer o logout.
+          console.error('Sessão inválida, limpando token.');
         }
       }
-      setLoading(false);
+      setLoading(false); // Finaliza o carregamento
     };
 
-    checkAuthStatus();
+    validateToken();
   }, []);
 
   const login = async (data: LoginCredentials) => {
     setLoading(true);
-    setApiError(null);
     try {
       await AuthService.login(data);
-      setToken(localStorage.getItem('authToken'));
 
-      // Após o login, buscamos o perfil completo para ter todos os dados no contexto.
       const userProfile = await AuthService.getProfile();
+
       setUser(userProfile);
 
-      alert(`Login bem-sucedido! Bem-vindo(a), ${userProfile.name}!`);
-      navigate('/dashboard');
+      const dashboardPath = getPathByRoles(userProfile.roles || []);
+
+      navigate(dashboardPath, { replace: true });
     } catch (err) {
-      if (err instanceof Error) {
-        setApiError(err.message);
-      } else {
-        setApiError('Ocorreu um erro desconhecido.');
-      }
+      console.error('Falha no processo de login:', err);
+      // Re-lança o erro para o LoginPage poder pegar no catch e exibir a mensagem de erro
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -77,13 +76,25 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   };
 
   const value = {
-    isAuthenticated: !!token,
+    isAuthenticated: !!user,
     user,
     loading,
     apiError,
     login,
     logout,
   };
+
+  const getPathByRoles = (roles: string[]): string => {
+    if (roles.includes(ROLES.ADMIN)) return '/admin';
+    if (roles.includes(ROLES.RH)) return '/rh';
+    if (roles.includes(ROLES.MANAGER)) return '/manager';
+    if (roles.includes(ROLES.COLLABORATOR)) return '/'; // Rota para colaborador
+    return '/login'; // Fallback
+  };
+
+  if (loading) {
+    return <div>Carregando...</div>;
+  }
 
   return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
 };
