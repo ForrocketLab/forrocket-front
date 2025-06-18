@@ -158,10 +158,11 @@ const SelfEvaluation: React.FC<SelfEvaluationProps> = ({
     console.log('Dados a serem enviados:', evaluationData);
 
     try {
-      const response = await EvaluationService.createSelfAssessment(evaluationData);
+      await EvaluationService.createSelfAssessment(evaluationData); 
+      
       alert('Autoavaliação enviada com sucesso!');
       if (onSubmissionSuccess) {
-        onSubmissionSuccess();
+        onSubmissionSuccess(); 
       }
     } catch (error: any) {
       alert(`Erro ao enviar autoavaliação: ${error.message}`);
