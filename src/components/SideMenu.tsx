@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { LogOut } from 'lucide-react';
-import { SIDE_MENU_CONFIG } from '../config/menuConfig';
+import { SIDE_MENU_CONFIG } from '../config/MenuConfig';
 
 const SideMenu = () => {
   const { user, logout } = useAuth();
