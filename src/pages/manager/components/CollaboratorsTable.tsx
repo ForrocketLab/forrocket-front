@@ -8,7 +8,6 @@ interface CollaboratorsTableProps {
 
 const CollaboratorsTable: FC<CollaboratorsTableProps> = ({ collaborators }) => {
   return (
-    // Container da tabela com fundo branco e bordas arredondadas
     <div className='bg-white p-6 rounded-xl shadow-md'>
       {/* Cabeçalho com título e link "Ver mais" */}
       <div className='flex justify-between items-center mb-4'>
@@ -22,7 +21,7 @@ const CollaboratorsTable: FC<CollaboratorsTableProps> = ({ collaborators }) => {
       <div className='flex flex-col'>
         {collaborators.map(collaborator => (
           <CollaboratorRow
-            key={collaborator.name} // Use um ID único aqui em um projeto real
+            key={collaborator.name} // ID único
             {...collaborator}
           />
         ))}

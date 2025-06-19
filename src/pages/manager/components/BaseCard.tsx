@@ -1,24 +1,28 @@
 import { type FC, type ReactNode } from 'react';
 
 interface BaseCardProps {
-  leftColumn: ReactNode;
-  rightColumn: ReactNode;
+  title: string;
+  leftContent: ReactNode;
+  rightContent: ReactNode;
   className?: string;
 }
 
-const BaseCard: FC<BaseCardProps> = ({
-  leftColumn,
-  rightColumn,
-  className = 'bg-white', // Fundo padrão
-}) => {
+const BaseCard: FC<BaseCardProps> = ({ title, leftContent, rightContent, className = 'bg-white text-gray-800' }) => {
   return (
-    // Container principal: define o grid e o estilo do card
-    <div className={`grid grid-cols-1 md:grid-cols-3 gap-6 p-6 rounded-2xl shadow-md ${className}`}>
-      {/* Slot para a Coluna Esquerda (ocupa 2/3 da largura em telas maiores) */}
-      <div className='md:col-span-2'>{leftColumn}</div>
+    <div className={`flex flex-col w-full p-6 rounded-2xl shadow-md ${className}`}>
+      <h3 className='text-[16px] font-bold'>{title}</h3>
 
-      {/* Slot para a Coluna Direita (ocupa 1/3 da largura em telas maiores) */}
-      <div className='flex items-center justify-center md:justify-end'>{rightColumn}</div>
+      {/*
+        - mobile: 1 coluna, empilhando os itens.
+        - Telas médias (md) ou maiores: 3 colunas.
+      */}
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 mt-2 flex-grow items-center'>
+        {/* Ocupa 2 colunas em telas maiores */}
+        <div className='md:col-span-2'>{leftContent}</div>
+
+        {/* Ocupa 1 coluna em telas maiores */}
+        <div className='flex items-center justify-start md:justify-center'>{rightContent}</div>
+      </div>
     </div>
   );
 };

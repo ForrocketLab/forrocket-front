@@ -10,32 +10,25 @@ export interface DetailedScoreCardProps {
   icon: ReactNode;
 }
 
-const DetailedScoreCard = (props: DetailedScoreCardProps) => {
+const DetailedScoreCard = ({ title, description, score, ratingText, color, icon }: DetailedScoreCardProps) => {
   return (
     <BaseCard
-      // Monta todo o conteúdo da coluna esquerda aqui
-      leftColumn={
-        <div className='flex flex-col gap-2 h-full'>
-          {/* Título */}
-          <h3 className='text-[16px] font-bold text-gray-800'>{props.title}</h3>
-
-          {/* Barra + Descrição */}
-          <div className='flex items-start mt-2'>
-            <div className='w-1 self-stretch rounded-full mr-3' style={{ backgroundColor: props.color }}></div>
-            <p className='text-[10px] text-gray-600 font-normal'>{props.description}</p>
-          </div>
+      title={title}
+      leftContent={
+        <div className='flex items-start'>
+          <div className='w-1 self-stretch rounded-full mr-3' style={{ backgroundColor: color }}></div>
+          <p className='text-[10px] text-gray-600 font-normal'>{description}</p>
         </div>
       }
-      // Monta todo o conteúdo da coluna direita aqui
-      rightColumn={
+      rightContent={
         <div className='flex items-center justify-end gap-3'>
-          <div style={{ color: props.color }}>{props.icon}</div>
+          <div style={{ color: color }}>{icon}</div>
           <div className='flex flex-col text-right'>
-            <span className='text-2xl font-bold' style={{ color: props.color }}>
-              {props.score}
+            <span className='text-2xl font-bold' style={{ color: color }}>
+              {score}
             </span>
-            <span className='text-sm font-medium' style={{ color: props.color }}>
-              {props.ratingText}
+            <span className='text-sm font-medium' style={{ color: color }}>
+              {ratingText}
             </span>
           </div>
         </div>
