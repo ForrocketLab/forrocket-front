@@ -1,11 +1,16 @@
-import { Home, Users, BarChart, UserCheck, ShieldCheck, type LucideIcon } from 'lucide-react'; // Ícones de exemplo
 import { ROLES } from '../types/roles'; // Seu enum de papéis
+
+import { type IconType } from 'react-icons';
+
+import { FaHome } from 'react-icons/fa';
+import { IoBarChartOutline } from 'react-icons/io5';
+import { LuFilePenLine, LuLayoutDashboard } from 'react-icons/lu';
 
 // Define a estrutura de um item de menu
 export interface MenuItemConfig {
   path: string;
   label: string;
-  icon: LucideIcon;
+  icon: IconType;
   allowedRoles: string[];
 }
 
@@ -14,31 +19,37 @@ export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
   {
     path: '/',
     label: 'Minha Home',
-    icon: Home,
+    icon: FaHome,
     allowedRoles: [ROLES.COLLABORATOR, ROLES.MANAGER, ROLES.RH, ROLES.ADMIN],
   },
   {
-    path: '/manager',
-    label: 'Painel do Gestor',
-    icon: Users,
+    path: '/dashboard',
+    label: 'Dashboard',
+    icon: LuLayoutDashboard,
+    allowedRoles: [ROLES.COLLABORATOR, ROLES.ADMIN],
+  },
+  {
+    path: '/avaliacao',
+    label: 'Avaliação de Ciclo',
+    icon: LuFilePenLine,
+    allowedRoles: [ROLES.COLLABORATOR, ROLES.ADMIN],
+  },
+  {
+    path: '/evolucao',
+    label: 'Evolução',
+    icon: IoBarChartOutline,
+    allowedRoles: [ROLES.COLLABORATOR, ROLES.ADMIN],
+  },
+  {
+    path: '/manager/dashboard',
+    label: 'Dashboard',
+    icon: LuLayoutDashboard,
     allowedRoles: [ROLES.MANAGER, ROLES.ADMIN],
   },
   {
-    path: '/rh',
-    label: 'Painel de RH',
-    icon: BarChart,
-    allowedRoles: [ROLES.RH, ROLES.ADMIN],
-  },
-  {
-    path: '/committee',
-    label: 'Comitê',
-    icon: UserCheck,
-    allowedRoles: [ROLES.COMMITTEE, ROLES.ADMIN],
-  },
-  {
-    path: '/admin',
-    label: 'Administração',
-    icon: ShieldCheck,
-    allowedRoles: [ROLES.ADMIN],
+    path: '/manager/colaborators',
+    label: 'Colaboradores',
+    icon: LuFilePenLine,
+    allowedRoles: [ROLES.MANAGER, ROLES.ADMIN],
   },
 ];

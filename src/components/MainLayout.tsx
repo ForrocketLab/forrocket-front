@@ -3,9 +3,9 @@ import SideMenu from './SideMenu';
 
 const MainLayout = () => {
   return (
-    <div className='flex h-screen bg-gray-100'>
+    <div className='h-screen bg-gray-100'>
       <SideMenu />
-      <main className='flex-1 p-8 overflow-y-auto'>
+      <main className='ml-[256px] p-8 h-full overflow-y-auto'>
         <Outlet />
       </main>
     </div>
