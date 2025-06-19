@@ -44,7 +44,6 @@ const SideMenu = () => {
                 <>
                   <item.icon
                     size={20}
-                    // Agora passamos uma STRING para className, calculada com base no 'isActive'
                     className={`transition-colors ${isActive ? 'text-[#085F60]' : 'text-gray-600'}`}
                   />
                   <span>{item.label}</span>
