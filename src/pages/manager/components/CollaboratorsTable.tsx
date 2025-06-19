@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import CollaboratorRow, { type CollaboratorRowProps } from './CollaboratorRow';
 
 interface CollaboratorsTableProps {
-  collaborators: CollaboratorRowProps[];
+  collaborators: DashboardSubordinate[];
 }
 
 const CollaboratorsTable: FC<CollaboratorsTableProps> = ({ collaborators }) => {
@@ -21,7 +21,7 @@ const CollaboratorsTable: FC<CollaboratorsTableProps> = ({ collaborators }) => {
       <div className='flex flex-col'>
         {collaborators.map(collaborator => (
           <CollaboratorRow
-            key={collaborator.name} // ID único
+            key={collaborator.id} // ID único
             {...collaborator}
           />
         ))}

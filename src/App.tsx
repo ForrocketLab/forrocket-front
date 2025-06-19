@@ -6,7 +6,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { ROLES } from './types/roles';
 import MainLayout from './components/MainLayout';
 import NotFoundPage from './pages/not-found/NotFound';
-import DashboardManager from './pages/manager/dashboard/DashboardManager';
+import ManagerDashboard from './pages/manager/dashboard/ManagerDashboard';
 
 function App() {
   return (
@@ -36,7 +36,7 @@ function App() {
             </Route>
 
             <Route element={<ProtectedRoute allowedRoles={[ROLES.MANAGER]} />}>
-              <Route path='/manager/dashboard' element={<DashboardManager />} />
+              <Route path='/manager/dashboard' element={<ManagerDashboard />} />
             </Route>
 
             <Route element={<ProtectedRoute allowedRoles={[ROLES.COLLABORATOR]} />}>

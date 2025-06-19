@@ -14,8 +14,8 @@ const PendingReviewsCard = ({ title, description, pendingCount }: PendingReviews
       className='bg-[#08605F] text-white'
       leftContent={
         <div className='flex items-start'>
-          <div className='w-1 self-stretch rounded-full mr-3 bg-white/50'></div>
-          <p className='text-[10px] font-normal text-white/80'>{description}</p>
+          <div className='w-1 self-stretch rounded-full mr-3 bg-white'></div>
+          <p className='text-[10px] font-normal text-white'>{description}</p>
         </div>
       }
       rightContent={

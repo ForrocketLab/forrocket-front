@@ -1,7 +1,7 @@
 import { type FC } from 'react';
 import { ChevronRight } from 'lucide-react';
 
-type Status = 'Pendente' | 'Em andamento' | 'Finalizado';
+type Status = 'PENDING' | 'DRAFT' | 'SUBMITTED';
 
 export interface CollaboratorRowProps {
   initials: string;
@@ -21,12 +21,25 @@ const CollaboratorRow: FC<CollaboratorRowProps> = ({
   managerScore,
 }) => {
   const statusStyles = {
-    Pendente: 'bg-[#BEE7CF] text-[#419958]',
-    'Em andamento': 'bg-[#FEF5B2] text-[#F5AA30]',
-    Finalizado: 'bg-gray-200 text-gray-800',
+    PENDING: 'bg-[#BEE7CF] text-[#419958]',
+    DRAFT: 'bg-[#FEF5B2] text-[#F5AA30]',
+    SUBMITTED: 'bg-gray-200 text-gray-800',
   }[status];
 
   const managerScoreStyles = managerScore ? 'bg-[#08605F] text-white' : 'bg-[#E6E6E6] text-black';
+
+  function getStatus(status: Status) {
+    switch (status) {
+      case 'PENDING':
+        return 'Pendente';
+      case 'DRAFT':
+        return 'Em andamento';
+      case 'SUBMITTED':
+        return 'Finalizado';
+      default:
+        return 'Pendente';
+    }
+  }
 
   return (
     <div className='flex flex-col md:flex-row md:items-center w-full p-4 border border-gray-200 rounded-xl mb-3 gap-4 md:gap-0'>
@@ -39,7 +52,9 @@ const CollaboratorRow: FC<CollaboratorRowProps> = ({
           <span className='font-bold text-gray-800'>{name}</span>
           <span className='text-sm text-gray-500'>{jobTitle}</span>
         </div>
-        <span className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${statusStyles}`}>{status}</span>
+        <span className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${statusStyles}`}>
+          {getStatus(status)}
+        </span>
       </div>
 
       {/* Parte Direita: Notas e Ícone */}
