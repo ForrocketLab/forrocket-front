@@ -11,6 +11,8 @@ import CommitteePage from './pages/committee/Committee';
 import EqualizacoesPage from './pages/committee/Equalizacoes';
 import ToastContainer from './components/ToastContainer';
 import { useToastSubscription } from './hooks/useGlobalToast';
+import RefPage from './pages/referencias/RefCollaborator';
+
 
 function App() {
   return (
@@ -39,6 +41,7 @@ function AppWithToasts() {
 
               <Route element={<ProtectedRoute allowedRoles={[ROLES.COLLABORATOR]} />}>
                 <Route path='/' element={<HomePage />} />
+                <Route path='/avaliacao' element={<RefPage />} />
               </Route>
 
               <Route element={<ProtectedRoute allowedRoles={[ROLES.RH]} />}>
