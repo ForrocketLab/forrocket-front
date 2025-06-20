@@ -1,9 +1,9 @@
 import { FaStar } from 'react-icons/fa';
-import CycleStatus from '../components/CycleStatus';
-import DetailedScoreCard from '../components/DetailedScoreCard';
-import DetailedEvaluationsCard from '../components/DetailedEvaluationsCard';
-import PendingReviewsCard from '../components/PendingReviewsCard';
-import CollaboratorsTable from '../components/CollaboratorsTable';
+import CycleStatus from './components/CycleStatus';
+import DetailedScoreCard from './components/DetailedScoreCard';
+import DetailedEvaluationsCard from './components/DetailedEvaluationsCard';
+import PendingReviewsCard from './components/PendingReviewsCard';
+import CollaboratorsTable from './components/CollaboratorsTable';
 import { useEffect, useState } from 'react';
 import DashboardService from '../../../services/DashboardService';
 import { useAuth } from '../../../hooks/useAuth';
