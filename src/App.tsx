@@ -13,6 +13,7 @@ import ToastContainer from './components/ToastContainer';
 import { useToastSubscription } from './hooks/useGlobalToast';
 import RefPage from './pages/referencias/RefCollaborator';
 import ManagerCollaborators from './pages/manager/collaborators/ManagerCollaborators';
+import CollaboratorEvaluationDetails from './pages/manager/collaborators/CollaboratorEvaluationDetails';
 
 function App() {
   return (
@@ -64,6 +65,7 @@ function AppWithToasts() {
               <Route element={<ProtectedRoute allowedRoles={[ROLES.MANAGER]} />}>
                 <Route path='/manager/dashboard' element={<ManagerDashboard />} />
                 <Route path='/manager/collaborators' element={<ManagerCollaborators />} />
+                <Route path='/manager/collaborators/:id/evaluations' element={<CollaboratorEvaluationDetails />} />
               </Route>
 
               {/* ROTA DE FALLBACK (404) */}
