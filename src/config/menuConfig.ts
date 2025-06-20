@@ -2,7 +2,7 @@ import { ROLES } from '../types/roles'; // Seu enum de papéis
 
 import { type IconType } from 'react-icons';
 
-import { FaHome } from 'react-icons/fa';
+import { FaHome, FaUsers } from 'react-icons/fa';
 import { IoBarChartOutline } from 'react-icons/io5';
 import { LuFilePenLine, LuLayoutDashboard } from 'react-icons/lu';
 
@@ -47,9 +47,9 @@ export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
     allowedRoles: [ROLES.MANAGER],
   },
   {
-    path: '/manager/colaborators',
+    path: '/manager/collaborators',
     label: 'Colaboradores',
-    icon: LuFilePenLine,
+    icon: FaUsers,
     allowedRoles: [ROLES.MANAGER],
   },
   {

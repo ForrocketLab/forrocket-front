@@ -12,7 +12,7 @@ import EqualizacoesPage from './pages/committee/Equalizacoes';
 import ToastContainer from './components/ToastContainer';
 import { useToastSubscription } from './hooks/useGlobalToast';
 import RefPage from './pages/referencias/RefCollaborator';
-
+import ManagerCollaborators from './pages/manager/collaborators/ManagerCollaborators';
 
 function App() {
   return (
@@ -59,6 +59,11 @@ function AppWithToasts() {
 
               <Route element={<ProtectedRoute allowedRoles={[ROLES.COLLABORATOR]} />}>
                 <Route path='/dashboard' element={<h1>Gestor</h1>} />
+              </Route>
+
+              <Route element={<ProtectedRoute allowedRoles={[ROLES.MANAGER]} />}>
+                <Route path='/manager/dashboard' element={<ManagerDashboard />} />
+                <Route path='/manager/collaborators' element={<ManagerCollaborators />} />
               </Route>
 
               {/* ROTA DE FALLBACK (404) */}
