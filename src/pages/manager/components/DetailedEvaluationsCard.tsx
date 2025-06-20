@@ -24,7 +24,7 @@ const DetailedEvaluationsCard = ({
       leftContent={
         <div className='flex items-start'>
           <div className='w-1 self-stretch rounded-full mr-3' style={{ backgroundColor: progressBarColor }}></div>
-          <p className='text-[10px] text-gray-600 font-normal'>{description}</p>
+          <p className='text-sm text-gray-600 font-normal'>{description}</p>
         </div>
       }
       rightContent={
