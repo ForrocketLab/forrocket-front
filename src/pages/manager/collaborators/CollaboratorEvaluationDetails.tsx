@@ -1,4 +1,3 @@
-// src/pages/manager/collaborators/CollaboratorEvaluationDetails.tsx
 import { type FC, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ArrowLeft, AlertCircle } from 'lucide-react';
@@ -168,9 +167,6 @@ const CollaboratorEvaluationDetails: FC = () => {
         <div className="bg-white rounded-lg p-4 border border-gray-200">
           <h4 className="text-md font-semibold text-gray-900 mb-3">Sua Avaliação (como Gestor)</h4>
           {evaluationSummary.managerAssessmentsReceived && evaluationSummary.managerAssessmentsReceived.length > 0 ? (
-            // AQUI VOCÊ PODE DESENHAR OS DETALHES DA AVALIAÇÃO DO GESTOR
-            // Como no seu protótipo (Critérios de Postura, Sentimento de Dono, etc.)
-            // evaluationSummary.managerAssessmentsReceived[0] conterá a sua avaliação
             <div>
               {/* Exemplo de como acessar alguns dados */}
               <p className="text-sm text-gray-700 mb-2">
@@ -179,10 +175,9 @@ const CollaboratorEvaluationDetails: FC = () => {
               <p className="text-sm text-gray-700">
                 Data: <span className="font-medium">{new Date(evaluationSummary.managerAssessmentsReceived[0].createdAt).toLocaleDateString()}</span>
               </p>
-              {/* Você precisaria iterar sobre os 'evaluationCriterias' ou 'strengths', 'weaknesses'
-                  que vêm na resposta completa se seu backend enviar */}
+
               <p className="mt-4 text-gray-600">
-                Para replicar o protótipo do Figma (Critérios de Postura, Justificativas), você precisará acessar os detalhes dentro de `evaluationSummary.managerAssessmentsReceived[0]` (assumindo que o primeiro é a avaliação do gestor). Se esses detalhes não vêm, o backend precisaria ser ajustado ou uma nova rota criada.
+                detalhes da avaliação
               </p>
             </div>
           ) : (
