@@ -52,4 +52,16 @@ export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
     icon: LuFilePenLine,
     allowedRoles: [ROLES.MANAGER],
   },
+  {
+    path: '/committee',
+    label: 'Painel do Comitê',
+    icon: LuLayoutDashboard,
+    allowedRoles: [ROLES.COMMITTEE, ROLES.ADMIN],
+  },
+  {
+    path: '/committee/equalizacoes',
+    label: 'Equalizações',
+    icon: LuFilePenLine,
+    allowedRoles: [ROLES.COMMITTEE, ROLES.ADMIN],
+  },
 ];

@@ -43,7 +43,7 @@ const LoginPage: FC = () => {
     formState: { errors },
   } = useForm<LoginFormInputs>({
     defaultValues: {
-      email: 'ana.oliveira@rocketcorp.com',
+      email: 'carla.dias@rocketcorp.com',
       password: 'password123',
     },
   });

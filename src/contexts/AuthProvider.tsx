@@ -30,6 +30,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const validateToken = async () => {
       const token = AuthService.getToken();
+      
       if (token) {
         try {
           // Se o token existe, busca os dados do usuário
@@ -38,7 +39,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         } catch (error) {
           // Se o token for inválido/expirado, o getProfile falhará.
           // O authService já deve fazer o logout.
-          console.error('Sessão inválida, limpando token.');
+          console.error('Sessão inválida, limpando token:', error);
         }
       }
       setLoading(false); // Finaliza o carregamento
@@ -50,17 +51,21 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const login = async (data: LoginCredentials) => {
     setLoading(true);
     try {
+      console.log('🔐 Iniciando login com:', data.email);
       await AuthService.login(data);
+      console.log('✅ Login realizado com sucesso');
 
       const userProfile = await AuthService.getProfile();
+      console.log('👤 Perfil do usuário:', userProfile);
 
       setUser(userProfile);
 
       const dashboardPath = getPathByRoles(userProfile.roles || []);
+      console.log('🚀 Redirecionando para:', dashboardPath);
 
       navigate(dashboardPath, { replace: true });
     } catch (err) {
-      console.error('Falha no processo de login:', err);
+      console.error('❌ Falha no processo de login:', err);
       // Re-lança o erro para o LoginPage poder pegar no catch e exibir a mensagem de erro
       throw err;
     } finally {
@@ -85,15 +90,33 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   };
 
   const getPathByRoles = (roles: string[]): string => {
+    console.log('🔍 Verificando roles:', roles);
+    console.log('🔍 ROLES.COMMITTEE:', ROLES.COMMITTEE);
+    
     if (roles.includes(ROLES.ADMIN)) return '/admin';
     if (roles.includes(ROLES.RH)) return '/rh';
+    if (roles.includes(ROLES.COMMITTEE)) return '/committee';
     if (roles.includes(ROLES.MANAGER)) return '/manager';
     if (roles.includes(ROLES.COLLABORATOR)) return '/'; // Rota para colaborador
     return '/login'; // Fallback
   };
 
   if (loading) {
-    return <div>Carregando...</div>;
+    return (
+      <div style={{ 
+        padding: '20px', 
+        textAlign: 'center', 
+        backgroundColor: '#f0f0f0',
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#085F60]"></div>
+        <div style={{ marginTop: '20px' }}>Verificando autenticação...</div>
+      </div>
+    );
   }
 
   return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;

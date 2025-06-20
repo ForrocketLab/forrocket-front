@@ -1,5 +1,6 @@
 import { useContext } from 'react';
 import { AuthContext } from '../../contexts/AuthProvider';
+import ToastTest from '../../components/ToastTest';
 
 const HomePage = () => {
   const auth = useContext(AuthContext);
@@ -20,6 +21,11 @@ const HomePage = () => {
           <p>Usuário: {auth.user.name}</p>
         </div>
       )}
+      
+      {/* Componente de teste para toasts */}
+      <div className="mt-8 border-t pt-4">
+        <ToastTest />
+      </div>
     </div>
   );
 };

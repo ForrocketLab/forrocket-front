@@ -34,6 +34,7 @@ const SideMenu = () => {
             <NavLink
               key={item.path}
               to={item.path}
+              end={true} // Força correspondência exata da rota
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-2 rounded-lg transition-colors duration-200 ${
                   isActive ? 'bg-teal-100 text-[#085F60] font-bold' : 'text-gray-700 hover:bg-gray-100'
