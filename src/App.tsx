@@ -10,6 +10,7 @@ import CommitteePage from './pages/committee/Committee';
 import EqualizacoesPage from './pages/committee/Equalizacoes';
 import ToastContainer from './components/ToastContainer';
 import { useToastSubscription } from './hooks/useGlobalToast';
+import RefPage from './pages/referencias/RefCollaborator';
 import ManagerCollaboratorEvaluations from './pages/manager/collaboratorEvaluations/ManagerCollaboratorEvaluations';
 import ManagerDashboardPage from './pages/manager/dashboard/ManagerDashboard';
 
@@ -37,28 +38,31 @@ function AppWithToasts() {
             <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]} />}>
               <Route path='/admin' element={<HomePage />} />
             </Route>
+
             <Route element={<ProtectedRoute allowedRoles={[ROLES.COLLABORATOR]} />}>
               <Route path='/' element={<HomePage />} />
+              <Route path='/avaliacao' element={<RefPage />} />
             </Route>
+
             <Route element={<ProtectedRoute allowedRoles={[ROLES.RH]} />}>
               <Route path='/rh' element={<h1>RH</h1>} />
             </Route>
+
             <Route element={<ProtectedRoute allowedRoles={[ROLES.COMMITTEE]} />}>
               <Route path='/committee' element={<CommitteePage />} />
               <Route path='/committee/equalizacoes' element={<EqualizacoesPage />} />
             </Route>
+
             <Route element={<ProtectedRoute allowedRoles={[ROLES.MANAGER]} />}>
               <Route path='/manager/dashboard' element={<ManagerDashboardPage />} />
-            </Route>
-            <Route element={<ProtectedRoute allowedRoles={[ROLES.MANAGER]} />}>
               <Route path='/manager/collaborators' element={<h1>View dos colaboradores aqui</h1>} />
-            </Route>
-            <Route element={<ProtectedRoute allowedRoles={[ROLES.MANAGER]} />}>
               <Route path='/manager/collaborators/:collaboratorId' element={<ManagerCollaboratorEvaluations />} />
             </Route>
+
             <Route element={<ProtectedRoute allowedRoles={[ROLES.COLLABORATOR]} />}>
               <Route path='/dashboard' element={<h1>Gestor</h1>} />
             </Route>
+
             {/* ROTA DE FALLBACK (404) */}
             <Route path='*' element={<NotFoundPage />} />
           </Route>

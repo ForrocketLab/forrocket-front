@@ -1,8 +1,6 @@
 import type { FC } from 'react';
 import { ROLES } from '../types/roles'; // Seu enum de papéis
 
-import { type IconType } from 'react-icons';
-
 import { FaHome } from 'react-icons/fa';
 import { IoBarChartOutline } from 'react-icons/io5';
 import { LuFilePenLine, LuLayoutDashboard, LuLayoutTemplate, LuUsers } from 'react-icons/lu';
