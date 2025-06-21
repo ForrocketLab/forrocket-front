@@ -3,7 +3,7 @@ import LoginPage from './pages/login/login';
 import { AuthProvider } from './contexts/AuthProvider';
 import HomePage from './pages/home/Home';
 import Sidebar from './components/Sidebar';
-import EvaluationPage from './pages/evaluation/evaluation';
+import EvaluationPage from './pages/evaluation/EvaluationCycle';
 
 function App() {
   return (
