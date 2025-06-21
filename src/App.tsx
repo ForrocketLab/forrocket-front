@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import LoginPage from './pages/login/login';
 import { AuthProvider } from './contexts/AuthProvider';
 import HomePage from './pages/home/Home';
+import HRHomePage from './pages/hr/HRHome';
 import ProtectedRoute from './components/ProtectedRoute';
 import { ROLES } from './types/roles';
 import MainLayout from './components/MainLayout';
@@ -14,6 +15,8 @@ import { useToastSubscription } from './hooks/useGlobalToast';
 import RefPage from './pages/referencias/RefCollaborator';
 import ManagerCollaborators from './pages/manager/collaborators/ManagerCollaborators';
 import CollaboratorEvaluationDetails from './pages/manager/collaborators/CollaboratorEvaluationDetails';
+import CollaboratorManagement from './pages/hr/CollaboratorManagement';
+import CriteriaManagement from './pages/hr/CriteriaManagement';
 
 function App() {
   return (
@@ -46,7 +49,9 @@ function AppWithToasts() {
               </Route>
 
               <Route element={<ProtectedRoute allowedRoles={[ROLES.RH]} />}>
-                <Route path='/rh' element={<h1>RH</h1>} />
+                <Route path='/rh' element={<HRHomePage />} />
+                <Route path='/rh/colaboradores' element={<CollaboratorManagement />} />
+                <Route path='/rh/criterios' element={<CriteriaManagement />} />
               </Route>
 
               <Route element={<ProtectedRoute allowedRoles={[ROLES.COMMITTEE]} />}>
