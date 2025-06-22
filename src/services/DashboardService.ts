@@ -1,6 +1,7 @@
 import { AxiosError } from 'axios';
 import api from '../api';
 import AuthService from './AuthService';
+import { type DetailedSelfAssessment } from "../types/detailedEvaluations";
 
 class DashboardService {
   // Busca os dados consolidados para o painel do gestor.
@@ -38,6 +39,24 @@ class DashboardService {
       console.error('Erro ao buscar ciclo ativo:', error);
       if (error instanceof AxiosError && error.response) {
         throw new Error(error.response.data.message || 'Falha ao buscar ciclo ativo.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  // Novo método para buscar a autoavaliação detalhada de um subordinado
+  static async getDetailedSelfAssessment(subordinateId: string): Promise<DetailedSelfAssessment> {
+    try {
+      const response = await api.get<DetailedSelfAssessment>(`/evaluations/manager/subordinate/${subordinateId}/self-assessment`, {
+        headers: {
+          Authorization: `Bearer ${AuthService.getToken()}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Erro ao buscar autoavaliação detalhada para ${subordinateId}:`, error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar autoavaliação detalhada.');
       }
       throw new Error('Ocorreu um erro de rede. Tente novamente.');
     }

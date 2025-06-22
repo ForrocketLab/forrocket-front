@@ -1,42 +1,48 @@
 import { type FC, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { ArrowLeft, AlertCircle } from 'lucide-react';
-import CommitteeService, { type CollaboratorEvaluationSummary } from '../../../services/CommitteeService';
+import { ArrowLeft, AlertCircle, CheckCircle, ChevronDown, ChevronUp, Star } from 'lucide-react';
+import DashboardService from '../../../services/DashboardService';
+import { type DetailedSelfAssessment, type SelfAssessmentAnswer } from '../../../types/detailedEvaluations';
 
 const CollaboratorEvaluationDetails: FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const [evaluationSummary, setEvaluationSummary] = useState<CollaboratorEvaluationSummary | null>(null);
+  const { id: collaboratorIdFromUrl } = useParams<{ id: string }>();
+  const [detailedSelfAssessment, setDetailedSelfAssessment] = useState<DetailedSelfAssessment | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expandedCriterion, setExpandedCriterion] = useState<string | null>(null);
+
+  const collaboratorPlaceholderName = "Colaborador Avaliado";
+  const collaboratorJobTitle = "Product Design";
 
   useEffect(() => {
-    if (!id) {
+    if (!collaboratorIdFromUrl) {
       setError('ID do colaborador não fornecido na URL.');
       setIsLoading(false);
       return;
     }
 
-    const fetchEvaluationDetails = async () => {
+    const fetchDetailedSelfAssessment = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const summary = await CommitteeService.getCollaboratorEvaluationSummary(id);
-        setEvaluationSummary(summary);
+        const selfAssessment = await DashboardService.getDetailedSelfAssessment(collaboratorIdFromUrl);
+        setDetailedSelfAssessment(selfAssessment);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Erro ao carregar os detalhes da avaliação.');
+        const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar a autoavaliação detalhada.';
+        setError(errorMessage);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchEvaluationDetails();
-  }, [id]);
+    fetchDetailedSelfAssessment();
+  }, [collaboratorIdFromUrl]);
 
   if (isLoading) {
     return (
       <div className="p-6 bg-gray-50 min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#085F60]"></div>
-        <p className="ml-4 text-gray-700">Carregando detalhes da avaliação...</p>
+        <p className="ml-4 text-gray-700">Carregando autoavaliação detalhada...</p>
       </div>
     );
   }
@@ -59,14 +65,14 @@ const CollaboratorEvaluationDetails: FC = () => {
     );
   }
 
-  if (!evaluationSummary) {
+  if (!detailedSelfAssessment) {
     return (
       <div className="p-6 bg-gray-50 min-h-screen">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Dados de avaliação não encontrados</h3>
-            <p className="text-gray-600 mb-4">Verifique se o colaborador possui avaliações no ciclo ativo.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Autoavaliação detalhada não encontrada</h3>
+            <p className="text-gray-600 mb-4">Verifique se o colaborador possui uma autoavaliação para o ciclo atual.</p>
             <button
               onClick={() => window.history.back()}
               className="bg-[#085F60] text-white px-4 py-2 rounded-lg hover:bg-[#064b4c] transition-colors"
@@ -79,112 +85,133 @@ const CollaboratorEvaluationDetails: FC = () => {
     );
   }
 
-  // Função auxiliar para renderizar barras de pontuação (reutilizada de Equalizacoes.tsx)
-  const renderScoreBar = (score: number | null, label: string) => {
-    const percentage = score ? (score / 5) * 100 : 0;
-    return (
-      <div className="mb-4">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-medium text-gray-700">{label}</span>
-          <span className="text-sm font-bold text-[#085F60]">{score || 'N/A'}</span>
-        </div>
-        <div className="h-3 bg-gray-200 rounded-full">
-          <div
-            className="h-3 bg-[#085F60] rounded-full transition-all duration-300"
-            style={{ width: `${percentage}%` }}
-          ></div>
-        </div>
-      </div>
-    );
+  const getCriterionName = (criterionId: string): string => {
+    switch (criterionId) {
+      case 'atender-prazos': return 'Atender Prazos';
+      case 'capacidade-aprender': return 'Capacidade de Aprender';
+      case 'entregar-qualidade': return 'Entregar Qualidade';
+      case 'evolucao-rocket': return 'Evolução Rocket';
+      case 'fazer-mais-menos': return 'Fazer Mais com Menos';
+      case 'gestao-gente': return 'Gestão de Pessoas';
+      case 'gestao-resultados': return 'Gestão de Resultados';
+      case 'organizacao-trabalho': return 'Organização no Trabalho';
+      case 'pensar-fora-caixa': return 'Pensar Fora da Caixa';
+      case 'resiliencia-adversidades': return 'Resiliência às Adversidades';
+      case 'sentimento-de-dono': return 'Sentimento de Dono';
+      case 'team-player': return 'Ser "team player"';
+      default: return criterionId.replace(/-/g, ' ').replace(/\b\w/g, s => s.toUpperCase());
+    }
   };
 
+  const getInitials = (name: string): string => {
+    if (!name) return '';
+    return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+  };
+
+  const collaboratorInitials = getInitials(collaboratorPlaceholderName);
+
+  const toggleCriterionExpansion = (criterionId: string) => {
+    setExpandedCriterion(prevId => (prevId === criterionId ? null : criterionId));
+  };
+
+
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="flex items-center gap-4 mb-6">
-        {/* Botão de Voltar */}
-        <button
-          onClick={() => window.history.back()}
-          className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <h1 className="text-2xl font-semibold text-gray-900">Detalhes da Avaliação</h1>
-      </div>
-
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">
-          Avaliações do Colaborador: {evaluationSummary.collaborator.name}
-        </h2>
-        <p className="text-gray-600 mb-6">
-          Cargo: {evaluationSummary.collaborator.jobTitle} - Ciclo: {evaluationSummary.cycle}
-        </p>
-
-        {/* Informações do Colaborador (similares ao Comitê, mas mais simples) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
-            <h4 className="text-md font-semibold text-gray-900 mb-3">Notas Consolidadas</h4>
-            {renderScoreBar(evaluationSummary.evaluationScores.selfAssessment, 'Autoavaliação')}
-            {renderScoreBar(evaluationSummary.evaluationScores.assessment360, 'Avaliação 360')}
-            {renderScoreBar(evaluationSummary.evaluationScores.managerAssessment, 'Avaliação Gestor')}
-            {renderScoreBar(evaluationSummary.evaluationScores.mentoring, 'Mentoring')}
-          </div>
-
-          <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
-            <h4 className="text-md font-semibold text-blue-900 mb-2">Resumo Consolidado</h4>
-            <p className="text-sm text-blue-800">
-              {evaluationSummary.customSummary || 'Nenhum resumo personalizado disponível.'}
-            </p>
-          </div>
-        </div>
-
-        {/* Seção para Avaliação do Comitê - AGORA SERÁ EXIBIDA */}
-        {evaluationSummary.committeeAssessment && (
-          <div className="bg-green-50 rounded-lg p-4 border-l-4 border-green-400 mb-6">
-            <h4 className="text-md font-semibold text-green-900 mb-3">Avaliação de Comitê</h4>
-            <div className="flex justify-between items-start mb-2">
-              <div>
-                <p className="font-medium">{evaluationSummary.committeeAssessment.author.name}</p>
-                <p className="text-sm text-gray-600">Membro do Comitê</p>
-              </div>
-              <span className="bg-green-600 text-white px-3 py-1 rounded text-lg font-bold">
-                {evaluationSummary.committeeAssessment.finalScore}
-              </span>
+    <div className="flex min-h-screen bg-gray-100">
+      <div className="flex flex-col flex-1">
+        <header className='fixed top-0 left-[256px] right-0 bg-white z-10 shadow-sm'>
+            <div className='h-20 w-full flex items-center justify-between border-b border-[#f3f3f3] text-lg px-8'>
+                <div className='flex items-center gap-4'>
+                    <button
+                        onClick={() => window.history.back()}
+                        className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+                        title="Voltar"
+                    >
+                        <ArrowLeft className="w-5 h-5" />
+                    </button>
+                    <h1 className='text-black font-bold text-xl'>Detalhes da Avaliação</h1>
+                </div>
+                <div className='flex items-center gap-3'>
+                    <span className='bg-gray-200 rounded-full w-10 h-10 flex items-center justify-center font-bold text-[#085F60] text-sm uppercase'>
+                        {collaboratorInitials}
+                    </span>
+                    <div className='flex flex-col'>
+                        <span className='text-sm font-bold text-gray-800'>{collaboratorPlaceholderName}</span>
+                        <span className='text-xs text-gray-500'>{collaboratorJobTitle}</span>
+                    </div>
+                </div>
             </div>
-            <div className="text-sm text-gray-700">
-              <p><strong>Justificativa:</strong></p>
-              <p className="mt-1">{evaluationSummary.committeeAssessment.justification}</p>
-              {evaluationSummary.committeeAssessment.observations && (
-                <>
-                  <p className="mt-2"><strong>Observações:</strong></p>
-                  <p className="mt-1">{evaluationSummary.committeeAssessment.observations}</p>
-                </>
-              )}
+
+            <div className='bg-white h-10 flex items-center px-8 text-sm border-b border-[#f3f3f3]'>
+                <button className="font-semibold text-sm cursor-pointer text-[#085F60] underline underline-offset-4 decoration-2 px-4 py-1.5">
+                    Avaliação <span className="inline-block w-2 h-2 bg-red-500 rounded-full ml-1"></span>
+                </button>
+                <button className="font-medium text-sm cursor-pointer text-gray-700 hover:text-[#085F60] px-4 py-1.5">
+                    Avaliação 360
+                </button>
+                <button className="font-medium text-sm cursor-pointer text-gray-700 hover:text-[#085F60] px-4 py-1.5">
+                    Histórico
+                </button>
             </div>
-          </div>
-        )}
+        </header>
 
-        {/* Seção para Avaliação do Gestor (mantido como está, com a mensagem atual) */}
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <h4 className="text-md font-semibold text-gray-900 mb-3">Sua Avaliação (como Gestor)</h4>
-          {evaluationSummary.managerAssessmentsReceived && evaluationSummary.managerAssessmentsReceived.length > 0 ? (
-            <div>
-              {/* Exemplo de como acessar alguns dados */}
-              <p className="text-sm text-gray-700 mb-2">
-                Nota Geral: <span className="font-medium">{evaluationSummary.evaluationScores.managerAssessment || 'N/A'}</span>
-              </p>
-              <p className="text-sm text-gray-700">
-                Data: <span className="font-medium">{new Date(evaluationSummary.managerAssessmentsReceived[0].createdAt).toLocaleDateString()}</span>
-              </p>
+        <main className="flex-1 p-8 pt-[140px]">
+            <div className="max-w-3xl mx-auto">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">Critérios de Postura</h3>
 
-              <p className="mt-4 text-gray-600">
-                detalhes da avaliação
-              </p>
+                {detailedSelfAssessment.answers.length > 0 ? (
+                    detailedSelfAssessment.answers.map((answer: SelfAssessmentAnswer) => (
+                        <div key={answer.id} className="bg-white rounded-lg shadow-sm mb-4 border border-gray-200">
+                            {/* Cabeçalho do Critério (clicável para expandir) */}
+                            <button
+                                className="w-full text-left p-5 flex items-center justify-between"
+                                onClick={() => toggleCriterionExpansion(answer.criterionId)}
+                            >
+                                <div className="flex items-center">
+                                    <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                                    <h4 className="font-bold text-gray-800 text-md">{getCriterionName(answer.criterionId)}</h4>
+                                </div>
+                                {/* Apenas o Ícone de Expansão/Contração */}
+                                <div className="flex items-center">
+                                    {expandedCriterion === answer.criterionId ? (
+                                        <ChevronUp className="w-5 h-5 text-gray-600" />
+                                    ) : (
+                                        <ChevronDown className="w-5 h-5 text-gray-600" />
+                                    )}
+                                </div>
+                            </button>
+
+                            {/* Conteúdo Expansível (Estrelas e Justificativa) */}
+                            {expandedCriterion === answer.criterionId && (
+                                <div className="px-5 pb-5 pt-3 border-t border-gray-200">
+                                    <div className="mb-3">
+                                        <p className="text-sm text-gray-600 mb-1">Autoavaliação</p>
+                                        <div className="flex items-center gap-1">
+                                            {[1, 2, 3, 4, 5].map((starValue) => (
+                                                <Star
+                                                    key={starValue}
+                                                    className={`w-5 h-5 ${
+                                                        starValue <= answer.score ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                                                    }`}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-sm text-gray-600 mb-1">Justificativa</p>
+                                        <p className="text-sm text-gray-800">{answer.justification || 'N/A'}</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ))
+                ) : (
+                    <div className="text-center p-8 bg-white rounded-lg shadow-sm border border-gray-200">
+                        <p className="text-gray-600">Nenhum critério de autoavaliação detalhado encontrado.</p>
+                    </div>
+                )}
             </div>
-          ) : (
-            <p className="text-sm text-gray-600">Você ainda não submeteu uma avaliação formal para este colaborador neste ciclo.</p>
-          )}
-        </div>
-
+        </main>
       </div>
     </div>
   );
