@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'; 
+import { useState, type FormEvent } from 'react';
 
 const NAV_BUTTONS = ['Autoavaliação', 'Avaliação 360', 'Mentoring', 'Referências'] as const;
 type NavButtonType = typeof NAV_BUTTONS[number]
@@ -42,6 +42,5 @@ const Topbar = ({ onSave, isSaveDisabled, activeButton, onNavButtonClick }: Topb
     </>
     );
 };
-
 
 export default Topbar;

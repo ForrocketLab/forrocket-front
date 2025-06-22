@@ -1,26 +1,33 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { FaStar, FaRegStar } from 'react-icons/fa';
+import { useEvaluation } from '../../../contexts/EvaluationProvider';
 import type { EvaluableUser } from '../../../types/evaluations';
 import EvaluationService from '../../../services/EvaluationService';
 
 const Mentoring: React.FC = () => {
-  const [rating, setRating] = useState(0);
-  const [justification, setJustification] = useState('');
-  const [collapsed, setCollapsed] = useState(false);
-  const [mentor, setMentor] = useState<EvaluableUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const {
+    mentoringData,
+    setMentor,
+    updateMentoringData,
+    isMentoringComplete,
+    toggleMentoringCollapsed,
+  } = useEvaluation();
+
+  const { mentor, rating, justification, collapsed } = mentoringData;
+
   // flag to verify if it's all done
   const isComplete = useMemo(() => {
-    return rating > 0 && justification.trim() !== '';
-  }, [rating, justification]);
+    return isMentoringComplete();
+  }, [isMentoringComplete]);
 
   useEffect(() => {
     const fetchMentor = async () => {
       try {
         const { mentors } = await EvaluationService.getEvaluableUsers();
-        if (mentors.length > 0) {
+        if (mentors.length > 0 && !mentor) {
           setMentor(mentors[0]);
         }
         setIsLoading(false);
@@ -30,13 +37,21 @@ const Mentoring: React.FC = () => {
       }
     };
     fetchMentor();
-  }, []);
+  }, [mentor, setMentor]);
 
   const handleCardClick = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('textarea')) {
       return;
     }
-    setCollapsed(!collapsed);
+    toggleMentoringCollapsed();
+  };
+
+  const handleRatingChange = (newRating: number) => {
+    updateMentoringData({ rating: newRating });
+  };
+
+  const handleJustificationChange = (newJustification: string) => {
+    updateMentoringData({ justification: newJustification });
   };
 
   if (isLoading) {
@@ -92,7 +107,7 @@ const Mentoring: React.FC = () => {
                   color="#08605F"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setRating(star);
+                    handleRatingChange(star);
                   }}
                 />
               );
@@ -104,7 +119,7 @@ const Mentoring: React.FC = () => {
                 placeholder="Justifique sua nota"
                 className="w-full min-h-[60px] border border-[#CBD5E1] rounded-md p-2 text-sm resize-vertical"
                 value={justification}
-                onChange={(e) => setJustification(e.target.value)}
+                onChange={(e) => handleJustificationChange(e.target.value)}
                 onClick={(e) => e.stopPropagation()}
             />
           </div>

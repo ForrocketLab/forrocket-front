@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { FaStar, FaRegStar } from 'react-icons/fa';
 import { FiTrash2 } from 'react-icons/fi';
+import { useEvaluation } from '../../../contexts/EvaluationProvider';
 import type { EvaluableUser } from '../../../types/evaluations';
 
 interface EvaluationCardProps {
@@ -10,21 +11,43 @@ interface EvaluationCardProps {
 }
 
 const EvaluationCard: React.FC<EvaluationCardProps> = ({ collaborator, onRemove, onSubmitted }) => {
-  const [rating, setRating] = useState(0);
-  const [strengths, setStrengths] = useState('');
-  const [improvements, setImprovements] = useState('');
-  const [collapsed, setCollapsed] = useState(false);
+  const {
+    getEvaluation360ByCollaborator,
+    updateEvaluation360,
+    isEvaluation360Complete,
+    toggleEvaluation360Collapsed,
+  } = useEvaluation();
+
+  const evaluation = getEvaluation360ByCollaborator(collaborator.id);
+  
+  if (!evaluation) {
+    return null;
+  }
+
+  const { rating, strengths, improvements, isSubmitted, collapsed } = evaluation;
 
   // flag to verify if it's all done
   const isComplete = useMemo(() => {
-    return rating > 0 && strengths.trim() !== '' && improvements.trim() !== '';
-  }, [rating, strengths, improvements]);
+    return isEvaluation360Complete(collaborator.id);
+  }, [collaborator.id, isEvaluation360Complete]);
 
   const handleCardClick = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('textarea')) {
       return;
     }
-    setCollapsed(!collapsed);
+    toggleEvaluation360Collapsed(collaborator.id);
+  };
+
+  const handleRatingChange = (newRating: number) => {
+    updateEvaluation360(collaborator.id, { rating: newRating });
+  };
+
+  const handleStrengthsChange = (newStrengths: string) => {
+    updateEvaluation360(collaborator.id, { strengths: newStrengths });
+  };
+
+  const handleImprovementsChange = (newImprovements: string) => {
+    updateEvaluation360(collaborator.id, { improvements: newImprovements });
   };
 
   return (
@@ -77,7 +100,7 @@ const EvaluationCard: React.FC<EvaluationCardProps> = ({ collaborator, onRemove,
                   color="#08605F"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setRating(star);
+                    handleRatingChange(star);
                   }}
                 />
               );
@@ -90,7 +113,7 @@ const EvaluationCard: React.FC<EvaluationCardProps> = ({ collaborator, onRemove,
                 placeholder="Justifique sua nota"
                 className="w-full min-h-[60px] border border-[#CBD5E1] rounded-md p-2 text-sm resize-vertical"
                 value={strengths}
-                onChange={(e) => setStrengths(e.target.value)}
+                onChange={(e) => handleStrengthsChange(e.target.value)}
                 onClick={(e) => e.stopPropagation()}
               />
             </div>
@@ -100,7 +123,7 @@ const EvaluationCard: React.FC<EvaluationCardProps> = ({ collaborator, onRemove,
                 placeholder="Justifique sua nota"
                 className="w-full min-h-[60px] border border-[#CBD5E1] rounded-md p-2 text-sm resize-vertical"
                 value={improvements}
-                onChange={(e) => setImprovements(e.target.value)}
+                onChange={(e) => handleImprovementsChange(e.target.value)}
                 onClick={(e) => e.stopPropagation()}
               />
             </div>
