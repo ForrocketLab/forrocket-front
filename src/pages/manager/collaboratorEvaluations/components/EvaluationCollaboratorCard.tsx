@@ -1,10 +1,9 @@
-import { type FC, useState } from 'react';
+import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import StarRating from './StarRating';
 
 // Interface para as props de cada card
 export interface EvaluationCardProps {
-  evaluatorInitials: string;
   evaluatorName: string;
   evaluatorJobTitle: string;
   rating: number;
@@ -12,14 +11,7 @@ export interface EvaluationCardProps {
   weaknesses: string;
 }
 
-const EvaluationCard = ({
-  evaluatorInitials,
-  evaluatorName,
-  evaluatorJobTitle,
-  rating,
-  strengths,
-  weaknesses,
-}: EvaluationCardProps) => {
+const EvaluationCard = ({ evaluatorName, evaluatorJobTitle, rating, strengths, weaknesses }: EvaluationCardProps) => {
   // Estado para controlar se o card está expandido (começa aberto)
   const [isOpen, setIsOpen] = useState(true);
 
@@ -30,14 +22,18 @@ const EvaluationCard = ({
       <header className='flex items-center justify-between cursor-pointer' onClick={() => setIsOpen(!isOpen)}>
         <div className='flex items-center gap-4'>
           <span className='bg-gray-200 rounded-full w-10 h-10 flex-shrink-0 flex items-center justify-center font-bold text-gray-700 text-sm uppercase'>
-            {evaluatorInitials}
+            {evaluatorName
+              .split(' ')
+              .map(n => n[0])
+              .join('')
+              .slice(0, 2)}
           </span>
           <div>
             <h3 className='font-bold text-gray-800'>{evaluatorName}</h3>
             <p className='text-sm text-gray-500'>{evaluatorJobTitle}</p>
           </div>
         </div>
-        <button className='p-2 rounded-full hover:bg-gray-100'>
+        <button className='p-2 rounded-full hover:bg-gray-100 hover:cursor-pointer'>
           {isOpen ? <ChevronUp className='text-gray-600' /> : <ChevronDown className='text-gray-600' />}
         </button>
       </header>
