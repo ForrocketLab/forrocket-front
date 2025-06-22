@@ -1,5 +1,3 @@
-// src/types/detailedEvaluations.ts
-
 export interface SelfAssessmentAnswer {
   id: string;
   selfAssessmentId: string;
@@ -32,4 +30,17 @@ export interface DetailedSelfAssessment {
     completed: number;
     total: number;
   };
+}
+
+// NOVAS INTERFACES PARA AVALIAÇÃO DO GESTOR
+export interface ManagerAssessmentCriterion {
+  criterionId: string;
+  score: number;
+  justification: string;
+}
+
+export interface CreateManagerSubordinateAssessment {
+  evaluatedUserId: string; // ID do colaborador que está sendo avaliado
+  cycle: string; // Ciclo atual (ex: 2025.2)
+  assessments: ManagerAssessmentCriterion[];
 }
