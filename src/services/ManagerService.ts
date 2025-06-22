@@ -5,7 +5,6 @@ import AuthService from './AuthService';
 class ManagerService {
   static async getManagerDashboard(cycle: string): Promise<ManagerDashboardResponse> {
     try {
-      // O 'params' do Axios adiciona "?cycle=2025.1" à URL
       const response = await api.get<ManagerDashboardResponse>('/evaluations/manager/dashboard', {
         headers: {
           Authorization: `Bearer ${AuthService.getToken()}`,
@@ -24,7 +23,6 @@ class ManagerService {
     }
   }
 
-  // Busca as informações do ciclo de avaliação atualmente ativo.
   static async getActiveCycle(): Promise<ActiveCycle> {
     try {
       const response = await api.get<ActiveCycle>('/evaluation-cycles/active', {
@@ -62,7 +60,6 @@ class ManagerService {
     }
   }
 
-  // NOVO MÉTODO: Enviar avaliação do gestor para o subordinado
   static async submitManagerSubordinateAssessment(payload: CreateManagerSubordinateAssessment): Promise<void> {
     try {
       await api.post('/evaluations/manager/subordinate-assessment', payload);
@@ -97,6 +94,29 @@ class ManagerService {
       console.error(`Erro ao buscar avaliações 360 para o usuário ${subordinateId}:`, error);
       if (error instanceof AxiosError && error.response) {
         throw new Error(error.response.data.message || 'Falha ao buscar avaliações 360.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  static async getCollaboratorFullEvaluation(
+    collaboratorId: string,
+    cycle: string,
+  ): Promise<CollaboratorFullEvaluation> {
+    try {
+      const response = await api.get<CollaboratorFullEvaluation>(`/evaluations/collaborator/cycle/${cycle}`, {
+        headers: {
+          Authorization: `Bearer ${AuthService.getToken()}`,
+        },
+        params: {
+          collaboratorId: collaboratorId,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Erro ao buscar avaliação completa para o colaborador ${collaboratorId} no ciclo ${cycle}:`, error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar avaliação completa do colaborador.');
       }
       throw new Error('Ocorreu um erro de rede. Tente novamente.');
     }

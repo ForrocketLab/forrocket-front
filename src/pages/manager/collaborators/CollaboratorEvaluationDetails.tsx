@@ -13,6 +13,14 @@ export interface ManagerCriterionState {
   justification: string;
 }
 
+const ALLOWED_CRITERIA_IDS = [
+  'sentimento-de-dono',
+  'resiliencia-adversidades',
+  'organizacao-trabalho',
+  'capacidade-aprender',
+  'team-player',
+];
+
 const CollaboratorEvaluationDetails: FC = () => {
   const { id: collaboratorIdFromUrl } = useParams<{ id: string }>();
   const toast = useGlobalToast();
@@ -23,11 +31,11 @@ const CollaboratorEvaluationDetails: FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [expandedCriterion, setExpandedCriterion] = useState<Set<string>>(new Set());
 
-  // Estados para armazenar o nome e o cargo do colaborador dinamicamente
-  const [collaboratorName, setCollaboratorName] = useState('Colaborador Avaliado'); // Valor inicial de placeholder
-  const [collaboratorJobTitle, setCollaboratorJobTitle] = useState('Cargo do Colaborador'); // Valor inicial de placeholder
+  const [collaboratorName, setCollaboratorName] = useState('Colaborador Avaliado');
+  const [collaboratorJobTitle, setCollaboratorJobTitle] = useState('Cargo do Colaborador');
 
   const [managerAssessments, setManagerAssessments] = useState<Record<string, ManagerCriterionState>>({});
+  const [isAssessmentSubmitted, setIsAssessmentSubmitted] = useState(false);
 
   const [activeTab, setActiveTab] = useState('evaluation');
 
@@ -54,8 +62,6 @@ const CollaboratorEvaluationDetails: FC = () => {
         const selfAssessment = await DashboardService.getDetailedSelfAssessment(collaboratorIdFromUrl);
         setDetailedSelfAssessment(selfAssessment);
 
-        // Buscar dados do dashboard para obter o nome e o cargo do colaborador
-        // Esta é uma solução alternativa se 'detailedSelfAssessment' não contiver isso diretamente
         const dashboardData = await DashboardService.getManagerDashboard(activeCycle.name);
         const foundCollaborator = dashboardData.collaboratorsInfo
           .flatMap(group => group.subordinates)
@@ -65,16 +71,42 @@ const CollaboratorEvaluationDetails: FC = () => {
           setCollaboratorName(foundCollaborator.name);
           setCollaboratorJobTitle(foundCollaborator.jobTitle);
         } else {
-          // Fallback se não for encontrado nos dados do dashboard
           setCollaboratorName('Colaborador Desconhecido');
           setCollaboratorJobTitle('Cargo Desconhecido');
         }
 
+        const fullEvaluation = await DashboardService.getCollaboratorFullEvaluation(
+          collaboratorIdFromUrl,
+          activeCycle.name,
+        );
+
         const initialManagerAssessments: Record<string, ManagerCriterionState> = {};
-        selfAssessment.answers.forEach((answer: { criterionId: string | number }) => {
-          initialManagerAssessments[answer.criterionId] = { score: 0, justification: '' };
+
+        if (fullEvaluation.managerAssessments && fullEvaluation.managerAssessments.length > 0) {
+          const managerExistingAssessment = fullEvaluation.managerAssessments[0];
+          managerExistingAssessment.answers.forEach(answer => {
+            if (ALLOWED_CRITERIA_IDS.includes(answer.criterionId)) {
+              initialManagerAssessments[answer.criterionId] = {
+                score: answer.score,
+                justification: answer.justification,
+              };
+            }
+          });
+        }
+
+        ALLOWED_CRITERIA_IDS.forEach(criterionId => {
+          if (!initialManagerAssessments[criterionId]) {
+            initialManagerAssessments[criterionId] = { score: 0, justification: '' };
+          }
         });
+
         setManagerAssessments(initialManagerAssessments);
+
+        const isSubmitted = ALLOWED_CRITERIA_IDS.every(criterionId => {
+          const assessment = initialManagerAssessments[criterionId];
+          return assessment && assessment.score >= 1 && assessment.score <= 5 && assessment.justification.trim() !== '';
+        });
+        setIsAssessmentSubmitted(isSubmitted);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar dados de avaliação.';
         setError(errorMessage);
@@ -84,9 +116,10 @@ const CollaboratorEvaluationDetails: FC = () => {
     };
 
     fetchAssessmentData();
-  }, [collaboratorIdFromUrl]); // Depende de collaboratorIdFromUrl
+  }, [collaboratorIdFromUrl]);
 
   const handleManagerRatingChange = (criterionId: string, score: number) => {
+    if (isAssessmentSubmitted) return;
     setManagerAssessments(prev => ({
       ...prev,
       [criterionId]: { ...prev[criterionId], score },
@@ -94,6 +127,7 @@ const CollaboratorEvaluationDetails: FC = () => {
   };
 
   const handleManagerJustificationChange = (criterionId: string, justification: string) => {
+    if (isAssessmentSubmitted) return;
     setManagerAssessments(prev => ({
       ...prev,
       [criterionId]: { ...prev[criterionId], justification },
@@ -101,10 +135,10 @@ const CollaboratorEvaluationDetails: FC = () => {
   };
 
   const getManagerCompletionCount = () => {
-    const total = detailedSelfAssessment?.answers.length || 0;
+    const total = ALLOWED_CRITERIA_IDS.length;
     const completed =
-      detailedSelfAssessment?.answers.filter(answer => {
-        const managerAssessment = managerAssessments[answer.criterionId];
+      ALLOWED_CRITERIA_IDS.filter(criterionId => {
+        const managerAssessment = managerAssessments[criterionId];
         return (
           managerAssessment &&
           managerAssessment.score >= 1 &&
@@ -134,102 +168,30 @@ const CollaboratorEvaluationDetails: FC = () => {
       return;
     }
 
-    const payload: CreateManagerSubordinateAssessment = {
+    const payloadToSend: Record<string, any> = {
       evaluatedUserId: collaboratorIdFromUrl,
-      cycle: activeCycleName,
-      assessments: Object.entries(managerAssessments).map(([criterionId, data]) => ({
-        criterionId,
-        score: data.score,
-        justification: data.justification,
-      })),
     };
 
+    ALLOWED_CRITERIA_IDS.forEach(criterionId => {
+      const camelCaseCriterion = criterionId.replace(/-([a-z])/g, g => g[1].toUpperCase());
+      const managerAssessment = managerAssessments[criterionId];
+      if (managerAssessment) {
+        payloadToSend[`${camelCaseCriterion}Score`] = managerAssessment.score;
+        payloadToSend[`${camelCaseCriterion}Justification`] = managerAssessment.justification;
+      }
+    });
+
     try {
+      await DashboardService.submitManagerSubordinateAssessment(payloadToSend as any);
       toast.success('Sucesso', 'Avaliação do gestor enviada com sucesso!');
+      setIsAssessmentSubmitted(true);
     } catch (submitError) {
       const msg = submitError instanceof Error ? submitError.message : 'Falha ao enviar avaliação.';
       toast.error('Erro', msg);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className='p-6 bg-gray-50 min-h-screen flex items-center justify-center'>
-        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600'></div>
-        <p className='ml-4 text-gray-700'>Carregando dados de avaliação...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className='p-6 bg-gray-50 min-h-screen flex items-center justify-center'>
-        <div className='text-center'>
-          <AlertCircle className='w-12 h-12 text-red-500 mx-auto mb-4' />
-          <h3 className='text-lg font-medium text-gray-900 mb-2'>Erro ao carregar dados</h3>
-          <p className='text-gray-600 mb-4'>{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className='bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors'
-          >
-            Tentar novamente
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!detailedSelfAssessment) {
-    return (
-      <div className='p-6 bg-gray-50 min-h-screen'>
-        <div className='flex items-center justify-center h-64'>
-          <div className='text-center'>
-            <AlertCircle className='w-12 h-12 text-gray-400 mx-auto mb-4' />
-            <h3 className='text-lg font-medium text-gray-900 mb-2'>Dados de autoavaliação não encontrados</h3>
-            <p className='text-gray-600 mb-4'>
-              Verifique se o colaborador possui uma autoavaliação para o ciclo atual.
-            </p>
-            <button
-              onClick={() => window.history.back()}
-              className='bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors'
-            >
-              Voltar para Colaboradores
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const getCriterionName = (criterionId: string): string => {
-    const map: Record<string, string> = {
-      'atender-prazos': 'Atender Prazos',
-      'capacidade-aprender': 'Capacidade de Aprender',
-      'entregar-qualidade': 'Entregar Qualidade',
-      'evolucao-rocket': 'Evolução Rocket',
-      'fazer-mais-menos': 'Fazer Mais com Menos',
-      'gestao-gente': 'Gestão de Pessoas',
-      'gestao-resultados': 'Gestão de Resultados',
-      'organizacao-trabalho': 'Organização no Trabalho',
-      'pensar-fora-caixa': 'Pensar Fora da Caixa',
-      'resiliencia-adversidades': 'Resiliência nas Adversidades',
-      'sentimento-de-dono': 'Sentimento de Dono',
-      'team-player': 'Ser "Team Player"',
-    };
-    return map[criterionId] || criterionId.replace(/-/g, ' ').replace(/\b\w/g, s => s.toUpperCase());
-  };
-
-  const getInitials = (name: string): string => {
-    if (!name) return '';
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase();
-  };
-
-  const collaboratorInitials = getInitials(collaboratorName);
+  const { completed, total } = getManagerCompletionCount();
 
   const toggleCriterionExpansion = (criterionId: string) => {
     setExpandedCriterion(prevSet => {
@@ -243,7 +205,28 @@ const CollaboratorEvaluationDetails: FC = () => {
     });
   };
 
-  const { completed, total } = getManagerCompletionCount();
+  const getInitials = (name: string): string => {
+    if (!name) return '';
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
+  };
+
+  const getCriterionName = (criterionId: string): string => {
+    const map: Record<string, string> = {
+      'sentimento-de-dono': 'Sentimento de Dono',
+      'resiliencia-adversidades': 'Resiliência nas Adversidades',
+      'organizacao-trabalho': 'Organização no Trabalho',
+      'capacidade-aprender': 'Capacidade de Aprender',
+      'team-player': 'Ser "Team Player"',
+    };
+    return map[criterionId] || criterionId;
+  };
+
+  const collaboratorInitials = getInitials(collaboratorName);
 
   return (
     <div className='flex min-h-screen bg-gray-50'>
