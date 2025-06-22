@@ -2,6 +2,7 @@ import { ArrowLeft } from 'lucide-react';
 import TabNavigation, { type TabItem } from '../../collaboratorEvaluations/components/TabNavigation';
 
 interface EvaluationHeaderProps {
+  isAssessmentSubmitted: boolean;
   collaboratorName: string;
   collaboratorInitials: string;
   collaboratorJobTitle: string;
@@ -12,6 +13,7 @@ interface EvaluationHeaderProps {
 }
 
 const EvaluationHeader = ({
+  isAssessmentSubmitted,
   collaboratorName,
   collaboratorInitials,
   collaboratorJobTitle,
@@ -43,12 +45,14 @@ const EvaluationHeader = ({
             <span className='text-sm font-semibold text-gray-900'>{collaboratorName}</span>
             <span className='text-xs text-gray-500'>{collaboratorJobTitle}</span>
           </div>
-          <button
-            onClick={onSubmit}
-            className='bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors'
-          >
-            Concluir e enviar
-          </button>
+          {!isAssessmentSubmitted && (
+            <button
+              onClick={onSubmit}
+              className='bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors'
+            >
+              Concluir e enviar
+            </button>
+          )}
         </div>
       </div>
 
