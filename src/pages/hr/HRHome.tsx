@@ -9,7 +9,7 @@ const HRHomePage = () => {
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<HRDashboardResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { error: showToast } = useGlobalToast();
+  const { success: showSuccessToast, error: showErrorToast } = useGlobalToast();
 
   useEffect(() => {
     loadDashboardData();
@@ -24,7 +24,7 @@ const HRHomePage = () => {
     } catch (err) {
       console.error('Erro ao carregar dashboard RH:', err);
       setError('Erro ao carregar dados do dashboard');
-      showToast('Erro ao carregar dados do dashboard');
+      showErrorToast('Erro ao carregar dados do dashboard');
     } finally {
       setLoading(false);
     }
@@ -68,10 +68,6 @@ const HRHomePage = () => {
             <p className="text-gray-600 mt-1">
               Acompanhe o progresso das avaliações em tempo real
             </p>
-          </div>
-          <div className="flex items-center space-x-2 bg-white rounded-lg px-3 py-2 shadow-sm border">
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span className="text-sm font-medium text-gray-700">CN</span>
           </div>
         </div>
       </div>
@@ -161,7 +157,7 @@ const HRHomePage = () => {
             </div>
           </div>
           <div className="text-3xl font-bold text-green-600 mb-2">
-            30
+            9
           </div>
           <p className="text-sm text-gray-600">
             dias restantes para o fechamento do ciclo, de 04/06 até 30/06/2025

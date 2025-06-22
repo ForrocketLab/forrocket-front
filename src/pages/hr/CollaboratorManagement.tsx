@@ -17,7 +17,7 @@ const CollaboratorManagement: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState('');
   const [showActiveOnly, setShowActiveOnly] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const { error: showToast } = useGlobalToast();
+  const { success: showSuccessToast, error: showErrorToast } = useGlobalToast();
 
   useEffect(() => {
     loadCollaborators();
@@ -43,7 +43,7 @@ const CollaboratorManagement: React.FC = () => {
       setLastUpdated(new Date());
     } catch (error) {
       console.error('Erro ao carregar colaboradores:', error);
-      showToast('Erro ao carregar colaboradores');
+      showErrorToast('Erro ao carregar colaboradores');
     } finally {
       setLoading(false);
     }
@@ -161,10 +161,10 @@ const CollaboratorManagement: React.FC = () => {
       console.log('🔄 Dados atualizados:', data.length, 'em', new Date().toLocaleTimeString());
       setCollaborators(data);
       setLastUpdated(new Date());
-      showToast('Dados atualizados com sucesso!');
+      showSuccessToast('Dados atualizados com sucesso!');
     } catch (error) {
       console.error('Erro ao atualizar dados:', error);
-      showToast('Erro ao atualizar dados');
+      showErrorToast('Erro ao atualizar dados');
     } finally {
       setLoading(false);
     }
@@ -190,16 +190,13 @@ const CollaboratorManagement: React.FC = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={handleRefresh}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-teal-600 to-teal-700 text-white font-medium rounded-lg hover:from-teal-700 hover:to-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transform hover:scale-[1.02] transition-all duration-200 shadow-sm hover:shadow-md"
               disabled={loading}
             >
               <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
               {loading ? 'Atualizando...' : 'Atualizar'}
-            </button>
-            <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-              Adicionar Colaborador
             </button>
           </div>
         </div>

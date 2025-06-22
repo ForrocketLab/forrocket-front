@@ -78,12 +78,12 @@ const Toast: FC<ToastProps> = ({
 
   return (
     <div className={`
-      relative max-w-sm w-full ${config.bgColor} ${config.borderColor} border rounded-lg shadow-lg 
+      relative max-w-md w-full min-w-80 ${config.bgColor} ${config.borderColor} border-2 rounded-xl shadow-xl 
       transform transition-all duration-300 ease-in-out
       animate-in slide-in-from-right-full
     `}>
       {/* Progress bar */}
-      <div className="absolute top-0 left-0 h-1 w-full bg-gray-200 rounded-t-lg overflow-hidden">
+      <div className="absolute top-0 left-0 h-1.5 w-full bg-gray-200 rounded-t-xl overflow-hidden">
         <div 
           className={`h-full ${config.progressColor} animate-progress`}
           style={{
@@ -92,27 +92,27 @@ const Toast: FC<ToastProps> = ({
         />
       </div>
 
-      <div className="p-4">
+      <div className="p-5">
         <div className="flex items-start">
           <div className="flex-shrink-0">
-            <IconComponent className={`w-5 h-5 ${config.iconColor}`} />
+            <IconComponent className={`w-6 h-6 ${config.iconColor}`} />
           </div>
-          <div className="ml-3 w-0 flex-1">
-            <p className={`text-sm font-medium ${config.titleColor}`}>
+          <div className="ml-4 w-0 flex-1">
+            <p className={`text-base font-semibold ${config.titleColor}`}>
               {title}
             </p>
             {message && (
-              <p className={`mt-1 text-sm ${config.messageColor}`}>
+              <p className={`mt-2 text-sm ${config.messageColor} leading-relaxed`}>
                 {message}
               </p>
             )}
           </div>
           <div className="ml-4 flex-shrink-0 flex">
             <button
-              className={`inline-flex ${config.iconColor} hover:opacity-70 transition-opacity`}
+              className={`inline-flex ${config.iconColor} hover:opacity-70 transition-opacity p-1 rounded-full hover:bg-black/5`}
               onClick={() => onClose(id)}
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
           </div>
         </div>

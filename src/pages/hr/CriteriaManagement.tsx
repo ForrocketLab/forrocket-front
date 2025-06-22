@@ -14,7 +14,14 @@ const CriteriaManagement: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [criterionToDelete, setCriterionToDelete] = useState<Criterion | null>(null);
   const [editForm, setEditForm] = useState<UpdateCriterionDto>({});
-  const { error: showToast } = useGlobalToast();
+  const [createForm, setCreateForm] = useState<CreateCriterionDto>({
+    name: '',
+    description: '',
+    pillar: 'BEHAVIOR',
+    weight: 1.0,
+    isRequired: true
+  });
+  const { success: showSuccessToast, error: showErrorToast } = useGlobalToast();
 
   useEffect(() => {
     loadCriteria();
@@ -34,12 +41,15 @@ const CriteriaManagement: React.FC = () => {
         if (showDeleteModal) {
           cancelDelete();
         }
+        if (showCreateModal) {
+          cancelCreate();
+        }
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [editingCriterion, showDeleteModal]);
+  }, [editingCriterion, showDeleteModal, showCreateModal]);
 
   const loadCriteria = async () => {
     try {
@@ -49,7 +59,7 @@ const CriteriaManagement: React.FC = () => {
       setCriteria(data);
     } catch (error) {
       console.error('Erro ao carregar critérios:', error);
-      showToast('Erro ao carregar critérios');
+      showErrorToast('Erro ao carregar critérios');
     } finally {
       setLoading(false);
     }
@@ -82,10 +92,10 @@ const CriteriaManagement: React.FC = () => {
       const data = await CriteriaService.refreshCriteria();
       console.log('🔄 Critérios atualizados:', data.length, 'em', new Date().toLocaleTimeString());
       setCriteria(data);
-      showToast('Dados atualizados com sucesso!');
+      showSuccessToast('Dados atualizados com sucesso!');
     } catch (error) {
       console.error('Erro ao atualizar critérios:', error);
-      showToast('Erro ao atualizar critérios');
+      showErrorToast('Erro ao atualizar critérios');
     } finally {
       setLoading(false);
     }
@@ -105,10 +115,10 @@ const CriteriaManagement: React.FC = () => {
     try {
       await CriteriaService.toggleRequired(criterion.id);
       await loadCriteria();
-      showToast(`Critério "${criterion.name}" ${criterion.isRequired ? 'marcado como opcional' : 'marcado como obrigatório'}`);
+      showSuccessToast(`Critério "${criterion.name}" ${criterion.isRequired ? 'marcado como opcional' : 'marcado como obrigatório'}`);
     } catch (error: any) {
       console.error('Erro ao alterar obrigatoriedade:', error);
-      showToast(error.message || 'Erro ao alterar obrigatoriedade');
+      showErrorToast(error.message || 'Erro ao alterar obrigatoriedade');
     }
   };
 
@@ -137,10 +147,10 @@ const CriteriaManagement: React.FC = () => {
       await loadCriteria();
       setEditingCriterion(null);
       setEditForm({});
-      showToast('Critério atualizado com sucesso!');
+      showSuccessToast('Critério atualizado com sucesso!');
     } catch (error: any) {
       console.error('Erro ao atualizar critério:', error);
-      showToast(error.message || 'Erro ao atualizar critério');
+      showErrorToast(error.message || 'Erro ao atualizar critério');
     } finally {
       setLoading(false);
     }
@@ -165,10 +175,10 @@ const CriteriaManagement: React.FC = () => {
       await loadCriteria();
       setShowDeleteModal(false);
       setCriterionToDelete(null);
-      showToast('Critério removido com sucesso!');
+      showSuccessToast('Critério removido com sucesso!');
     } catch (error: any) {
       console.error('Erro ao remover critério:', error);
-      showToast(error.message || 'Erro ao remover critério');
+      showErrorToast(error.message || 'Erro ao remover critério');
     } finally {
       setLoading(false);
     }
@@ -177,6 +187,39 @@ const CriteriaManagement: React.FC = () => {
   const cancelDelete = () => {
     setShowDeleteModal(false);
     setCriterionToDelete(null);
+  };
+
+  const handleCreateCriterion = async () => {
+    try {
+      setLoading(true);
+      await CriteriaService.createCriterion(createForm);
+      await loadCriteria();
+      setShowCreateModal(false);
+      setCreateForm({
+        name: '',
+        description: '',
+        pillar: 'BEHAVIOR',
+        weight: 1.0,
+        isRequired: true
+      });
+      showSuccessToast('Critério criado com sucesso!');
+    } catch (error: any) {
+      console.error('Erro ao criar critério:', error);
+      showErrorToast(error.message || 'Erro ao criar critério');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelCreate = () => {
+    setShowCreateModal(false);
+    setCreateForm({
+      name: '',
+      description: '',
+      pillar: 'BEHAVIOR',
+      weight: 1.0,
+      isRequired: true
+    });
   };
 
   const groupedCriteria = filteredCriteria.reduce((acc, criterion) => {
@@ -208,7 +251,7 @@ const CriteriaManagement: React.FC = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={handleRefresh}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-teal-600 to-teal-700 text-white font-medium rounded-lg hover:from-teal-700 hover:to-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transform hover:scale-[1.02] transition-all duration-200 shadow-sm hover:shadow-md"
               disabled={loading}
             >
               <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -218,7 +261,7 @@ const CriteriaManagement: React.FC = () => {
             </button>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white font-medium rounded-lg hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transform hover:scale-[1.02] transition-all duration-200 shadow-sm hover:shadow-md"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -505,7 +548,7 @@ const CriteriaManagement: React.FC = () => {
       {/* Modal de Confirmação de Exclusão */}
       {showDeleteModal && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               cancelDelete();
@@ -547,6 +590,114 @@ const CriteriaManagement: React.FC = () => {
                 className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
               >
                 {loading ? 'Removendo...' : 'Remover'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Criação */}
+      {showCreateModal && (
+        <div 
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              cancelCreate();
+            }
+          }}
+        >
+          <div className="bg-white rounded-xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Novo Critério</h2>
+              <button
+                onClick={cancelCreate}
+                className="text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
+                <input
+                  type="text"
+                  value={createForm.name}
+                  onChange={(e) => setCreateForm({...createForm, name: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  placeholder="Ex: Sentimento de Dono"
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Descrição *</label>
+                <textarea
+                  value={createForm.description}
+                  onChange={(e) => setCreateForm({...createForm, description: e.target.value})}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  placeholder="Descreva detalhadamente o que este critério avalia..."
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Pilar *</label>
+                  <select
+                    value={createForm.pillar}
+                    onChange={(e) => setCreateForm({...createForm, pillar: e.target.value as any})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  >
+                    <option value="BEHAVIOR">Comportamento</option>
+                    <option value="EXECUTION">Execução</option>
+                    <option value="MANAGEMENT">Gestão</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Peso (%)</label>
+                  <input
+                    type="number"
+                    min="10"
+                    max="500"
+                    step="10"
+                    value={Math.round((createForm.weight || 1) * 100)}
+                    onChange={(e) => setCreateForm({...createForm, weight: parseInt(e.target.value) / 100})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="create-required"
+                  checked={createForm.isRequired || false}
+                  onChange={(e) => setCreateForm({...createForm, isRequired: e.target.checked})}
+                  className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                />
+                <label htmlFor="create-required" className="ml-2 text-sm text-gray-700">
+                  Campo obrigatório no formulário
+                </label>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6 pt-4 border-t border-gray-200">
+              <button
+                onClick={handleCreateCriterion}
+                disabled={loading || !createForm.name || !createForm.description}
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white font-medium rounded-lg hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                {loading ? 'Criando...' : 'Criar Critério'}
+              </button>
+              <button
+                onClick={cancelCreate}
+                disabled={loading}
+                className="px-6 py-2 bg-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-400 transition-colors disabled:opacity-50"
+              >
+                Cancelar
               </button>
             </div>
           </div>

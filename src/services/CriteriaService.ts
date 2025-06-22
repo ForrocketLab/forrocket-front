@@ -198,6 +198,10 @@ class CriteriaServiceClass {
     return CriteriaServiceClass.getInstance().deleteCriterion(id);
   }
 
+  static async createCriterion(data: CreateCriterionDto): Promise<Criterion> {
+    return CriteriaServiceClass.getInstance().createCriterion(data);
+  }
+
   /**
    * Utilitários
    */

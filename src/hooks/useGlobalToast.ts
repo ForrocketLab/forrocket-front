@@ -44,11 +44,11 @@ class ToastManager {
   }
 
   success(title: string, message?: string, duration?: number) {
-    return this.addToast('success', title, message, duration);
+    return this.addToast('success', title, message, duration || 5000);
   }
 
   error(title: string, message?: string, duration?: number) {
-    return this.addToast('error', title, message, duration);
+    return this.addToast('error', title, message, duration || 4000);
   }
 
   warning(title: string, message?: string, duration?: number) {
