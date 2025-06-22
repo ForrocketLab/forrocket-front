@@ -2,7 +2,7 @@ import { useState } from 'react';
 import EvaluationHeader from './components/EvaluationsHeader';
 import TabNavigation from './components/TabNavigation';
 import SelfEvaluationReview from './SelfEvaluationReview';
-import Manager360Evaluations from './Manager360Evaluations';
+import Manager360Evaluations from '../collaborators/Manager360Evaluations';
 
 const HistoryContent = () => (
   <div className='p-8'>

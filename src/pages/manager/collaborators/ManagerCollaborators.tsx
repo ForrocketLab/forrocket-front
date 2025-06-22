@@ -1,9 +1,9 @@
 import { type FC, useEffect, useState, useMemo, useRef } from 'react';
-import DashboardService from '../../../services/DashboardService';
+import DashboardService from '../../../services/ManagerService';
 import { useAuth } from '../../../hooks/useAuth';
-import CollaboratorRow from '../../../pages/manager/components/CollaboratorRow';
 import { AlertCircle, Search, Filter } from 'lucide-react';
-import FilterStatusPopup from '../components/FilterStatusPopup';
+import FilterStatusPopup from '../dashboard/components/FilterStatusPopup';
+import CollaboratorRow from '../dashboard/components/CollaboratorRow';
 
 const ManagerCollaborators: FC = () => {
   const { user } = useAuth();
@@ -54,8 +54,10 @@ const ManagerCollaborators: FC = () => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        filterButtonRef.current && !filterButtonRef.current.contains(event.target as Node) &&
-        popupRef.current && !popupRef.current.contains(event.target as Node)
+        filterButtonRef.current &&
+        !filterButtonRef.current.contains(event.target as Node) &&
+        popupRef.current &&
+        !popupRef.current.contains(event.target as Node)
       ) {
         setIsPopupOpen(false);
       }
@@ -70,49 +72,46 @@ const ManagerCollaborators: FC = () => {
     };
   }, [isPopupOpen]);
 
-
   const filteredCollaborators = useMemo(() => {
     let currentCollaborators = collaborators;
 
     // Aplica o filtro de busca
     if (searchTerm) {
       const lowerCaseSearchTerm = searchTerm.toLowerCase();
-      currentCollaborators = currentCollaborators.filter(collaborator =>
-        collaborator.name.toLowerCase().includes(lowerCaseSearchTerm) ||
-        collaborator.jobTitle.toLowerCase().includes(lowerCaseSearchTerm)
+      currentCollaborators = currentCollaborators.filter(
+        collaborator =>
+          collaborator.name.toLowerCase().includes(lowerCaseSearchTerm) ||
+          collaborator.jobTitle.toLowerCase().includes(lowerCaseSearchTerm),
       );
     }
 
     // Aplica o filtro de status
     if (filterStatus !== 'ALL') {
-      currentCollaborators = currentCollaborators.filter(collaborator =>
-        collaborator.status === filterStatus
-      );
+      currentCollaborators = currentCollaborators.filter(collaborator => collaborator.status === filterStatus);
     }
 
     return currentCollaborators;
   }, [collaborators, searchTerm, filterStatus]);
 
-
   if (isLoading) {
     return (
-      <div className="p-6 bg-gray-50 min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#085F60]"></div>
-        <p className="ml-4 text-gray-700">Carregando colaboradores...</p>
+      <div className='p-6 bg-gray-50 min-h-screen flex items-center justify-center'>
+        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-[#085F60]'></div>
+        <p className='ml-4 text-gray-700'>Carregando colaboradores...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-6 bg-gray-50 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Erro ao carregar dados</h3>
-          <p className="text-gray-600 mb-4">{error}</p>
+      <div className='p-6 bg-gray-50 min-h-screen flex items-center justify-center'>
+        <div className='text-center'>
+          <AlertCircle className='w-12 h-12 text-red-500 mx-auto mb-4' />
+          <h3 className='text-lg font-medium text-gray-900 mb-2'>Erro ao carregar dados</h3>
+          <p className='text-gray-600 mb-4'>{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="bg-[#085F60] text-white px-4 py-2 rounded-lg hover:bg-[#064b4c] transition-colors"
+            className='bg-[#085F60] text-white px-4 py-2 rounded-lg hover:bg-[#064b4c] transition-colors'
           >
             Tentar novamente
           </button>
@@ -134,19 +133,19 @@ const ManagerCollaborators: FC = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Meus Colaboradores</h1>
+    <div className='p-6 bg-gray-50 min-h-screen'>
+      <h1 className='text-2xl font-semibold text-gray-900 mb-6'>Meus Colaboradores</h1>
 
       {/* Barra de Busca e Botões de Filtro */}
-      <div className="mb-6 flex gap-4 items-center relative">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+      <div className='mb-6 flex gap-4 items-center relative'>
+        <div className='flex-1 relative'>
+          <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4' />
           <input
-            type="text"
-            placeholder="Buscar por colaboradores"
+            type='text'
+            placeholder='Buscar por colaboradores'
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#085F60] focus:border-transparent"
+            onChange={e => setSearchTerm(e.target.value)}
+            className='w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#085F60] focus:border-transparent'
           />
         </div>
 
@@ -154,17 +153,17 @@ const ManagerCollaborators: FC = () => {
         <button
           ref={filterButtonRef}
           onClick={() => setIsPopupOpen(!isPopupOpen)}
-          className="bg-[#085F60] p-3 rounded-lg text-white hover:bg-[#064b4c] transition-colors"
+          className='bg-[#085F60] p-3 rounded-lg text-white hover:bg-[#064b4c] transition-colors'
         >
-          <Filter className="w-4 h-4" />
+          <Filter className='w-4 h-4' />
         </button>
 
         {/* Botão de Limpar Filtro - Só aparece quando um filtro está ativo */}
         {filterStatus !== 'ALL' && (
           <button
             onClick={handleClearFilter}
-            className="bg-red-500 px-4 py-3 rounded-lg text-white hover:bg-red-600 transition-colors whitespace-nowrap text-sm font-medium"
-            title="Limpar filtro de status"
+            className='bg-red-500 px-4 py-3 rounded-lg text-white hover:bg-red-600 transition-colors whitespace-nowrap text-sm font-medium'
+            title='Limpar filtro de status'
           >
             Limpar filtro
           </button>
@@ -172,30 +171,19 @@ const ManagerCollaborators: FC = () => {
 
         {/* Renderiza o popup se isPopupOpen for true */}
         {isPopupOpen && (
-          <div
-            ref={popupRef}
-            className="absolute top-full right-0 mt-2 z-30"
-          >
-            <FilterStatusPopup
-              currentStatus={filterStatus}
-              onSelectStatus={handleSelectStatus}
-            />
+          <div ref={popupRef} className='absolute top-full right-0 mt-2 z-30'>
+            <FilterStatusPopup currentStatus={filterStatus} onSelectStatus={handleSelectStatus} />
           </div>
         )}
       </div>
 
       {/* Lista de colaboradores diretamente renderizada */}
-      <div className="flex flex-col">
+      <div className='flex flex-col'>
         {filteredCollaborators.length > 0 ? (
-          filteredCollaborators.map(collaborator => (
-            <CollaboratorRow
-              key={collaborator.id} 
-              {...collaborator}
-            />
-          ))
+          filteredCollaborators.map(collaborator => <CollaboratorRow key={collaborator.id} {...collaborator} />)
         ) : (
-          <div className="text-center p-8 bg-white rounded-lg shadow-sm border border-gray-200">
-            <p className="text-gray-600">Nenhum colaborador encontrado com os filtros aplicados.</p>
+          <div className='text-center p-8 bg-white rounded-lg shadow-sm border border-gray-200'>
+            <p className='text-gray-600'>Nenhum colaborador encontrado com os filtros aplicados.</p>
           </div>
         )}
       </div>

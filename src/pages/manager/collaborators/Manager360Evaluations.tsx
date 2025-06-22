@@ -1,7 +1,9 @@
-import { type FC, useState } from 'react';
-import type { EvaluationCardProps } from './components/EvaluationCollaboratorCard';
+import { type FC, useState, useEffect } from 'react';
+import type { EvaluationCardProps } from '../collaboratorEvaluations/components/EvaluationCollaboratorCard';
 import SearchBar from '../../../components/SearchBar';
-import EvaluationCard from './components/EvaluationCollaboratorCard';
+import EvaluationCard from '../collaboratorEvaluations/components/EvaluationCollaboratorCard';
+import ManagerService from '../../../services/ManagerService';
+import { useParams } from 'react-router-dom';
 
 // Dados mockados para exibição
 const mockEvaluations: EvaluationCardProps[] = [
@@ -32,6 +34,28 @@ const Manager360Evaluations = () => {
   const filteredEvaluations = mockEvaluations.filter(evaluation =>
     evaluation.evaluatorName.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  const { id } = useParams();
+
+  const [evaluations, setEvaluations] = useState<Received360Evaluation[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEvaluations = async () => {
+      try {
+        setLoading(true);
+        const { name } = await ManagerService.getActiveCycle();
+        const data = await ManagerService.getReceived360Assessments(id, name);
+        setEvaluations(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvaluations();
+  }, [id]);
 
   return (
     <div className='p-4 md:p-8 bg-gray-100 min-h-screen'>

@@ -1,11 +1,8 @@
 import { AxiosError } from 'axios';
 import api from '../api';
 import AuthService from './AuthService';
-import { type DetailedSelfAssessment, type CreateManagerSubordinateAssessment } from '../types/detailedEvaluations'; // Importa o novo tipo
 
-class DashboardService {
-  // ... (métodos existentes getManagerDashboard e getActiveCycle)
-
+class ManagerService {
   static async getManagerDashboard(cycle: string): Promise<ManagerDashboardResponse> {
     try {
       // O 'params' do Axios adiciona "?cycle=2025.1" à URL
@@ -47,11 +44,14 @@ class DashboardService {
 
   static async getDetailedSelfAssessment(subordinateId: string): Promise<DetailedSelfAssessment> {
     try {
-      const response = await api.get<DetailedSelfAssessment>(`/evaluations/manager/subordinate/${subordinateId}/self-assessment`, {
-        headers: {
-          Authorization: `Bearer ${AuthService.getToken()}`,
+      const response = await api.get<DetailedSelfAssessment>(
+        `/evaluations/manager/subordinate/${subordinateId}/self-assessment`,
+        {
+          headers: {
+            Authorization: `Bearer ${AuthService.getToken()}`,
+          },
         },
-      });
+      );
       return response.data;
     } catch (error) {
       console.error(`Erro ao buscar autoavaliação detalhada para ${subordinateId}:`, error);
@@ -74,6 +74,33 @@ class DashboardService {
       throw new Error('Ocorreu um erro de rede. Tente novamente.');
     }
   }
+
+  static async getReceived360Assessments(
+    subordinateId: string | undefined,
+    cycle: string,
+  ): Promise<Received360Evaluation[]> {
+    try {
+      const response = await api.get<Received360Evaluation[]>(
+        // URL com o ID do colaborador
+        `/evaluations/manager/subordinate/${subordinateId}/360-assessments`,
+        {
+          headers: {
+            Authorization: `Bearer ${AuthService.getToken()}`,
+          },
+          params: {
+            cycle,
+          },
+        },
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Erro ao buscar avaliações 360 para o usuário ${subordinateId}:`, error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar avaliações 360.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
 }
 
-export default DashboardService;
+export default ManagerService;

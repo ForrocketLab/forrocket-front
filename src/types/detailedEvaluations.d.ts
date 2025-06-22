@@ -1,4 +1,4 @@
-export interface SelfAssessmentAnswer {
+interface SelfAssessmentAnswer {
   id: string;
   selfAssessmentId: string;
   criterionId: string; // O ID do critério/pergunta
@@ -6,12 +6,12 @@ export interface SelfAssessmentAnswer {
   justification: string; // A resposta/justificativa
 }
 
-export interface CompletionStatusCategory {
+interface CompletionStatusCategory {
   completed: number;
   total: number;
 }
 
-export interface DetailedSelfAssessment {
+interface DetailedSelfAssessment {
   id: string; // ID da autoavaliação
   cycle: string;
   authorId: string; // O ID do autor da autoavaliação
@@ -33,13 +33,13 @@ export interface DetailedSelfAssessment {
 }
 
 // NOVAS INTERFACES PARA AVALIAÇÃO DO GESTOR
-export interface ManagerAssessmentCriterion {
+interface ManagerAssessmentCriterion {
   criterionId: string;
   score: number;
   justification: string;
 }
 
-export interface CreateManagerSubordinateAssessment {
+interface CreateManagerSubordinateAssessment {
   evaluatedUserId: string; // ID do colaborador que está sendo avaliado
   cycle: string; // Ciclo atual (ex: 2025.2)
   assessments: ManagerAssessmentCriterion[];

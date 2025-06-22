@@ -14,6 +14,7 @@ import RefPage from './pages/referencias/RefCollaborator';
 import ManagerCollaboratorEvaluations from './pages/manager/collaboratorEvaluations/ManagerCollaboratorEvaluations';
 import ManagerDashboardPage from './pages/manager/dashboard/ManagerDashboard';
 import CollaboratorEvaluationDetails from './pages/manager/collaborators/CollaboratorEvaluationDetails';
+import ManagerCollaborators from './pages/manager/collaborators/ManagerCollaborators';
 
 function App() {
   return (
@@ -56,7 +57,7 @@ function AppWithToasts() {
 
             <Route element={<ProtectedRoute allowedRoles={[ROLES.MANAGER]} />}>
               <Route path='/manager/dashboard' element={<ManagerDashboardPage />} />
-              <Route path='/manager/collaborators' element={<h1>View dos colaboradores aqui</h1>} />
+              <Route path='/manager/collaborators' element={<ManagerCollaborators />} />
               <Route path='/manager/collaborators/:collaboratorId' element={<ManagerCollaboratorEvaluations />} />
               <Route path='/manager/collaborators/:id/evaluations' element={<CollaboratorEvaluationDetails />} />
             </Route>

@@ -5,7 +5,7 @@ import DetailedEvaluationsCard from './components/DetailedEvaluationsCard';
 import PendingReviewsCard from './components/PendingReviewsCard';
 import CollaboratorsTable from './components/CollaboratorsTable';
 import { useEffect, useState } from 'react';
-import DashboardService from '../../../services/DashboardService';
+import DashboardService from '../../../services/ManagerService';
 import { useAuth } from '../../../hooks/useAuth';
 
 const ManagerDashboardPage = () => {

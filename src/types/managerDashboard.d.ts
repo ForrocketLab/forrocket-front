@@ -38,3 +38,11 @@ interface ActiveCycle {
   startDate: string | null;
   endDate: string | null;
 }
+
+interface Received360Evaluation {
+  evaluatorName: string;
+  evaluatorJobTitle: string;
+  rating: number;
+  strengths: string;
+  weaknesses: string;
+}
