@@ -1,9 +1,12 @@
+// src/pages/manager/components/CollaboratorRow.tsx
 import { type FC } from 'react';
 import { ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom'; // <-- Importe useNavigate
 
 type Status = 'PENDING' | 'DRAFT' | 'SUBMITTED';
 
 export interface CollaboratorRowProps {
+  id: string; // <-- Certifique-se que o ID está nas props, ele é crucial para a navegação
   initials: string;
   name: string;
   jobTitle: string;
@@ -13,6 +16,7 @@ export interface CollaboratorRowProps {
 }
 
 const CollaboratorRow: FC<CollaboratorRowProps> = ({
+  id, // <-- Pegue o ID das props
   initials,
   name,
   jobTitle,
@@ -20,6 +24,8 @@ const CollaboratorRow: FC<CollaboratorRowProps> = ({
   selfAssessmentScore,
   managerScore,
 }) => {
+  const navigate = useNavigate(); // <-- Instancie o hook
+
   const statusStyles = {
     PENDING: 'bg-[#BEE7CF] text-[#419958]',
     DRAFT: 'bg-[#FEF5B2] text-[#F5AA30]',
@@ -40,6 +46,11 @@ const CollaboratorRow: FC<CollaboratorRowProps> = ({
         return 'Pendente';
     }
   }
+
+  // Função para navegar para os detalhes da avaliação
+  const handleNavigateToDetails = () => {
+    navigate(`/manager/collaborators/${id}/evaluations`); // <-- Navegação usando o ID
+  };
 
   return (
     <div className='flex flex-col md:flex-row md:items-center w-full p-4 border border-gray-200 rounded-xl mb-3 gap-4 md:gap-0'>
@@ -73,7 +84,11 @@ const CollaboratorRow: FC<CollaboratorRowProps> = ({
             {managerScore ?? '-'}
           </div>
         </div>
-        <button className='flex-shrink-0'>
+        <button
+          onClick={handleNavigateToDetails} // <-- Adicione o onClick aqui
+          className='flex-shrink-0 p-1 rounded-full hover:bg-gray-100 transition-colors' // Estilo para o botão
+          title={`Ver detalhes da avaliação de ${name}`} // Acessibilidade
+        >
           <ChevronRight size={24} className='text-[#08605F]' />
         </button>
       </div>

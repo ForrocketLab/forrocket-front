@@ -12,13 +12,13 @@ interface ToastProps {
   onClose: (id: string) => void;
 }
 
-const Toast: FC<ToastProps> = ({ 
-  id, 
-  type, 
-  title, 
-  message, 
-  duration = 4000, 
-  onClose 
+const Toast: FC<ToastProps> = ({
+  id,
+  type,
+  title,
+  message,
+  duration = 4000,
+  onClose
 }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -78,13 +78,13 @@ const Toast: FC<ToastProps> = ({
 
   return (
     <div className={`
-      relative max-w-sm w-full ${config.bgColor} ${config.borderColor} border rounded-lg shadow-lg 
+      relative max-w-sm w-full ${config.bgColor} ${config.borderColor} border rounded-lg shadow-lg
       transform transition-all duration-300 ease-in-out
       animate-in slide-in-from-right-full
     `}>
       {/* Progress bar */}
       <div className="absolute top-0 left-0 h-1 w-full bg-gray-200 rounded-t-lg overflow-hidden">
-        <div 
+        <div
           className={`h-full ${config.progressColor} animate-progress`}
           style={{
             animation: `progress ${duration}ms linear forwards`
@@ -97,12 +97,13 @@ const Toast: FC<ToastProps> = ({
           <div className="flex-shrink-0">
             <IconComponent className={`w-5 h-5 ${config.iconColor}`} />
           </div>
-          <div className="ml-3 w-0 flex-1">
+          {/* Alterado w-0 para flex-1 e adicionado min-w-0 para permitir que o texto se ajuste */}
+          <div className="ml-3 flex-1 min-w-0">
             <p className={`text-sm font-medium ${config.titleColor}`}>
               {title}
             </p>
             {message && (
-              <p className={`mt-1 text-sm ${config.messageColor}`}>
+              <p className={`mt-1 text-sm ${config.messageColor} break-words`}> {/* Adicionado break-words */}
                 {message}
               </p>
             )}
@@ -121,4 +122,4 @@ const Toast: FC<ToastProps> = ({
   );
 };
 
-export default Toast; 
+export default Toast;

@@ -13,6 +13,7 @@ import { useToastSubscription } from './hooks/useGlobalToast';
 import RefPage from './pages/referencias/RefCollaborator';
 import ManagerCollaboratorEvaluations from './pages/manager/collaboratorEvaluations/ManagerCollaboratorEvaluations';
 import ManagerDashboardPage from './pages/manager/dashboard/ManagerDashboard';
+import CollaboratorEvaluationDetails from './pages/manager/collaborators/CollaboratorEvaluationDetails';
 
 function App() {
   return (
@@ -57,6 +58,7 @@ function AppWithToasts() {
               <Route path='/manager/dashboard' element={<ManagerDashboardPage />} />
               <Route path='/manager/collaborators' element={<h1>View dos colaboradores aqui</h1>} />
               <Route path='/manager/collaborators/:collaboratorId' element={<ManagerCollaboratorEvaluations />} />
+              <Route path='/manager/collaborators/:id/evaluations' element={<CollaboratorEvaluationDetails />} />
             </Route>
 
             <Route element={<ProtectedRoute allowedRoles={[ROLES.COLLABORATOR]} />}>
