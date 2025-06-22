@@ -1,14 +1,34 @@
 import { AxiosError } from 'axios';
 import api from '../api';
 import AuthService from './AuthService';
-import { type DetailedSelfAssessment, type CreateManagerSubordinateAssessment } from '../types/detailedEvaluations'; // Importa o novo tipo
+import { type DetailedSelfAssessment, type CreateManagerSubordinateAssessment, type ManagerAssessmentCriterion } from '../types/detailedEvaluations'; // Importa o novo tipo
+
+interface CollaboratorFullEvaluation {
+  cycle: string;
+  selfAssessment: any | null;
+  assessments360: any[];
+  mentoringAssessments: any[];
+  referenceFeedbacks: any[];
+  managerAssessments: {
+    id: string;
+    cycle: string;
+    authorId: string;
+    evaluatedUserId: string;
+    status: 'DRAFT' | 'SUBMITTED';
+    createdAt: string;
+    updatedAt: string;
+    submittedAt: string | null;
+    evaluatedUser: any;
+    answers: ManagerAssessmentCriterion[];
+  }[];
+  summary: any;
+}
+
 
 class DashboardService {
-  // ... (métodos existentes getManagerDashboard e getActiveCycle)
 
   static async getManagerDashboard(cycle: string): Promise<ManagerDashboardResponse> {
     try {
-      // O 'params' do Axios adiciona "?cycle=2025.1" à URL
       const response = await api.get<ManagerDashboardResponse>('/evaluations/manager/dashboard', {
         headers: {
           Authorization: `Bearer ${AuthService.getToken()}`,
@@ -27,7 +47,6 @@ class DashboardService {
     }
   }
 
-  // Busca as informações do ciclo de avaliação atualmente ativo.
   static async getActiveCycle(): Promise<ActiveCycle> {
     try {
       const response = await api.get<ActiveCycle>('/evaluation-cycles/active', {
@@ -62,7 +81,6 @@ class DashboardService {
     }
   }
 
-  // NOVO MÉTODO: Enviar avaliação do gestor para o subordinado
   static async submitManagerSubordinateAssessment(payload: CreateManagerSubordinateAssessment): Promise<void> {
     try {
       await api.post('/evaluations/manager/subordinate-assessment', payload);
@@ -70,6 +88,26 @@ class DashboardService {
       console.error('Erro ao enviar avaliação do gestor:', error);
       if (error instanceof AxiosError && error.response) {
         throw new Error(error.response.data.message || 'Falha ao enviar avaliação do gestor.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  static async getCollaboratorFullEvaluation(collaboratorId: string, cycle: string): Promise<CollaboratorFullEvaluation> {
+    try {
+      const response = await api.get<CollaboratorFullEvaluation>(`/evaluations/collaborator/cycle/${cycle}`, {
+        headers: {
+          Authorization: `Bearer ${AuthService.getToken()}`,
+        },
+        params: {
+          collaboratorId: collaboratorId
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Erro ao buscar avaliação completa para o colaborador ${collaboratorId} no ciclo ${cycle}:`, error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar avaliação completa do colaborador.');
       }
       throw new Error('Ocorreu um erro de rede. Tente novamente.');
     }
