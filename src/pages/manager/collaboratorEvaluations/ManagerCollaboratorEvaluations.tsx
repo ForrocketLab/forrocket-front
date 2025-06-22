@@ -2,13 +2,8 @@ import { useState } from 'react';
 import EvaluationHeader from './components/EvaluationsHeader';
 import TabNavigation from './components/TabNavigation';
 import SelfEvaluationReview from './SelfEvaluationReview';
+import Manager360Evaluations from './Manager360Evaluations';
 
-const Assessment360Content = () => (
-  <div className='p-8'>
-    <h2>Conteúdo da Aba 360</h2>
-    <p>Formulário para avaliar pares aqui...</p>
-  </div>
-);
 const HistoryContent = () => (
   <div className='p-8'>
     <h2>Conteúdo da Aba de Histórico</h2>
@@ -47,7 +42,7 @@ const ManagerCollaboratorEvaluationsPage = () => {
       {/* Container de conteúdo que renderiza o componente correto */}
       <main className='pt-6'>
         {activeTab === 'my-assessment' && <SelfEvaluationReview />}
-        {activeTab === 'assessment-360' && <Assessment360Content />}
+        {activeTab === 'assessment-360' && <Manager360Evaluations />}
         {activeTab === 'history' && <HistoryContent />}
       </main>
     </div>
