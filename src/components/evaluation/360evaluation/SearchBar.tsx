@@ -1,19 +1,13 @@
 import React from 'react';
 import { FiSearch } from 'react-icons/fi';
-
-interface Collaborator {
-  id: number;
-  name: string;
-  role: string;
-  initials: string;
-}
+import type { EvaluableUser } from '../../../types/evaluations';
 
 interface SearchBarProps {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
-  searchResults: Collaborator[];
-  onSelect: (collaborator: Collaborator) => void;
+  searchResults: EvaluableUser[];
+  onSelect: (collaborator: EvaluableUser) => void;
   onFocus: () => void;
   onBlur: () => void;
 }

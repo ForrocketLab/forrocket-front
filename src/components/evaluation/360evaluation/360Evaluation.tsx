@@ -1,46 +1,68 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SearchBar from './SearchBar';
 import EvaluationCard from './EvaluationCard';
-
-// mock data, before integration
-const allCollaborators = [
-  { id: 1, name: 'Ana Oliveira', role: 'Product Design', initials: 'AO' },
-  { id: 2, name: 'Bruno Costa', role: 'Frontend Developer', initials: 'BC' },
-  { id: 3, name: 'Carla Dias', role: 'Backend Developer', initials: 'CD' },
-  { id: 4, name: 'Daniel Martins', role: 'QA Tester', initials: 'DM' },
-  { id: 5, name: 'Eduarda Ferreira', role: 'DevOps Engineer', initials: 'EF' },
-];
+import EvaluationService from '../../../services/EvaluationService';
+import type { EvaluableUser } from '../../../types/evaluations';
 
 const Evaluation360 = () => {
   const [search, setSearch] = useState('');
-  const [selectedCollaborators, setSelectedCollaborators] = useState<typeof allCollaborators>([]);
+  const [selectedCollaborators, setSelectedCollaborators] = useState<EvaluableUser[]>([]);
+  const [availableCollaborators, setAvailableCollaborators] = useState<EvaluableUser[]>([]);
   const [isSearchActive, setIsSearchActive] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const { colleagues, managers } = await EvaluationService.getEvaluableUsers();
+        const allEvaluableUsers = [...colleagues, ...managers];
+        setAvailableCollaborators(allEvaluableUsers);
+        setIsLoading(false);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Ocorreu um erro desconhecido.');
+        setIsLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
   };
 
-  const handleSelectCollaborator = (collaborator: (typeof allCollaborators)[0]) => {
-    if (!selectedCollaborators.find(c => c.id === collaborator.id)) {
+  const handleSelectCollaborator = (collaborator: EvaluableUser) => {
+    if (!selectedCollaborators.find((c) => c.id === collaborator.id)) {
       setSelectedCollaborators([...selectedCollaborators, collaborator]);
+      setAvailableCollaborators(availableCollaborators.filter((c) => c.id !== collaborator.id));
     }
     setSearch('');
     setIsSearchActive(false);
   };
 
-  const handleRemove = (id: number) => {
-    setSelectedCollaborators(selectedCollaborators.filter((c) => c.id !== id));
+  const handleRemove = (collaboratorToRemove: EvaluableUser) => {
+    setSelectedCollaborators(selectedCollaborators.filter((c) => c.id !== collaboratorToRemove.id));
+    setAvailableCollaborators([...availableCollaborators, collaboratorToRemove]);
   };
-
-  const availableCollaborators = allCollaborators.filter(
-    c => !selectedCollaborators.find(sc => sc.id === c.id)
-  );
+  
+  const handleSubmitted = (submittedCollaborator: EvaluableUser) => {
+      setSelectedCollaborators(selectedCollaborators.filter((c) => c.id !== submittedCollaborator.id));
+  }
 
   const searchResults = isSearchActive
-    ? availableCollaborators.filter(c =>
+    ? availableCollaborators.filter((c) =>
         c.name.toLowerCase().includes(search.toLowerCase())
       )
     : [];
+    
+  if (isLoading) {
+    return <p>Carregando colaboradores...</p>;
+  }
+
+  if (error) {
+    return <p className="text-red-500">{error}</p>;
+  }
 
   return (
     <div className="bg=[#F1F1F1] min-h-screen">
@@ -56,7 +78,12 @@ const Evaluation360 = () => {
         />
       </div>
       {selectedCollaborators.map((collaborator) => (
-        <EvaluationCard key={collaborator.id} collaborator={collaborator} onRemove={() => handleRemove(collaborator.id)} />
+        <EvaluationCard 
+            key={collaborator.id} 
+            collaborator={collaborator} 
+            onRemove={() => handleRemove(collaborator)}
+            onSubmitted={() => handleSubmitted(collaborator)}
+        />
       ))}
     </div>
   );
