@@ -5,14 +5,20 @@ import DashboardService from "../../../services/DashboardService"
 import { useGlobalToast } from "../../../hooks/useGlobalToast"
 import type {
   DetailedSelfAssessment,
-  SelfAssessmentAnswer,
-  CreateManagerSubordinateAssessment,
 } from "../../../types/detailedEvaluations"
 
 interface ManagerCriterionState {
   score: number
   justification: string
 }
+
+const ALLOWED_CRITERIA_IDS = [
+  "sentimento-de-dono",
+  "resiliencia-adversidades",
+  "organizacao-trabalho",
+  "capacidade-aprender",
+  "team-player",
+];
 
 const CollaboratorEvaluationDetails: FC = () => {
   const { id: collaboratorIdFromUrl } = useParams<{ id: string }>()
@@ -25,8 +31,8 @@ const CollaboratorEvaluationDetails: FC = () => {
   const [expandedCriterion, setExpandedCriterion] = useState<Set<string>>(new Set())
 
   // Estados para armazenar o nome e o cargo do colaborador dinamicamente
-  const [collaboratorName, setCollaboratorName] = useState("Colaborador Avaliado") // Valor inicial de placeholder
-  const [collaboratorJobTitle, setCollaboratorJobTitle] = useState("Cargo do Colaborador") // Valor inicial de placeholder
+  const [collaboratorName, setCollaboratorName] = useState("Colaborador Avaliado")
+  const [collaboratorJobTitle, setCollaboratorJobTitle] = useState("Cargo do Colaborador")
 
   const [managerAssessments, setManagerAssessments] = useState<Record<string, ManagerCriterionState>>({})
 
@@ -47,8 +53,6 @@ const CollaboratorEvaluationDetails: FC = () => {
         const selfAssessment = await DashboardService.getDetailedSelfAssessment(collaboratorIdFromUrl)
         setDetailedSelfAssessment(selfAssessment)
 
-        // Buscar dados do dashboard para obter o nome e o cargo do colaborador
-        // Esta é uma solução alternativa se 'detailedSelfAssessment' não contiver isso diretamente
         const dashboardData = await DashboardService.getManagerDashboard(activeCycle.name)
         const foundCollaborator = dashboardData.collaboratorsInfo
           .flatMap((group) => group.subordinates)
@@ -64,8 +68,9 @@ const CollaboratorEvaluationDetails: FC = () => {
         }
 
         const initialManagerAssessments: Record<string, ManagerCriterionState> = {}
-        selfAssessment.answers.forEach((answer) => {
-          initialManagerAssessments[answer.criterionId] = { score: 0, justification: "" }
+        // Inicializa apenas os critérios permitidos
+        ALLOWED_CRITERIA_IDS.forEach((criterionId) => {
+          initialManagerAssessments[criterionId] = { score: 0, justification: "" }
         })
         setManagerAssessments(initialManagerAssessments)
       } catch (err) {
@@ -77,7 +82,7 @@ const CollaboratorEvaluationDetails: FC = () => {
     }
 
     fetchAssessmentData()
-  }, [collaboratorIdFromUrl]) // Depende de collaboratorIdFromUrl
+  }, [collaboratorIdFromUrl])
 
   const handleManagerRatingChange = (criterionId: string, score: number) => {
     setManagerAssessments((prev) => ({
@@ -94,10 +99,10 @@ const CollaboratorEvaluationDetails: FC = () => {
   }
 
   const getManagerCompletionCount = () => {
-    const total = detailedSelfAssessment?.answers.length || 0
+    const total = ALLOWED_CRITERIA_IDS.length
     const completed =
-      detailedSelfAssessment?.answers.filter((answer) => {
-        const managerAssessment = managerAssessments[answer.criterionId]
+      ALLOWED_CRITERIA_IDS.filter((criterionId) => {
+        const managerAssessment = managerAssessments[criterionId]
         return (
           managerAssessment &&
           managerAssessment.score >= 1 &&
@@ -127,18 +132,21 @@ const CollaboratorEvaluationDetails: FC = () => {
       return
     }
 
-    const payload: CreateManagerSubordinateAssessment = {
+    const payloadToSend: Record<string, any> = {
       evaluatedUserId: collaboratorIdFromUrl,
-      cycle: activeCycleName,
-      assessments: Object.entries(managerAssessments).map(([criterionId, data]) => ({
-        criterionId,
-        score: data.score,
-        justification: data.justification,
-      })),
-    }
+    };
+
+    ALLOWED_CRITERIA_IDS.forEach((criterionId) => {
+      const camelCaseCriterion = criterionId.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+      const managerAssessment = managerAssessments[criterionId];
+      if (managerAssessment) {
+        payloadToSend[`${camelCaseCriterion}Score`] = managerAssessment.score;
+        payloadToSend[`${camelCaseCriterion}Justification`] = managerAssessment.justification;
+      }
+    });
 
     try {
-
+      await DashboardService.submitManagerSubordinateAssessment(payloadToSend as any);
       toast.success("Sucesso", "Avaliação do gestor enviada com sucesso!")
     } catch (submitError) {
       const msg = submitError instanceof Error ? submitError.message : "Falha ao enviar avaliação."
@@ -298,7 +306,9 @@ const CollaboratorEvaluationDetails: FC = () => {
 
               <div className="divide-y divide-gray-200">
                 {detailedSelfAssessment.answers.length > 0 ? (
-                  detailedSelfAssessment.answers.map((answer, index) => {
+                  detailedSelfAssessment.answers
+                    .filter(answer => ALLOWED_CRITERIA_IDS.includes(answer.criterionId))
+                    .map((answer, index) => {
                     const isExpanded = expandedCriterion.has(answer.criterionId)
                     const managerScore = managerAssessments[answer.criterionId]?.score || 0
                     const hasManagerAssessment =
