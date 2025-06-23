@@ -2,7 +2,7 @@ import { ROLES } from '../types/roles'; // Seu enum de papéis
 
 import { type IconType } from 'react-icons';
 
-import { FaHome, FaUsers, FaCog } from 'react-icons/fa';
+import { FaUsers, FaCog } from 'react-icons/fa';
 import { IoBarChartOutline } from 'react-icons/io5';
 import { LuFilePenLine, LuLayoutDashboard } from 'react-icons/lu';
 import { MdPeople } from 'react-icons/md';
@@ -17,12 +17,6 @@ export interface MenuItemConfig {
 
 // todas as opções de menu possíveis na aplicação
 export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
-  {
-    path: '/',
-    label: 'Minha Home',
-    icon: FaHome,
-    allowedRoles: [ROLES.COLLABORATOR, ROLES.MANAGER, ROLES.RH, ROLES.ADMIN],
-  },
   {
     path: '/dashboard',
     label: 'Dashboard',

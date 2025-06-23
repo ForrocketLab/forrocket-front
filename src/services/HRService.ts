@@ -72,6 +72,7 @@ export interface CollaboratorDetails {
   createdAt: string;
   updatedAt: string;
   managerName: string | null;
+  mentorName: string | null;
   directReportsCount: number;
 }
 
@@ -88,6 +89,10 @@ export interface CollaboratorWithEvaluationProgress extends CollaboratorDetails 
     };
     mentoringAssessmentsReceived: number;
     referenceFeedbacksReceived: number;
+    committeeAssessment: {
+      status: string;
+      submittedAt: string | null;
+    };
   };
 }
 
@@ -148,6 +153,29 @@ class HRService {
       console.error('Erro ao buscar fase do ciclo ativo:', error);
       if (error instanceof AxiosError && error.response) {
         throw new Error(error.response.data.message || 'Falha ao buscar fase do ciclo ativo.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  // Busca informações detalhadas do ciclo ativo com deadlines
+  static async getActiveCycleWithDeadlines(): Promise<any> {
+    try {
+      // Primeiro buscar o ciclo ativo
+      const activeCycleResponse = await api.get('/evaluation-cycles/active');
+      const activeCycle = activeCycleResponse.data;
+      
+      // Depois buscar as informações de deadlines
+      const deadlinesResponse = await api.get(`/evaluation-cycles/${activeCycle.id}/deadlines`);
+      
+      return {
+        ...activeCycle,
+        deadlinesInfo: deadlinesResponse.data
+      };
+    } catch (error) {
+      console.error('Erro ao buscar informações detalhadas do ciclo:', error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar informações do ciclo.');
       }
       throw new Error('Ocorreu um erro de rede. Tente novamente.');
     }
@@ -316,6 +344,7 @@ class HRService {
       careerTrack: collab.careerTrack || 'N/A',
       managerId: collab.managerId,
       managerName: collab.managerName || null,
+      mentorName: collab.mentorName || null,
       isActive: collab.isActive,
       directReportsCount: collab.directReportsCount || 0,
       createdAt: collab.createdAt || new Date().toISOString(),
@@ -331,7 +360,11 @@ class HRService {
           submittedAt: collab.evaluationProgress?.managerAssessment?.submittedAt || null
         },
         mentoringAssessmentsReceived: collab.evaluationProgress?.mentoringAssessmentsReceived || 0,
-        referenceFeedbacksReceived: collab.evaluationProgress?.referenceFeedbacksReceived || 0
+        referenceFeedbacksReceived: collab.evaluationProgress?.referenceFeedbacksReceived || 0,
+        committeeAssessment: {
+          status: collab.evaluationProgress?.committeeAssessment?.status || 'PENDING',
+          submittedAt: collab.evaluationProgress?.committeeAssessment?.submittedAt || null
+        }
       }
     }));
   }
@@ -363,6 +396,10 @@ class HRService {
         name: 'Referências',
         completed: progress.referenceFeedbacksReceived > 0,
         count: progress.referenceFeedbacksReceived
+      },
+      {
+        name: 'Avaliação de Comitê',
+        completed: progress.committeeAssessment.status === 'SUBMITTED'
       }
     ];
   }
@@ -492,9 +529,8 @@ class HRService {
 
       // Processar colaboradores com dados reais de progresso
       const collaborators: CollaboratorStatus[] = collaboratorsWithProgress.map((collab) => {
-        // Calcular progresso real baseado nas avaliações
-        const steps = this.getEvaluationStepsFromProgress(collab.evaluationProgress);
-        const progress = this.calculateEvaluationProgress(steps);
+        // Avaliação finalizada = tem avaliação de comitê submetida
+        const isFinalized = collab.evaluationProgress.committeeAssessment.status === 'SUBMITTED';
         
         return {
           id: collab.id,
@@ -504,7 +540,7 @@ class HRService {
           seniority: collab.seniority,
           businessUnit: collab.businessUnit,
           initials: this.getInitials(collab.name),
-          status: progress.progressPercentage >= 80 ? 'FINALIZADO' : 'PENDING',
+          status: isFinalized ? 'FINALIZADO' : 'PENDING',
           selfAssessmentStatus: collab.evaluationProgress.selfAssessment.status,
           managerAssessmentStatus: collab.evaluationProgress.managerAssessment.status,
           peerAssessmentsCompleted: collab.evaluationProgress.assessments360Received
@@ -581,6 +617,20 @@ class HRService {
    */
   static clearCache(): void {
     HRService.getInstance().clearCache();
+  }
+
+    /**
+   * Buscar dados detalhados de avaliação de um colaborador (para RH)
+   * Utiliza API específica do RH sem restrição de fase
+   */
+  static async getCollaboratorEvaluationDetails(collaboratorId: string) {
+    try {
+      const response = await api.get(`/users/${collaboratorId}/evaluation-details`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar dados detalhados do colaborador:', error);
+      throw error;
+    }
   }
 }
 
