@@ -492,7 +492,7 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-gray-900">
-            Olá, <span className="text-[#085F60]">Comitê</span>
+            Olá, <span className="text-[#085F60]">{user?.name?.split(' ')[0] || 'Comitê'}</span>
           </h1>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-[#085F60] rounded-full flex items-center justify-center text-white text-sm font-medium">
