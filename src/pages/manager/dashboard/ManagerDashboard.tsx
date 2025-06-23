@@ -1,14 +1,14 @@
 import { FaStar } from 'react-icons/fa';
-import CycleStatus from '../components/CycleStatus';
-import DetailedScoreCard from '../components/DetailedScoreCard';
-import DetailedEvaluationsCard from '../components/DetailedEvaluationsCard';
-import PendingReviewsCard from '../components/PendingReviewsCard';
-import CollaboratorsTable from '../components/CollaboratorsTable';
+import CycleStatus from './components/CycleStatus';
+import DetailedScoreCard from './components/DetailedScoreCard';
+import DetailedEvaluationsCard from './components/DetailedEvaluationsCard';
+import PendingReviewsCard from './components/PendingReviewsCard';
+import CollaboratorsTable from './components/CollaboratorsTable';
 import { useEffect, useState } from 'react';
-import DashboardService from '../../../services/DashboardService';
+import DashboardService from '../../../services/ManagerService';
 import { useAuth } from '../../../hooks/useAuth';
 
-const ManagerDashboard = () => {
+const ManagerDashboardPage = () => {
   const { user } = useAuth();
   const [dashboardData, setDashboardData] = useState<ManagerDashboardResponse | null>(null);
   const [activeCycle, setActiveCycle] = useState<ActiveCycle | null>(null);
@@ -103,4 +103,4 @@ const ManagerDashboard = () => {
   );
 };
 
-export default ManagerDashboard;
+export default ManagerDashboardPage;

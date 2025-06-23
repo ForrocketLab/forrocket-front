@@ -86,7 +86,7 @@ const CollaboratorRow: FC<CollaboratorRowProps> = ({
         </div>
         <button
           onClick={handleNavigateToDetails} // <-- Adicione o onClick aqui
-          className='flex-shrink-0 p-1 rounded-full hover:bg-gray-100 transition-colors' // Estilo para o botão
+          className='flex-shrink-0 p-1 rounded-full hover:bg-gray-100 transition-colors hover:cursor-pointer' // Estilo para o botão
           title={`Ver detalhes da avaliação de ${name}`} // Acessibilidade
         >
           <ChevronRight size={24} className='text-[#08605F]' />
