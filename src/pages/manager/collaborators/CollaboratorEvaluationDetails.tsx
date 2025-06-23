@@ -282,7 +282,7 @@ const CollaboratorEvaluationDetails: FC = () => {
     <div className='flex min-h-screen bg-gray-50'>
       <div className='flex flex-col flex-1'>
         <EvaluationHeader
-          isAssessmentSubmitted
+          isAssessmentSubmitted={isAssessmentSubmitted}
           collaboratorName={collaboratorName}
           collaboratorInitials={collaboratorInitials}
           collaboratorJobTitle={collaboratorJobTitle}
@@ -295,7 +295,7 @@ const CollaboratorEvaluationDetails: FC = () => {
         <main className='flex-1 pt-28 pb-8'>
           {activeTab === 'evaluation' && detailedSelfAssessment && (
             <EvaluationCriteriaList
-              isAssessmentSubmitted
+              isAssessmentSubmitted={isAssessmentSubmitted}
               answers={detailedSelfAssessment.answers}
               managerAssessments={managerAssessments}
               expandedCriterion={expandedCriterion}
