@@ -85,13 +85,7 @@ const Mentoring: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className={`rounded-md w-8 h-8 text-lg flex items-center justify-center font-medium ${
-            isComplete 
-              ? 'bg-green-100 text-green-700' 
-              : rating > 0 
-                ? 'bg-yellow-100 text-yellow-700' 
-                : 'bg-gray-100 text-gray-700'
-          }`}>
+        <div className="rounded-md w-8 h-8 text-lg flex items-center justify-center font-bold bg-gray-200 text-[#08605F]">
             {rating || '-'}
           </div>
         </div>
