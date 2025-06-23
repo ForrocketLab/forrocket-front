@@ -25,6 +25,7 @@ interface CollaboratorsResponse {
 
 interface CollaboratorEvaluationSummary {
   cycle: string;
+  currentPhase?: string;
   collaborator: {
     id: string;
     name: string;
@@ -39,14 +40,21 @@ interface CollaboratorEvaluationSummary {
     mentoring: number | null;
   };
   customSummary: string;
+  // Avaliações recebidas
   selfAssessment: any;
   assessments360Received: any[];
   managerAssessmentsReceived: any[];
   mentoringAssessmentsReceived: any[];
   referenceFeedbacksReceived: any[];
   committeeAssessment: any;
+  // Avaliações enviadas
+  assessments360Sent?: any[];
+  managerAssessmentsSent?: any[];
+  mentoringAssessmentsSent?: any[];
+  referenceFeedbacksSent?: any[];
   summary: {
     totalAssessmentsReceived: number;
+    totalAssessmentsSent?: number;
     hasCommitteeAssessment: boolean;
     isEqualizationComplete: boolean;
   };

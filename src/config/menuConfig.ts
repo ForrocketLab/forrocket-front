@@ -1,9 +1,10 @@
 import type { FC } from 'react';
 import { ROLES } from '../types/roles'; // Seu enum de papéis
 
-import { FaHome } from 'react-icons/fa';
+import { FaCog, FaHome } from 'react-icons/fa';
 import { IoBarChartOutline } from 'react-icons/io5';
 import { LuFilePenLine, LuLayoutDashboard, LuLayoutTemplate, LuUsers } from 'react-icons/lu';
+import { MdPeople } from 'react-icons/md';
 
 export interface IconProps {
   size?: number;
@@ -67,5 +68,23 @@ export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
     label: 'Equalizações',
     icon: LuFilePenLine,
     allowedRoles: [ROLES.COMMITTEE, ROLES.ADMIN],
+  },
+  {
+    path: '/rh',
+    label: 'Dashboard RH',
+    icon: LuLayoutDashboard,
+    allowedRoles: [ROLES.RH, ROLES.ADMIN],
+  },
+  {
+    path: '/rh/colaboradores',
+    label: 'Gestão de Colaboradores',
+    icon: MdPeople,
+    allowedRoles: [ROLES.RH, ROLES.ADMIN],
+  },
+  {
+    path: '/rh/criterios',
+    label: 'Critérios de Avaliação',
+    icon: FaCog,
+    allowedRoles: [ROLES.RH, ROLES.ADMIN],
   },
 ];
