@@ -19,6 +19,34 @@ interface MentoringData {
   collapsed: boolean;
 }
 
+interface SelfEvaluationData {
+  postureCriteria: {
+    sentimentoDeDono: { score: number | null; justification: string };
+    resilienciaNasAdversidades: { score: number | null; justification: string };
+    organizacaoNoTrabalho: { score: number | null; justification: string };
+    capacidadeDeAprender: { score: number | null; justification: string };
+    serTeamPlayer: { score: number | null; justification: string };
+  };
+  executionCriteria: {
+    entregarComQualidade: { score: number | null; justification: string };
+    atenderAosPrazos: { score: number | null; justification: string };
+    fazerMaisComMenos: { score: number | null; justification: string };
+    pensarForaDaCaixa: { score: number | null; justification: string };
+  };
+  peopleAndManagementCriteria: {
+    gente: { score: number | null; justification: string };
+    resultados: { score: number | null; justification: string };
+    evolucaoDaRocketCorp: { score: number | null; justification: string };
+  };
+  isSubmitted: boolean;
+  cardStates: {
+    posture: boolean;
+    execution: boolean;
+    peopleAndManagement: boolean;
+  };
+  expandedItems: { [key: string]: boolean };
+}
+
 interface EvaluationContextType {
   evaluations360: Evaluation360Data[];
   addEvaluation360: (collaborator: EvaluableUser) => void;
@@ -33,6 +61,19 @@ interface EvaluationContextType {
   updateMentoringData: (data: Partial<Omit<MentoringData, 'mentor'>>) => void;
   submitMentoring: () => void;
   toggleMentoringCollapsed: () => void;
+  
+
+  selfEvaluationData: SelfEvaluationData;
+  updateSelfEvaluationCriterion: (
+    group: 'posture' | 'execution' | 'peopleAndManagement',
+    criterionName: string,
+    field: 'score' | 'justification',
+    value: any
+  ) => void;
+  toggleSelfEvaluationCard: (card: 'posture' | 'execution' | 'peopleAndManagement') => void;
+  toggleSelfEvaluationItem: (itemKey: string) => void;
+  submitSelfEvaluation: () => void;
+  isSelfEvaluationComplete: () => boolean;
   
 
   getEvaluation360ByCollaborator: (collaboratorId: string) => Evaluation360Data | undefined;
@@ -59,52 +100,101 @@ interface EvaluationProviderProps {
 const STORAGE_KEYS = {
   EVALUATIONS_360: 'evaluations_360',
   MENTORING_DATA: 'mentoring_data',
+  SELF_EVALUATION_DATA: 'self_evaluation_data',
 } as const;
 
 export const EvaluationProvider: FC<EvaluationProviderProps> = ({ children }) => {
-  const [evaluations360, setEvaluations360] = useState<Evaluation360Data[]>([]);
-  const [mentoringData, setMentoringData] = useState<MentoringData>({
-    mentor: null,
-    rating: 0,
-    justification: '',
-    isSubmitted: false,
-    collapsed: false,
+  // Função para carregar dados do localStorage de forma segura
+  const loadFromStorage = <T,>(key: string, defaultValue: T): T => {
+    try {
+      const stored = localStorage.getItem(key);
+      if (stored) {
+        console.log(`📂 Carregando ${key} do localStorage:`, stored);
+        return JSON.parse(stored);
+      }
+    } catch (error) {
+      console.error(`❌ Erro ao carregar ${key} do localStorage:`, error);
+    }
+    return defaultValue;
+  };
+
+  const [evaluations360, setEvaluations360] = useState<Evaluation360Data[]>(() => 
+    loadFromStorage(STORAGE_KEYS.EVALUATIONS_360, [])
+  );
+  
+  const [mentoringData, setMentoringData] = useState<MentoringData>(() => 
+    loadFromStorage(STORAGE_KEYS.MENTORING_DATA, {
+      mentor: null,
+      rating: 0,
+      justification: '',
+      isSubmitted: false,
+      collapsed: false,
+    })
+  );
+  
+  const [selfEvaluationData, setSelfEvaluationData] = useState<SelfEvaluationData>(() => 
+    loadFromStorage(STORAGE_KEYS.SELF_EVALUATION_DATA, {
+      postureCriteria: {
+        sentimentoDeDono: { score: null, justification: '' },
+        resilienciaNasAdversidades: { score: null, justification: '' },
+        organizacaoNoTrabalho: { score: null, justification: '' },
+        capacidadeDeAprender: { score: null, justification: '' },
+        serTeamPlayer: { score: null, justification: '' },
+      },
+      executionCriteria: {
+        entregarComQualidade: { score: null, justification: '' },
+        atenderAosPrazos: { score: null, justification: '' },
+        fazerMaisComMenos: { score: null, justification: '' },
+        pensarForaDaCaixa: { score: null, justification: '' },
+      },
+      peopleAndManagementCriteria: {
+        gente: { score: null, justification: '' },
+        resultados: { score: null, justification: '' },
+        evolucaoDaRocketCorp: { score: null, justification: '' },
+      },
+      isSubmitted: false,
+      cardStates: {
+        posture: false,
+        execution: false,
+        peopleAndManagement: false,
+      },
+      expandedItems: {},
+    })
+  );
+
+  console.log('🚀 EvaluationProvider inicializado com dados:', {
+    evaluations360: evaluations360.length,
+    mentoringData: mentoringData.rating > 0 ? 'com dados' : 'vazio',
+    selfEvaluationData: Object.values(selfEvaluationData.postureCriteria).some(c => c.score !== null) ? 'com dados' : 'vazio'
   });
 
-
   useEffect(() => {
     try {
-      const storedEvaluations360 = localStorage.getItem(STORAGE_KEYS.EVALUATIONS_360);
-      if (storedEvaluations360) {
-        setEvaluations360(JSON.parse(storedEvaluations360));
-      }
-
-      const storedMentoringData = localStorage.getItem(STORAGE_KEYS.MENTORING_DATA);
-      if (storedMentoringData) {
-        setMentoringData(JSON.parse(storedMentoringData));
-      }
-    } catch (error) {
-      console.error('Erro ao carregar dados do localStorage:', error);
-    }
-  }, []);
-
-
-  useEffect(() => {
-    try {
+      console.log('💾 Salvando avaliações 360 no localStorage:', evaluations360);
       localStorage.setItem(STORAGE_KEYS.EVALUATIONS_360, JSON.stringify(evaluations360));
     } catch (error) {
-      console.error('Erro ao salvar avaliações 360 no localStorage:', error);
+      console.error('❌ Erro ao salvar avaliações 360 no localStorage:', error);
     }
   }, [evaluations360]);
 
 
   useEffect(() => {
     try {
+      console.log('💾 Salvando dados de mentoring no localStorage:', mentoringData);
       localStorage.setItem(STORAGE_KEYS.MENTORING_DATA, JSON.stringify(mentoringData));
     } catch (error) {
-      console.error('Erro ao salvar dados de mentoring no localStorage:', error);
+      console.error('❌ Erro ao salvar dados de mentoring no localStorage:', error);
     }
   }, [mentoringData]);
+
+  useEffect(() => {
+    try {
+      console.log('💾 Salvando dados de autoavaliação no localStorage:', selfEvaluationData);
+      localStorage.setItem(STORAGE_KEYS.SELF_EVALUATION_DATA, JSON.stringify(selfEvaluationData));
+    } catch (error) {
+      console.error('❌ Erro ao salvar dados de autoavaliação no localStorage:', error);
+    }
+  }, [selfEvaluationData]);
 
 
   const addEvaluation360 = (collaborator: EvaluableUser) => {
@@ -184,6 +274,64 @@ export const EvaluationProvider: FC<EvaluationProviderProps> = ({ children }) =>
   };
 
 
+  const updateSelfEvaluationCriterion = (
+    group: 'posture' | 'execution' | 'peopleAndManagement',
+    criterionName: string,
+    field: 'score' | 'justification',
+    value: any
+  ) => {
+    setSelfEvaluationData(prev => {
+      const newData = { ...prev };
+      if (group === 'posture') {
+        newData.postureCriteria = {
+          ...prev.postureCriteria,
+          [criterionName]: { ...prev.postureCriteria[criterionName as keyof typeof prev.postureCriteria], [field]: value }
+        };
+      } else if (group === 'execution') {
+        newData.executionCriteria = {
+          ...prev.executionCriteria,
+          [criterionName]: { ...prev.executionCriteria[criterionName as keyof typeof prev.executionCriteria], [field]: value }
+        };
+      } else if (group === 'peopleAndManagement') {
+        newData.peopleAndManagementCriteria = {
+          ...prev.peopleAndManagementCriteria,
+          [criterionName]: { ...prev.peopleAndManagementCriteria[criterionName as keyof typeof prev.peopleAndManagementCriteria], [field]: value }
+        };
+      }
+      return newData;
+    });
+  };
+
+  const toggleSelfEvaluationCard = (card: 'posture' | 'execution' | 'peopleAndManagement') => {
+    setSelfEvaluationData(prev => ({
+      ...prev,
+      cardStates: { ...prev.cardStates, [card]: !prev.cardStates[card] }
+    }));
+  };
+
+  const toggleSelfEvaluationItem = (itemKey: string) => {
+    setSelfEvaluationData(prev => ({
+      ...prev,
+      expandedItems: { ...prev.expandedItems, [itemKey]: !prev.expandedItems[itemKey] }
+    }));
+  };
+
+  const submitSelfEvaluation = () => {
+    setSelfEvaluationData(prev => ({ ...prev, isSubmitted: true }));
+  };
+
+  const isSelfEvaluationComplete = () => {
+    const allCriteria = [
+      ...Object.values(selfEvaluationData.postureCriteria),
+      ...Object.values(selfEvaluationData.executionCriteria),
+      ...Object.values(selfEvaluationData.peopleAndManagementCriteria)
+    ];
+    
+    return allCriteria.every(criterion => 
+      criterion.score !== null && criterion.justification.trim() !== ''
+    );
+  };
+
   const clearAllData = () => {
     setEvaluations360([]);
     setMentoringData({
@@ -193,8 +341,36 @@ export const EvaluationProvider: FC<EvaluationProviderProps> = ({ children }) =>
       isSubmitted: false,
       collapsed: false,
     });
+    setSelfEvaluationData({
+      postureCriteria: {
+        sentimentoDeDono: { score: null, justification: '' },
+        resilienciaNasAdversidades: { score: null, justification: '' },
+        organizacaoNoTrabalho: { score: null, justification: '' },
+        capacidadeDeAprender: { score: null, justification: '' },
+        serTeamPlayer: { score: null, justification: '' },
+      },
+      executionCriteria: {
+        entregarComQualidade: { score: null, justification: '' },
+        atenderAosPrazos: { score: null, justification: '' },
+        fazerMaisComMenos: { score: null, justification: '' },
+        pensarForaDaCaixa: { score: null, justification: '' },
+      },
+      peopleAndManagementCriteria: {
+        gente: { score: null, justification: '' },
+        resultados: { score: null, justification: '' },
+        evolucaoDaRocketCorp: { score: null, justification: '' },
+      },
+      isSubmitted: false,
+      cardStates: {
+        posture: false,
+        execution: false,
+        peopleAndManagement: false,
+      },
+      expandedItems: {},
+    });
     localStorage.removeItem(STORAGE_KEYS.EVALUATIONS_360);
     localStorage.removeItem(STORAGE_KEYS.MENTORING_DATA);
+    localStorage.removeItem(STORAGE_KEYS.SELF_EVALUATION_DATA);
   };
 
   const value: EvaluationContextType = {
@@ -209,6 +385,12 @@ export const EvaluationProvider: FC<EvaluationProviderProps> = ({ children }) =>
     updateMentoringData,
     submitMentoring,
     toggleMentoringCollapsed,
+    selfEvaluationData,
+    updateSelfEvaluationCriterion,
+    toggleSelfEvaluationCard,
+    toggleSelfEvaluationItem,
+    submitSelfEvaluation,
+    isSelfEvaluationComplete,
     getEvaluation360ByCollaborator,
     isEvaluation360Complete,
     isMentoringComplete,

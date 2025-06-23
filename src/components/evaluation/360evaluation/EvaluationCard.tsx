@@ -10,7 +10,7 @@ interface EvaluationCardProps {
   onSubmitted: () => void;
 }
 
-const EvaluationCard: React.FC<EvaluationCardProps> = ({ collaborator, onRemove, onSubmitted }) => {
+const EvaluationCard: React.FC<EvaluationCardProps> = ({ collaborator, onRemove }) => {
   const {
     getEvaluation360ByCollaborator,
     updateEvaluation360,
@@ -24,7 +24,7 @@ const EvaluationCard: React.FC<EvaluationCardProps> = ({ collaborator, onRemove,
     return null;
   }
 
-  const { rating, strengths, improvements, isSubmitted, collapsed } = evaluation;
+  const { rating, strengths, improvements, collapsed } = evaluation;
 
   // flag to verify if it's all done
   const isComplete = useMemo(() => {
@@ -66,13 +66,7 @@ const EvaluationCard: React.FC<EvaluationCardProps> = ({ collaborator, onRemove,
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className={`rounded-md w-8 h-8 text-lg flex items-center justify-center font-medium ${
-            isComplete 
-              ? 'bg-green-100 text-green-700' 
-              : rating > 0 
-                ? 'bg-yellow-100 text-yellow-700' 
-                : 'bg-gray-100 text-gray-700'
-          }`}>
+          <div className="rounded-md w-8 h-8 text-lg flex items-center justify-center font-bold bg-gray-200 text-[#08605F]">
             {rating || '-'}
           </div>
           <button 

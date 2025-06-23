@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { FaStar, FaRegStar } from 'react-icons/fa';
 import { useEvaluation } from '../../../contexts/EvaluationProvider';
-import type { EvaluableUser } from '../../../types/evaluations';
 import EvaluationService from '../../../services/EvaluationService';
 
 const Mentoring: React.FC = () => {
@@ -27,8 +26,12 @@ const Mentoring: React.FC = () => {
     const fetchMentor = async () => {
       try {
         const { mentors } = await EvaluationService.getEvaluableUsers();
-        if (mentors.length > 0 && !mentor) {
+        // Only set mentor if there's no existing mentor and no existing data
+        if (mentors.length > 0 && !mentor && rating === 0 && justification === '') {
+          console.log('👥 Definindo mentor inicial para mentoring');
           setMentor(mentors[0]);
+        } else if (mentor) {
+          console.log('📋 Mentor já definido, mantendo dados salvos');
         }
         setIsLoading(false);
       } catch (err) {
@@ -37,7 +40,7 @@ const Mentoring: React.FC = () => {
       }
     };
     fetchMentor();
-  }, [mentor, setMentor]);
+  }, [mentor, setMentor, rating, justification]);
 
   const handleCardClick = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('textarea')) {
