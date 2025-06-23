@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiSearch } from 'react-icons/fi';
+import { IoMdSearch } from 'react-icons/io';
 import type { EvaluableUser } from '../../../types/evaluations';
 
 interface SearchBarProps {
@@ -15,15 +15,15 @@ interface SearchBarProps {
 const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, placeholder, searchResults, onSelect, onFocus, onBlur }) => {
   return (
     <div className="relative w-full">
-      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-        <FiSearch />
-      </span>
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <IoMdSearch className="h-4 w-4 text-[#1D1D1DBF]" />
+      </div>
       <input
         type="text"
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="w-full pl-10 pr-3 py-3 rounded-lg border border-gray-200 text-base bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+        className="block w-full pl-10 pr-3 py-3 rounded-xl text-sm leading-5 bg-[#FFFFFF80] text-[#1D1D1DBF] placeholder:text-[#1D1D1DBF] focus:outline-none border-none"
         onFocus={onFocus}
         onBlur={onBlur}
       />

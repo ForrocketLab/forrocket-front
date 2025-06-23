@@ -1,0 +1,80 @@
+import { ROLES } from '../types/roles'; // Seu enum de papéis
+
+import { type IconType } from 'react-icons';
+
+import { FaUsers, FaCog } from 'react-icons/fa';
+import { IoBarChartOutline } from 'react-icons/io5';
+import { LuFilePenLine, LuLayoutDashboard } from 'react-icons/lu';
+import { MdPeople } from 'react-icons/md';
+
+// Define a estrutura de um item de menu
+export interface MenuItemConfig {
+  path: string;
+  label: string;
+  icon: IconType;
+  allowedRoles: string[];
+}
+
+// todas as opções de menu possíveis na aplicação
+export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
+  {
+    path: '/dashboard',
+    label: 'Dashboard',
+    icon: LuLayoutDashboard,
+    allowedRoles: [ROLES.COLLABORATOR],
+  },
+  {
+    path: '/avaliacao',
+    label: 'Avaliação de Ciclo',
+    icon: LuFilePenLine,
+    allowedRoles: [ROLES.COLLABORATOR],
+  },
+  {
+    path: '/evolucao',
+    label: 'Evolução',
+    icon: IoBarChartOutline,
+    allowedRoles: [ROLES.COLLABORATOR],
+  },
+  {
+    path: '/manager/dashboard',
+    label: 'Dashboard',
+    icon: LuLayoutDashboard,
+    allowedRoles: [ROLES.MANAGER],
+  },
+  {
+    path: '/manager/collaborators',
+    label: 'Colaboradores',
+    icon: FaUsers,
+    allowedRoles: [ROLES.MANAGER],
+  },
+  {
+    path: '/committee',
+    label: 'Painel do Comitê',
+    icon: LuLayoutDashboard,
+    allowedRoles: [ROLES.COMMITTEE, ROLES.ADMIN],
+  },
+  {
+    path: '/committee/equalizacoes',
+    label: 'Equalizações',
+    icon: LuFilePenLine,
+    allowedRoles: [ROLES.COMMITTEE, ROLES.ADMIN],
+  },
+  {
+    path: '/rh',
+    label: 'Dashboard RH',
+    icon: LuLayoutDashboard,
+    allowedRoles: [ROLES.RH, ROLES.ADMIN],
+  },
+  {
+    path: '/rh/colaboradores',
+    label: 'Gestão de Colaboradores',
+    icon: MdPeople,
+    allowedRoles: [ROLES.RH, ROLES.ADMIN],
+  },
+  {
+    path: '/rh/criterios',
+    label: 'Critérios de Avaliação',
+    icon: FaCog,
+    allowedRoles: [ROLES.RH, ROLES.ADMIN],
+  },
+];

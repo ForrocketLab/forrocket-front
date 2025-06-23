@@ -1,5 +1,6 @@
 import { useContext } from 'react';
 import { AuthContext } from '../../contexts/AuthProvider';
+import ToastTest from '../../components/ToastTest';
 
 const HomePage = () => {
   const auth = useContext(AuthContext);
@@ -10,7 +11,8 @@ const HomePage = () => {
     <div className='p-10'>
       <h1 className='text-3xl font-bold'>Home</h1>
       <p className='mt-4 text-lg'>
-        Token atual:
+        Token atual: {auth.user?.roles.join(', ') || 'Nenhum token disponível'}
+        <br />
         <br />
         <code className='text-sm text-gray-700'>{auth.isAuthenticated ? 'Autenticado' : 'Não autenticado'}</code>
       </p>
@@ -19,6 +21,11 @@ const HomePage = () => {
           <p>Usuário: {auth.user.name}</p>
         </div>
       )}
+      
+      {/* Componente de teste para toasts */}
+      <div className="mt-8 border-t pt-4">
+        <ToastTest />
+      </div>
     </div>
   );
 };

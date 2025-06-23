@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/TopBar';
 import Evaluation360 from '../../components/evaluation/360evaluation/360Evaluation';
 import Mentoring from '../../components/evaluation/mentoring/Mentoring';
 import SelfEvaluation from '../../components/evaluation/selfevaluation/SelfEvaluation';
+import RefCollaborator from '../../components/evaluation/referencias/RefCollaborator';
 
 const NAV_BUTTONS = ['Autoavaliação', 'Avaliação 360', 'Mentoring', 'Referências'] as const;
 type NavButtonType = typeof NAV_BUTTONS[number];
@@ -13,8 +13,7 @@ const EvaluationPage = () => {
 
   return (
     <div>
-      <Sidebar />
-      <div className="ml-[232px] min-h-screen bg-[#F1F1F1]">
+      <div className="pt-36 min-h-screen bg-[#F1F1F1]">
         <Topbar
           onSave={function (): void {
             throw new Error('Function not implemented.');
@@ -23,7 +22,7 @@ const EvaluationPage = () => {
           activeButton={activeButton}
           onNavButtonClick={setActiveButton}
         />
-        <main className="p-8 bg-[#F1F1F1] mt-[120px]">
+        <main className=" bg-[#F1F1F1]">
           {/* conteúdo da página de avaliação */}
           {activeButton === 'Autoavaliação' && (
             <SelfEvaluation 
@@ -33,7 +32,7 @@ const EvaluationPage = () => {
           )}
           {activeButton === 'Avaliação 360' && <Evaluation360 />}
           {activeButton === 'Mentoring' && <Mentoring />}
-          {activeButton === 'Referências' && <div>Conteúdo de Referências</div>}
+          {activeButton === 'Referências' && <RefCollaborator />}
         </main>
       </div>
     </div>

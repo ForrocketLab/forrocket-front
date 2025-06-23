@@ -39,12 +39,7 @@ class AuthService {
     }
 
     try {
-      const response = await api.get<UserProfile>('/auth/profile', {
-        headers: {
-          // Adiciona o token no cabeçalho da requisição
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.get<UserProfile>('/auth/profile');
 
       return response.data;
     } catch (error) {

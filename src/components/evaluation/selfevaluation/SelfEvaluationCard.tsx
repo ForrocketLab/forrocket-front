@@ -34,7 +34,7 @@ const SelfEvaluationCard: React.FC<SelfEvaluationCardProps> = ({
 
   return (
     <div 
-      className={`bg-white rounded-xl p-4 mb-6 shadow-sm flex flex-col gap-4 cursor-pointer border-2 ${
+      className={`bg-white rounded-xl p-6 mb-6 shadow-sm flex flex-col gap-4 cursor-pointer border-2 ${
         isFilled ? 'border-green-200' : 'border-gray-200'
       }`}
       onClick={handleCardClick}
