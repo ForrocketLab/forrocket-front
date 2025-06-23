@@ -1,6 +1,6 @@
 import { createContext, useState, useContext, useEffect, type FC, type ReactNode } from 'react';
 import type { EvaluableUser } from '../types/evaluations';
-
+import { useAuth } from '../hooks/useAuth';
 
 interface Evaluation360Data {
   collaborator: EvaluableUser;
@@ -104,6 +104,8 @@ const STORAGE_KEYS = {
 } as const;
 
 export const EvaluationProvider: FC<EvaluationProviderProps> = ({ children }) => {
+  const { user } = useAuth();
+
   // Função para carregar dados do localStorage de forma segura
   const loadFromStorage = <T,>(key: string, defaultValue: T): T => {
     try {
@@ -371,7 +373,14 @@ export const EvaluationProvider: FC<EvaluationProviderProps> = ({ children }) =>
     localStorage.removeItem(STORAGE_KEYS.EVALUATIONS_360);
     localStorage.removeItem(STORAGE_KEYS.MENTORING_DATA);
     localStorage.removeItem(STORAGE_KEYS.SELF_EVALUATION_DATA);
+    console.log('🧹 Todos os dados de avaliação foram limpos.');
   };
+
+  useEffect(() => {
+    if (!user) {
+      clearAllData();
+    }
+  }, [user]);
 
   const value: EvaluationContextType = {
     evaluations360,

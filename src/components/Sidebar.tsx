@@ -4,10 +4,12 @@ import { Link, useLocation } from 'react-router-dom';
 import { LuLayoutDashboard, LuFilePenLine } from "react-icons/lu";
 import { IoBarChartOutline } from "react-icons/io5";
 import { MdLogout } from "react-icons/md";
+import { useAuthActions } from '../contexts/AuthActions';
 
 const Sidebar = () => {
   const auth = useContext(AuthContext);
   const location = useLocation();
+  const { logout } = useAuthActions();
 
   if (!auth) return null;
 
@@ -45,7 +47,7 @@ const Sidebar = () => {
           )}
           <span className="text-sm font-bold">Colaborador 1</span>
         </div>
-        <button onClick={auth.logout} className="flex items-center gap-2 text-[#08605F] hover:text-[#08605F] text-sm font-bold">
+        <button onClick={logout} className="flex items-center gap-2 text-[#08605F] hover:text-[#08605F] text-sm font-bold">
           <MdLogout className="text-base w-6 h-6" />
           Logout
         </button>
