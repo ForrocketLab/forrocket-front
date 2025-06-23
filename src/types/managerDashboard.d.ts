@@ -38,3 +38,32 @@ interface ActiveCycle {
   startDate: string | null;
   endDate: string | null;
 }
+
+interface Received360Evaluation {
+  evaluatorName: string;
+  evaluatorJobTitle: string;
+  rating: number;
+  strengths: string;
+  weaknesses: string;
+}
+
+interface CollaboratorFullEvaluation {
+  cycle: string;
+  selfAssessment: any | null;
+  assessments360: any[];
+  mentoringAssessments: any[];
+  referenceFeedbacks: any[];
+  managerAssessments: {
+    id: string;
+    cycle: string;
+    authorId: string;
+    evaluatedUserId: string;
+    status: 'DRAFT' | 'SUBMITTED';
+    createdAt: string;
+    updatedAt: string;
+    submittedAt: string | null;
+    evaluatedUser: any;
+    answers: ManagerAssessmentCriterion[];
+  }[];
+  summary: any;
+}

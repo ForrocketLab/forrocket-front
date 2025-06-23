@@ -1,22 +1,32 @@
+import type { FC } from 'react';
 import { ROLES } from '../types/roles'; // Seu enum de papéis
 
-import { type IconType } from 'react-icons';
-
-import { FaUsers, FaCog } from 'react-icons/fa';
+import { FaCog, FaHome } from 'react-icons/fa';
 import { IoBarChartOutline } from 'react-icons/io5';
-import { LuFilePenLine, LuLayoutDashboard } from 'react-icons/lu';
+import { LuFilePenLine, LuLayoutDashboard, LuLayoutTemplate, LuUsers } from 'react-icons/lu';
 import { MdPeople } from 'react-icons/md';
+
+export interface IconProps {
+  size?: number;
+  className?: string;
+}
 
 // Define a estrutura de um item de menu
 export interface MenuItemConfig {
   path: string;
   label: string;
-  icon: IconType;
+  icon: FC<IconProps>;
   allowedRoles: string[];
 }
 
 // todas as opções de menu possíveis na aplicação
 export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
+  {
+    path: '/',
+    label: 'Minha Home',
+    icon: FaHome,
+    allowedRoles: [ROLES.COLLABORATOR, ROLES.MANAGER, ROLES.RH, ROLES.ADMIN],
+  },
   {
     path: '/dashboard',
     label: 'Dashboard',
@@ -37,14 +47,14 @@ export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
   },
   {
     path: '/manager/dashboard',
-    label: 'Dashboard',
-    icon: LuLayoutDashboard,
+    label: 'Dashboard Gestor',
+    icon: LuLayoutTemplate,
     allowedRoles: [ROLES.MANAGER],
   },
   {
     path: '/manager/collaborators',
     label: 'Colaboradores',
-    icon: FaUsers,
+    icon: LuUsers,
     allowedRoles: [ROLES.MANAGER],
   },
   {
