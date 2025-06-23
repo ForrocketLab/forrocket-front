@@ -28,7 +28,7 @@ const MainLayout = () => {
 
   return (
     // O container principal não precisa mais de flex, pois o SideMenu é 'fixed'
-    <div className='bg-gray-100'>
+    <div className='bg-[#F1F1F1]'>
       {/* Passa o estado e a função de toggle para o SideMenu */}
       <SideMenu isExpanded={isExpanded} toggleSidebar={toggleSidebar} />
 
