@@ -191,19 +191,217 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
             </div>
           </div>
 
-          {/* Status da Avaliação */}
+          {/* Análise de Notas e Discrepâncias */}
           <div className="bg-white rounded-lg p-4 border border-gray-200">
-            <h4 className="text-md font-semibold text-gray-900 mb-3">Status da Avaliação</h4>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center">
-                <div className="text-xl font-bold text-[#085F60]">{summary.summary.totalAssessmentsReceived}</div>
-                <div className="text-xs text-gray-600">Total de Avaliações</div>
+            <h4 className="text-md font-semibold text-gray-900 mb-4">Análise de Notas e Discrepâncias</h4>
+            
+            {/* Gráfico de Barras das Notas */}
+            <div className="mb-6">
+              <h5 className="text-sm font-medium text-gray-700 mb-3">Comparativo de Notas Recebidas</h5>
+              <div className="space-y-3">
+                {/* Autoavaliação */}
+                {summary.evaluationScores.selfAssessment && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-24 text-sm font-medium text-gray-700">Autoavaliação</div>
+                    <div className="flex-1 flex items-center gap-2">
+                      <div className="w-full bg-gray-200 rounded h-6 relative">
+                        <div 
+                          className="bg-blue-500 h-6 rounded flex items-center justify-end pr-2 transition-all duration-500"
+                          style={{ width: `${(summary.evaluationScores.selfAssessment / 5) * 100}%` }}
+                        >
+                          <span className="text-white text-xs font-bold">{summary.evaluationScores.selfAssessment}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Avaliação 360 */}
+                {summary.evaluationScores.assessment360 && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-24 text-sm font-medium text-gray-700">360° (média)</div>
+                    <div className="flex-1 flex items-center gap-2">
+                      <div className="w-full bg-gray-200 rounded h-6 relative">
+                        <div 
+                          className="bg-green-500 h-6 rounded flex items-center justify-end pr-2 transition-all duration-500"
+                          style={{ width: `${(summary.evaluationScores.assessment360 / 5) * 100}%` }}
+                        >
+                          <span className="text-white text-xs font-bold">{summary.evaluationScores.assessment360}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Avaliação Gestor */}
+                {summary.evaluationScores.managerAssessment && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-24 text-sm font-medium text-gray-700">Gestor</div>
+                    <div className="flex-1 flex items-center gap-2">
+                      <div className="w-full bg-gray-200 rounded h-6 relative">
+                        <div 
+                          className="bg-purple-500 h-6 rounded flex items-center justify-end pr-2 transition-all duration-500"
+                          style={{ width: `${(summary.evaluationScores.managerAssessment / 5) * 100}%` }}
+                        >
+                          <span className="text-white text-xs font-bold">{summary.evaluationScores.managerAssessment}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Mentoring */}
+                {summary.evaluationScores.mentoring && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-24 text-sm font-medium text-gray-700">Mentoring</div>
+                    <div className="flex-1 flex items-center gap-2">
+                      <div className="w-full bg-gray-200 rounded h-6 relative">
+                        <div 
+                          className="bg-orange-500 h-6 rounded flex items-center justify-end pr-2 transition-all duration-500"
+                          style={{ width: `${(summary.evaluationScores.mentoring / 5) * 100}%` }}
+                        >
+                          <span className="text-white text-xs font-bold">{summary.evaluationScores.mentoring}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="text-center">
-                <div className={`text-xl font-bold ${summary.summary.hasCommitteeAssessment ? 'text-green-600' : 'text-yellow-600'}`}>
-                  {summary.summary.hasCommitteeAssessment ? 'Sim' : 'Não'}
+            </div>
+
+            {/* Análise de Discrepâncias */}
+            <div className="bg-yellow-50 rounded-lg p-4 border-l-4 border-yellow-400">
+              <h5 className="text-sm font-semibold text-yellow-900 mb-3 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4" />
+                Principais Discrepâncias Identificadas
+              </h5>
+              <div className="space-y-2">
+                {(() => {
+                  const scores = [
+                    { name: 'Autoavaliação', value: summary.evaluationScores.selfAssessment, color: 'blue' },
+                    { name: '360°', value: summary.evaluationScores.assessment360, color: 'green' },
+                    { name: 'Gestor', value: summary.evaluationScores.managerAssessment, color: 'purple' },
+                    { name: 'Mentoring', value: summary.evaluationScores.mentoring, color: 'orange' }
+                  ].filter(score => score.value !== null && score.value !== undefined);
+
+                  if (scores.length < 2) {
+                    return (
+                      <p className="text-sm text-yellow-800">
+                        📊 Poucas avaliações disponíveis para análise de discrepâncias
+                      </p>
+                    );
+                  }
+
+                  const maxScore = Math.max(...scores.map(s => s.value));
+                  const minScore = Math.min(...scores.map(s => s.value));
+                  const difference = maxScore - minScore;
+                  const avgScore = scores.reduce((sum, s) => sum + s.value, 0) / scores.length;
+
+                  const maxScoreItem = scores.find(s => s.value === maxScore);
+                  const minScoreItem = scores.find(s => s.value === minScore);
+
+                  const discrepancies = [];
+
+                  if (difference >= 1.5) {
+                    discrepancies.push(
+                      `🔴 <strong>Alta discrepância:</strong> Diferença de ${difference.toFixed(1)} pontos entre a <strong>nota mais alta</strong> (${maxScoreItem?.name}: ${maxScore}) e a <strong>nota mais baixa</strong> (${minScoreItem?.name}: ${minScore})`
+                    );
+                  } else if (difference >= 1.0) {
+                    discrepancies.push(
+                      `🟡 <strong>Discrepância moderada:</strong> Diferença de ${difference.toFixed(1)} pontos entre a <strong>nota mais alta</strong> (${maxScoreItem?.name}: ${maxScore}) e a <strong>nota mais baixa</strong> (${minScoreItem?.name}: ${minScore})`
+                    );
+                  } else if (difference >= 0.5) {
+                    discrepancies.push(
+                      `🟢 <strong>Discrepância baixa:</strong> Notas relativamente alinhadas. Maior: <strong>${maxScoreItem?.name} (${maxScore})</strong>, Menor: <strong>${minScoreItem?.name} (${minScore})</strong> - diferença de ${difference.toFixed(1)} pontos`
+                    );
+                  } else {
+                    discrepancies.push(
+                      `✅ <strong>Notas consistentes:</strong> Excelente alinhamento entre avaliadores. Variação mínima entre <strong>${maxScoreItem?.name} (${maxScore})</strong> e <strong>${minScoreItem?.name} (${minScore})</strong>`
+                    );
+                  }
+
+                  // Verificar se autoavaliação está muito acima ou abaixo da média
+                  if (summary.evaluationScores.selfAssessment && scores.length > 1) {
+                    const otherScores = scores.filter(s => s.name !== 'Autoavaliação');
+                    const otherAvg = otherScores.reduce((sum, s) => sum + s.value, 0) / otherScores.length;
+                    const selfDiff = summary.evaluationScores.selfAssessment - otherAvg;
+                    
+                    if (selfDiff >= 1.0) {
+                      discrepancies.push(
+                        `📈 <strong>Autoavaliação elevada:</strong> ${selfDiff.toFixed(1)} pontos acima da média das outras avaliações`
+                      );
+                    } else if (selfDiff <= -1.0) {
+                      discrepancies.push(
+                        `📉 <strong>Autoavaliação conservadora:</strong> ${Math.abs(selfDiff).toFixed(1)} pontos abaixo da média das outras avaliações`
+                      );
+                    }
+                  }
+
+                  return discrepancies.map((discrepancy, index) => (
+                    <p key={index} className="text-sm text-yellow-800" dangerouslySetInnerHTML={{ __html: discrepancy }} />
+                  ));
+                })()}
+              </div>
+            </div>
+
+            {/* Resumo Estatístico */}
+            <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3 text-center">
+              <div className="bg-gray-50 p-3 rounded">
+                <div className="text-lg font-bold text-gray-700">
+                  {(() => {
+                    const validScores = [
+                      summary.evaluationScores.selfAssessment,
+                      summary.evaluationScores.assessment360,
+                      summary.evaluationScores.managerAssessment,
+                      summary.evaluationScores.mentoring
+                    ].filter(score => score !== null && score !== undefined);
+                    return validScores.length > 0 ? (validScores.reduce((sum, score) => sum + score, 0) / validScores.length).toFixed(1) : '--';
+                  })()}
                 </div>
-                <div className="text-xs text-gray-600">Avaliação de Comitê</div>
+                <div className="text-xs text-gray-600">Média Geral</div>
+              </div>
+              <div className="bg-gray-50 p-3 rounded">
+                <div className="text-lg font-bold text-gray-700">
+                  {(() => {
+                    const validScores = [
+                      summary.evaluationScores.selfAssessment,
+                      summary.evaluationScores.assessment360,
+                      summary.evaluationScores.managerAssessment,
+                      summary.evaluationScores.mentoring
+                    ].filter(score => score !== null && score !== undefined);
+                    return validScores.length > 0 ? Math.max(...validScores) : '--';
+                  })()}
+                </div>
+                <div className="text-xs text-gray-600">Maior Nota</div>
+              </div>
+              <div className="bg-gray-50 p-3 rounded">
+                <div className="text-lg font-bold text-gray-700">
+                  {(() => {
+                    const validScores = [
+                      summary.evaluationScores.selfAssessment,
+                      summary.evaluationScores.assessment360,
+                      summary.evaluationScores.managerAssessment,
+                      summary.evaluationScores.mentoring
+                    ].filter(score => score !== null && score !== undefined);
+                    return validScores.length > 0 ? Math.min(...validScores) : '--';
+                  })()}
+                </div>
+                <div className="text-xs text-gray-600">Menor Nota</div>
+              </div>
+              <div className="bg-gray-50 p-3 rounded">
+                <div className="text-lg font-bold text-gray-700">
+                  {(() => {
+                    const validScores = [
+                      summary.evaluationScores.selfAssessment,
+                      summary.evaluationScores.assessment360,
+                      summary.evaluationScores.managerAssessment,
+                      summary.evaluationScores.mentoring
+                    ].filter(score => score !== null && score !== undefined);
+                    if (validScores.length < 2) return '--';
+                    return (Math.max(...validScores) - Math.min(...validScores)).toFixed(1);
+                  })()}
+                </div>
+                <div className="text-xs text-gray-600">Amplitude</div>
               </div>
             </div>
           </div>
@@ -335,14 +533,14 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
               <CheckCircle className="w-6 h-6 text-gray-600" />
             </div>
             <div>
-              <h3 className="text-sm font-medium text-gray-600">Progresso de Avaliações</h3>
-              <p className="text-xs text-gray-500">{assessmentCompletion}% das autoavaliações foram concluídas</p>
+              <h3 className="text-sm font-medium text-gray-600">Progresso de Equalizações</h3>
+              <p className="text-xs text-gray-500">{completionPercentage}% das avaliações foram equalizadas</p>
               <div className="flex items-center gap-2 mt-2">
-                <div className="text-2xl font-bold text-[#085F60]">{assessmentCompletion}%</div>
+                <div className="text-2xl font-bold text-[#085F60]">{completionPercentage}%</div>
                 <div className="flex-1 bg-gray-200 rounded-full h-2">
                   <div 
                     className="bg-[#085F60] h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${assessmentCompletion}%` }}
+                    style={{ width: `${completionPercentage}%` }}
                   ></div>
                 </div>
               </div>
