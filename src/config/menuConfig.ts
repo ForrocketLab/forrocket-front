@@ -22,69 +22,39 @@ export interface MenuItemConfig {
 // todas as opções de menu possíveis na aplicação
 export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
   {
-    path: '/',
-    label: 'Minha Home',
-    icon: FaHome,
-    allowedRoles: [ROLES.COLLABORATOR, ROLES.MANAGER, ROLES.RH, ROLES.ADMIN],
-  },
-  {
-    path: '/dashboard',
-    label: 'Dashboard',
-    icon: LuLayoutDashboard,
-    allowedRoles: [ROLES.COLLABORATOR],
-  },
-  {
     path: '/avaliacao',
     label: 'Avaliação de Ciclo',
     icon: LuFilePenLine,
     allowedRoles: [ROLES.COLLABORATOR],
   },
   {
-    path: '/evolucao',
-    label: 'Evolução',
-    icon: IoBarChartOutline,
-    allowedRoles: [ROLES.COLLABORATOR],
-  },
-  {
-    path: '/manager/dashboard',
-    label: 'Dashboard Gestor',
-    icon: LuLayoutTemplate,
-    allowedRoles: [ROLES.MANAGER],
-  },
-  {
-    path: '/manager/collaborators',
-    label: 'Colaboradores',
-    icon: LuUsers,
-    allowedRoles: [ROLES.MANAGER],
-  },
-  {
-    path: '/committee',
-    label: 'Painel do Comitê',
-    icon: LuLayoutDashboard,
-    allowedRoles: [ROLES.COMMITTEE, ROLES.ADMIN],
-  },
-  {
-    path: '/committee/equalizacoes',
-    label: 'Equalizações',
-    icon: LuFilePenLine,
-    allowedRoles: [ROLES.COMMITTEE, ROLES.ADMIN],
-  },
-  {
-    path: '/rh',
-    label: 'Dashboard RH',
-    icon: LuLayoutDashboard,
-    allowedRoles: [ROLES.RH, ROLES.ADMIN],
-  },
-  {
-    path: '/rh/colaboradores',
-    label: 'Gestão de Colaboradores',
-    icon: MdPeople,
-    allowedRoles: [ROLES.RH, ROLES.ADMIN],
-  },
-  {
-    path: '/rh/criterios',
-    label: 'Critérios de Avaliação',
+    path: '/admin',
+    label: 'Painel Admin',
     icon: FaCog,
-    allowedRoles: [ROLES.RH, ROLES.ADMIN],
+    allowedRoles: [ROLES.ADMIN],
+  },
+  {
+    path: '/admin/users',
+    label: 'Gerenciar Usuários',
+    icon: LuUsers,
+    allowedRoles: [ROLES.ADMIN],
+  },
+  {
+    path: '/admin/cycles',
+    label: 'Gerenciar Ciclos',
+    icon: IoBarChartOutline,
+    allowedRoles: [ROLES.ADMIN],
+  },
+  {
+    path: '/admin/phase-control',
+    label: 'Controle de Fases',
+    icon: LuFilePenLine,
+    allowedRoles: [ROLES.ADMIN],
+  },
+  {
+    path: '/admin/reports',
+    label: 'Relatórios Admin',
+    icon: IoBarChartOutline,
+    allowedRoles: [ROLES.ADMIN],
   },
 ];

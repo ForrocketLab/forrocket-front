@@ -19,6 +19,11 @@ import CollaboratorManagement from './pages/hr/CollaboratorManagement';
 import CriteriaManagement from './pages/hr/CriteriaManagement';
 import EvaluationPage from './pages/evaluation/EvaluationCycle';
 import { EvaluationProvider } from './contexts/EvaluationProvider';
+import AdminHomePage from './pages/admin/AdminHome';
+import UserManagement from './pages/admin/UserManagement';
+import CycleManagement from './pages/admin/CycleManagement';
+import PhaseControl from './pages/admin/PhaseControl';
+import AdminReports from './pages/admin/AdminReports';
 
 function App() {
   return (
@@ -43,7 +48,11 @@ function AppWithToasts() {
             {/* Rotas protegidas com layout padrão (SideMenu incluso) */}
             <Route element={<MainLayout />}>
               <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]} />}>
-                <Route path='/admin' element={<HomePage />} />
+                <Route path='/admin' element={<AdminHomePage />} />
+                <Route path='/admin/users' element={<UserManagement />} />
+                <Route path='/admin/cycles' element={<CycleManagement />} />
+                <Route path='/admin/phase-control' element={<PhaseControl />} />
+                <Route path='/admin/reports' element={<AdminReports />} />
               </Route>
 
               <Route element={<ProtectedRoute allowedRoles={[ROLES.COLLABORATOR]} />}>
