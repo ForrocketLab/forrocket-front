@@ -2,6 +2,7 @@ import { createContext, useState, useContext, useEffect, type FC, type ReactNode
 import type { EvaluableUser } from '../types/evaluations';
 import { useAuth } from '../hooks/useAuth';
 
+// --- INTERFACES DE DADOS ---
 interface Evaluation360Data {
   collaborator: EvaluableUser;
   rating: number;
@@ -47,6 +48,13 @@ interface SelfEvaluationData {
   expandedItems: { [key: string]: boolean };
 }
 
+interface ReferenceFeedbackData {
+  referencedUserId: string;
+  referencedUserName: string;
+  justification: string;
+}
+
+// --- TIPO DO CONTEXTO (COMPLETO) ---
 interface EvaluationContextType {
   evaluations360: Evaluation360Data[];
   addEvaluation360: (collaborator: EvaluableUser) => void;
@@ -54,32 +62,28 @@ interface EvaluationContextType {
   removeEvaluation360: (collaboratorId: string) => void;
   submitEvaluation360: (collaboratorId: string) => void;
   toggleEvaluation360Collapsed: (collaboratorId: string) => void;
-  
+  getEvaluation360ByCollaborator: (collaboratorId: string) => Evaluation360Data | undefined;
+  isEvaluation360Complete: (collaboratorId: string) => boolean;
 
   mentoringData: MentoringData;
   setMentor: (mentor: EvaluableUser) => void;
   updateMentoringData: (data: Partial<Omit<MentoringData, 'mentor'>>) => void;
   submitMentoring: () => void;
   toggleMentoringCollapsed: () => void;
-  
+  isMentoringComplete: () => boolean;
 
   selfEvaluationData: SelfEvaluationData;
-  updateSelfEvaluationCriterion: (
-    group: 'posture' | 'execution' | 'peopleAndManagement',
-    criterionName: string,
-    field: 'score' | 'justification',
-    value: any
-  ) => void;
+  updateSelfEvaluationCriterion: (group: 'posture' | 'execution' | 'peopleAndManagement', criterionName: string, field: 'score' | 'justification', value: any) => void;
   toggleSelfEvaluationCard: (card: 'posture' | 'execution' | 'peopleAndManagement') => void;
   toggleSelfEvaluationItem: (itemKey: string) => void;
   submitSelfEvaluation: () => void;
   isSelfEvaluationComplete: () => boolean;
-  
 
-  getEvaluation360ByCollaborator: (collaboratorId: string) => Evaluation360Data | undefined;
-  isEvaluation360Complete: (collaboratorId: string) => boolean;
-  isMentoringComplete: () => boolean;
-  
+  referenceFeedbackData: ReferenceFeedbackData[];
+  addReferenceFeedback: (feedback: ReferenceFeedbackData) => void;
+  removeReferenceFeedback: (referencedUserId: string) => void;
+  isReferenceFeedbackComplete: () => boolean;
+
   clearAllData: () => void;
 }
 
@@ -101,314 +105,85 @@ const STORAGE_KEYS = {
   EVALUATIONS_360: 'evaluations_360',
   MENTORING_DATA: 'mentoring_data',
   SELF_EVALUATION_DATA: 'self_evaluation_data',
+  REFERENCE_FEEDBACK: 'reference_feedback_data',
 } as const;
 
 export const EvaluationProvider: FC<EvaluationProviderProps> = ({ children }) => {
   const { user } = useAuth();
 
-  // Função para carregar dados do localStorage de forma segura
   const loadFromStorage = <T,>(key: string, defaultValue: T): T => {
     try {
       const stored = localStorage.getItem(key);
-      if (stored) {
-        console.log(`📂 Carregando ${key} do localStorage:`, stored);
-        return JSON.parse(stored);
-      }
+      if (stored) return JSON.parse(stored);
     } catch (error) {
-      console.error(`❌ Erro ao carregar ${key} do localStorage:`, error);
+      console.error(`Erro ao carregar ${key} do localStorage:`, error);
     }
     return defaultValue;
   };
 
-  const [evaluations360, setEvaluations360] = useState<Evaluation360Data[]>(() => 
-    loadFromStorage(STORAGE_KEYS.EVALUATIONS_360, [])
-  );
-  
-  const [mentoringData, setMentoringData] = useState<MentoringData>(() => 
-    loadFromStorage(STORAGE_KEYS.MENTORING_DATA, {
-      mentor: null,
-      rating: 0,
-      justification: '',
-      isSubmitted: false,
-      collapsed: false,
-    })
-  );
-  
-  const [selfEvaluationData, setSelfEvaluationData] = useState<SelfEvaluationData>(() => 
-    loadFromStorage(STORAGE_KEYS.SELF_EVALUATION_DATA, {
-      postureCriteria: {
-        sentimentoDeDono: { score: null, justification: '' },
-        resilienciaNasAdversidades: { score: null, justification: '' },
-        organizacaoNoTrabalho: { score: null, justification: '' },
-        capacidadeDeAprender: { score: null, justification: '' },
-        serTeamPlayer: { score: null, justification: '' },
-      },
-      executionCriteria: {
-        entregarComQualidade: { score: null, justification: '' },
-        atenderAosPrazos: { score: null, justification: '' },
-        fazerMaisComMenos: { score: null, justification: '' },
-        pensarForaDaCaixa: { score: null, justification: '' },
-      },
-      peopleAndManagementCriteria: {
-        gente: { score: null, justification: '' },
-        resultados: { score: null, justification: '' },
-        evolucaoDaRocketCorp: { score: null, justification: '' },
-      },
-      isSubmitted: false,
-      cardStates: {
-        posture: false,
-        execution: false,
-        peopleAndManagement: false,
-      },
-      expandedItems: {},
-    })
-  );
-
-  console.log('🚀 EvaluationProvider inicializado com dados:', {
-    evaluations360: evaluations360.length,
-    mentoringData: mentoringData.rating > 0 ? 'com dados' : 'vazio',
-    selfEvaluationData: Object.values(selfEvaluationData.postureCriteria).some(c => c.score !== null) ? 'com dados' : 'vazio'
-  });
-
-  useEffect(() => {
-    try {
-      console.log('💾 Salvando avaliações 360 no localStorage:', evaluations360);
-      localStorage.setItem(STORAGE_KEYS.EVALUATIONS_360, JSON.stringify(evaluations360));
-    } catch (error) {
-      console.error('❌ Erro ao salvar avaliações 360 no localStorage:', error);
-    }
-  }, [evaluations360]);
-
-
-  useEffect(() => {
-    try {
-      console.log('💾 Salvando dados de mentoring no localStorage:', mentoringData);
-      localStorage.setItem(STORAGE_KEYS.MENTORING_DATA, JSON.stringify(mentoringData));
-    } catch (error) {
-      console.error('❌ Erro ao salvar dados de mentoring no localStorage:', error);
-    }
-  }, [mentoringData]);
-
-  useEffect(() => {
-    try {
-      console.log('💾 Salvando dados de autoavaliação no localStorage:', selfEvaluationData);
-      localStorage.setItem(STORAGE_KEYS.SELF_EVALUATION_DATA, JSON.stringify(selfEvaluationData));
-    } catch (error) {
-      console.error('❌ Erro ao salvar dados de autoavaliação no localStorage:', error);
-    }
-  }, [selfEvaluationData]);
-
-
-  const addEvaluation360 = (collaborator: EvaluableUser) => {
-    setEvaluations360(prev => [
-      ...prev,
-      {
-        collaborator,
-        rating: 0,
-        strengths: '',
-        improvements: '',
-        isSubmitted: false,
-        collapsed: false,
-      }
-    ]);
+  const initialSelfEvaluationState = {
+    postureCriteria: { sentimentoDeDono: { score: null, justification: '' }, resilienciaNasAdversidades: { score: null, justification: '' }, organizacaoNoTrabalho: { score: null, justification: '' }, capacidadeDeAprender: { score: null, justification: '' }, serTeamPlayer: { score: null, justification: '' } },
+    executionCriteria: { entregarComQualidade: { score: null, justification: '' }, atenderAosPrazos: { score: null, justification: '' }, fazerMaisComMenos: { score: null, justification: '' }, pensarForaDaCaixa: { score: null, justification: '' } },
+    peopleAndManagementCriteria: { gente: { score: null, justification: '' }, resultados: { score: null, justification: '' }, evolucaoDaRocketCorp: { score: null, justification: '' } },
+    isSubmitted: false,
+    cardStates: { posture: false, execution: false, peopleAndManagement: false },
+    expandedItems: {},
   };
 
-  const updateEvaluation360 = (collaboratorId: string, data: Partial<Omit<Evaluation360Data, 'collaborator'>>) => {
-    setEvaluations360(prev => 
-      prev.map(evaluation => 
-        evaluation.collaborator.id === collaboratorId 
-          ? { ...evaluation, ...data }
-          : evaluation
-      )
-    );
-  };
+  const [evaluations360, setEvaluations360] = useState<Evaluation360Data[]>(() => loadFromStorage(STORAGE_KEYS.EVALUATIONS_360, []));
+  const [mentoringData, setMentoringData] = useState<MentoringData>(() => loadFromStorage(STORAGE_KEYS.MENTORING_DATA, { mentor: null, rating: 0, justification: '', isSubmitted: false, collapsed: false }));
+  const [selfEvaluationData, setSelfEvaluationData] = useState<SelfEvaluationData>(() => loadFromStorage(STORAGE_KEYS.SELF_EVALUATION_DATA, initialSelfEvaluationState));
+  const [referenceFeedbackData, setReferenceFeedbackData] = useState<ReferenceFeedbackData[]>(() => loadFromStorage(STORAGE_KEYS.REFERENCE_FEEDBACK, []));
 
-  const removeEvaluation360 = (collaboratorId: string) => {
-    setEvaluations360(prev => prev.filter(evaluation => evaluation.collaborator.id !== collaboratorId));
-  };
+  useEffect(() => { localStorage.setItem(STORAGE_KEYS.EVALUATIONS_360, JSON.stringify(evaluations360)); }, [evaluations360]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEYS.MENTORING_DATA, JSON.stringify(mentoringData)); }, [mentoringData]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEYS.SELF_EVALUATION_DATA, JSON.stringify(selfEvaluationData)); }, [selfEvaluationData]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEYS.REFERENCE_FEEDBACK, JSON.stringify(referenceFeedbackData)); }, [referenceFeedbackData]);
 
-  const submitEvaluation360 = (collaboratorId: string) => {
-    updateEvaluation360(collaboratorId, { isSubmitted: true });
-  };
+  const addEvaluation360 = (collaborator: EvaluableUser) => { setEvaluations360(prev => [...prev, { collaborator, rating: 0, strengths: '', improvements: '', isSubmitted: false, collapsed: false }]); };
+  const updateEvaluation360 = (collaboratorId: string, data: Partial<Omit<Evaluation360Data, 'collaborator'>>) => { setEvaluations360(prev => prev.map(e => e.collaborator.id === collaboratorId ? { ...e, ...data } : e)); };
+  const removeEvaluation360 = (collaboratorId: string) => { setEvaluations360(prev => prev.filter(e => e.collaborator.id !== collaboratorId)); };
+  const submitEvaluation360 = (collaboratorId: string) => { updateEvaluation360(collaboratorId, { isSubmitted: true }); };
+  const toggleEvaluation360Collapsed = (collaboratorId: string) => { setEvaluations360(prev => prev.map(e => e.collaborator.id === collaboratorId ? { ...e, collapsed: !e.collapsed } : e)); };
+  const getEvaluation360ByCollaborator = (collaboratorId: string) => evaluations360.find(e => e.collaborator.id === collaboratorId);
+  const isEvaluation360Complete = (collaboratorId: string) => { const e = getEvaluation360ByCollaborator(collaboratorId); return e ? e.rating > 0 && e.strengths.trim() !== '' && e.improvements.trim() !== '' : false; };
 
-  const toggleEvaluation360Collapsed = (collaboratorId: string) => {
-    setEvaluations360(prev => 
-      prev.map(evaluation => 
-        evaluation.collaborator.id === collaboratorId 
-          ? { ...evaluation, collapsed: !evaluation.collapsed }
-          : evaluation
-      )
-    );
-  };
+  const setMentor = (mentor: EvaluableUser) => { setMentoringData(prev => ({ ...prev, mentor })); };
+  const updateMentoringData = (data: Partial<Omit<MentoringData, 'mentor'>>) => { setMentoringData(prev => ({ ...prev, ...data })); };
+  const submitMentoring = () => { setMentoringData(prev => ({ ...prev, isSubmitted: true })); };
+  const toggleMentoringCollapsed = () => { setMentoringData(prev => ({ ...prev, collapsed: !prev.collapsed })); };
+  const isMentoringComplete = () => mentoringData.rating > 0 && mentoringData.justification.trim() !== '';
 
+  const updateSelfEvaluationCriterion = (group: 'posture' | 'execution' | 'peopleAndManagement', criterionName: string, field: 'score' | 'justification', value: any) => { setSelfEvaluationData(prev => { const newData = { ...prev }; const groupKey = `${group}Criteria` as const; (newData[groupKey] as any)[criterionName][field] = value; return newData; }); };
+  const toggleSelfEvaluationCard = (card: 'posture' | 'execution' | 'peopleAndManagement') => { setSelfEvaluationData(prev => ({ ...prev, cardStates: { ...prev.cardStates, [card]: !prev.cardStates[card] } })); };
+  const toggleSelfEvaluationItem = (itemKey: string) => { setSelfEvaluationData(prev => ({ ...prev, expandedItems: { ...prev.expandedItems, [itemKey]: !prev.expandedItems[itemKey] } })); };
+  const submitSelfEvaluation = () => { setSelfEvaluationData(prev => ({ ...prev, isSubmitted: true })); };
+  const isSelfEvaluationComplete = () => [...Object.values(selfEvaluationData.postureCriteria), ...Object.values(selfEvaluationData.executionCriteria), ...Object.values(selfEvaluationData.peopleAndManagementCriteria)].every(c => c.score !== null && c.justification.trim() !== '');
 
-  const setMentor = (mentor: EvaluableUser) => {
-    setMentoringData(prev => ({ ...prev, mentor }));
-  };
-
-  const updateMentoringData = (data: Partial<Omit<MentoringData, 'mentor'>>) => {
-    setMentoringData(prev => ({ ...prev, ...data }));
-  };
-
-  const submitMentoring = () => {
-    setMentoringData(prev => ({ ...prev, isSubmitted: true }));
-  };
-
-  const toggleMentoringCollapsed = () => {
-    setMentoringData(prev => ({ ...prev, collapsed: !prev.collapsed }));
-  };
-
-
-  const getEvaluation360ByCollaborator = (collaboratorId: string) => {
-    return evaluations360.find(evaluation => evaluation.collaborator.id === collaboratorId);
-  };
-
-  const isEvaluation360Complete = (collaboratorId: string) => {
-    const evaluation = getEvaluation360ByCollaborator(collaboratorId);
-    return evaluation ? 
-      evaluation.rating > 0 && 
-      evaluation.strengths.trim() !== '' && 
-      evaluation.improvements.trim() !== '' : false;
-  };
-
-  const isMentoringComplete = () => {
-    return mentoringData.rating > 0 && mentoringData.justification.trim() !== '';
-  };
-
-
-  const updateSelfEvaluationCriterion = (
-    group: 'posture' | 'execution' | 'peopleAndManagement',
-    criterionName: string,
-    field: 'score' | 'justification',
-    value: any
-  ) => {
-    setSelfEvaluationData(prev => {
-      const newData = { ...prev };
-      if (group === 'posture') {
-        newData.postureCriteria = {
-          ...prev.postureCriteria,
-          [criterionName]: { ...prev.postureCriteria[criterionName as keyof typeof prev.postureCriteria], [field]: value }
-        };
-      } else if (group === 'execution') {
-        newData.executionCriteria = {
-          ...prev.executionCriteria,
-          [criterionName]: { ...prev.executionCriteria[criterionName as keyof typeof prev.executionCriteria], [field]: value }
-        };
-      } else if (group === 'peopleAndManagement') {
-        newData.peopleAndManagementCriteria = {
-          ...prev.peopleAndManagementCriteria,
-          [criterionName]: { ...prev.peopleAndManagementCriteria[criterionName as keyof typeof prev.peopleAndManagementCriteria], [field]: value }
-        };
-      }
-      return newData;
-    });
-  };
-
-  const toggleSelfEvaluationCard = (card: 'posture' | 'execution' | 'peopleAndManagement') => {
-    setSelfEvaluationData(prev => ({
-      ...prev,
-      cardStates: { ...prev.cardStates, [card]: !prev.cardStates[card] }
-    }));
-  };
-
-  const toggleSelfEvaluationItem = (itemKey: string) => {
-    setSelfEvaluationData(prev => ({
-      ...prev,
-      expandedItems: { ...prev.expandedItems, [itemKey]: !prev.expandedItems[itemKey] }
-    }));
-  };
-
-  const submitSelfEvaluation = () => {
-    setSelfEvaluationData(prev => ({ ...prev, isSubmitted: true }));
-  };
-
-  const isSelfEvaluationComplete = () => {
-    const allCriteria = [
-      ...Object.values(selfEvaluationData.postureCriteria),
-      ...Object.values(selfEvaluationData.executionCriteria),
-      ...Object.values(selfEvaluationData.peopleAndManagementCriteria)
-    ];
-    
-    return allCriteria.every(criterion => 
-      criterion.score !== null && criterion.justification.trim() !== ''
-    );
+  const addReferenceFeedback = (feedback: ReferenceFeedbackData) => { setReferenceFeedbackData(prev => prev.some(f => f.referencedUserId === feedback.referencedUserId) ? prev : [...prev, feedback]); };
+  const removeReferenceFeedback = (referencedUserId: string) => { setReferenceFeedbackData(prev => prev.filter(f => f.referencedUserId !== referencedUserId)); };
+  const isReferenceFeedbackComplete = () => {
+    const TOTAL_REFERENCES_REQUIRED = 1;
+    return referenceFeedbackData.length >= TOTAL_REFERENCES_REQUIRED;
   };
 
   const clearAllData = () => {
     setEvaluations360([]);
-    setMentoringData({
-      mentor: null,
-      rating: 0,
-      justification: '',
-      isSubmitted: false,
-      collapsed: false,
-    });
-    setSelfEvaluationData({
-      postureCriteria: {
-        sentimentoDeDono: { score: null, justification: '' },
-        resilienciaNasAdversidades: { score: null, justification: '' },
-        organizacaoNoTrabalho: { score: null, justification: '' },
-        capacidadeDeAprender: { score: null, justification: '' },
-        serTeamPlayer: { score: null, justification: '' },
-      },
-      executionCriteria: {
-        entregarComQualidade: { score: null, justification: '' },
-        atenderAosPrazos: { score: null, justification: '' },
-        fazerMaisComMenos: { score: null, justification: '' },
-        pensarForaDaCaixa: { score: null, justification: '' },
-      },
-      peopleAndManagementCriteria: {
-        gente: { score: null, justification: '' },
-        resultados: { score: null, justification: '' },
-        evolucaoDaRocketCorp: { score: null, justification: '' },
-      },
-      isSubmitted: false,
-      cardStates: {
-        posture: false,
-        execution: false,
-        peopleAndManagement: false,
-      },
-      expandedItems: {},
-    });
-    localStorage.removeItem(STORAGE_KEYS.EVALUATIONS_360);
-    localStorage.removeItem(STORAGE_KEYS.MENTORING_DATA);
-    localStorage.removeItem(STORAGE_KEYS.SELF_EVALUATION_DATA);
-    console.log('🧹 Todos os dados de avaliação foram limpos.');
+    setMentoringData({ mentor: null, rating: 0, justification: '', isSubmitted: false, collapsed: false });
+    setSelfEvaluationData(initialSelfEvaluationState);
+    setReferenceFeedbackData([]);
+    Object.values(STORAGE_KEYS).forEach(key => localStorage.removeItem(key));
   };
 
-  useEffect(() => {
-    if (!user) {
-      clearAllData();
-    }
-  }, [user]);
+  useEffect(() => { if (!user) clearAllData(); }, [user]);
 
   const value: EvaluationContextType = {
-    evaluations360,
-    addEvaluation360,
-    updateEvaluation360,
-    removeEvaluation360,
-    submitEvaluation360,
-    toggleEvaluation360Collapsed,
-    mentoringData,
-    setMentor,
-    updateMentoringData,
-    submitMentoring,
-    toggleMentoringCollapsed,
-    selfEvaluationData,
-    updateSelfEvaluationCriterion,
-    toggleSelfEvaluationCard,
-    toggleSelfEvaluationItem,
-    submitSelfEvaluation,
-    isSelfEvaluationComplete,
-    getEvaluation360ByCollaborator,
-    isEvaluation360Complete,
-    isMentoringComplete,
+    evaluations360, addEvaluation360, updateEvaluation360, removeEvaluation360, submitEvaluation360, toggleEvaluation360Collapsed, getEvaluation360ByCollaborator, isEvaluation360Complete,
+    mentoringData, setMentor, updateMentoringData, submitMentoring, toggleMentoringCollapsed, isMentoringComplete,
+    selfEvaluationData, updateSelfEvaluationCriterion, toggleSelfEvaluationCard, toggleSelfEvaluationItem, submitSelfEvaluation, isSelfEvaluationComplete,
+    referenceFeedbackData, addReferenceFeedback, removeReferenceFeedback, isReferenceFeedbackComplete,
     clearAllData,
   };
 
-  return (
-    <EvaluationContext.Provider value={value}>
-      {children}
-    </EvaluationContext.Provider>
-  );
-}; 
+  return <EvaluationContext.Provider value={value}>{children}</EvaluationContext.Provider>;
+};
