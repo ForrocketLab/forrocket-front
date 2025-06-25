@@ -109,6 +109,74 @@ export interface UserData {
   directReportsCount: number;
 }
 
+// DTOs do backend para a rota /api/projects/overview
+export interface MentorInfoDto {
+  id: string;
+  name: string;
+  jobTitle: string;
+}
+
+export interface MenteeInfoDto {
+  id: string;
+  name: string;
+  jobTitle: string;
+}
+
+export interface ManagedSubordinateDto {
+  id: string;
+  name: string;
+  jobTitle: string;
+}
+
+export interface ProjectWithManagementDto {
+  id: string;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  userRoles: string[];
+  managedSubordinates: ManagedSubordinateDto[];
+  isManagerInProject: boolean;
+}
+
+export interface UserOverviewDto {
+  user: UserData;
+  mentor: MentorInfoDto | null;
+  mentees: MenteeInfoDto[];
+  projects: ProjectWithManagementDto[];
+  directReports: ManagedSubordinateDto[];
+}
+
+export interface UserDetailsData extends UserData {
+  projects: Array<{
+    id: string;
+    name: string;
+    roleInProject: 'colaborador' | 'gestor';
+    managedCollaborators?: Array<{
+      id: string;
+      name: string;
+      jobTitle: string;
+    }>;
+  }>;
+  mentor: {
+    id: string;
+    name: string;
+    jobTitle: string;
+  } | null;
+  mentees: Array<{
+    id: string;
+    name: string;
+    jobTitle: string;
+  }>;
+  directReports: Array<{
+    id: string;
+    name: string;
+    jobTitle: string;
+  }>;
+  lastLoginAt?: string;
+}
+
 export interface UserWithEvaluationProgress extends UserData {
   evaluationProgress: {
     selfAssessment: {
@@ -231,7 +299,7 @@ class AdminService {
   }
 
   /**
-   * Listar todos os usuários
+   * Buscar todos os usuários
    */
   static async getAllUsers(): Promise<UserData[]> {
     try {
@@ -243,6 +311,137 @@ class AdminService {
         throw new Error(error.response.data.message || 'Falha ao buscar usuários.');
       }
       throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  /**
+   * Buscar detalhes completos de um usuário específico usando a nova rota admin
+   */
+  static async getUserDetails(userId: string): Promise<UserDetailsData> {
+    try {
+      // Usar a nova rota admin específica
+      const response = await api.get<UserOverviewDto>(`/projects/admin/user-overview/${userId}`);
+      
+      const overview = response.data;
+      
+      // Debug: verificar estrutura dos dados recebidos
+      console.log('📊 Dados recebidos da API admin overview:', {
+        hasUser: !!overview?.user,
+        hasMentor: !!overview?.mentor,
+        menteesCount: overview?.mentees?.length || 0,
+        projectsCount: overview?.projects?.length || 0,
+        rawData: overview
+      });
+      
+      // Agora a API sempre retorna o campo user
+      if (!overview.user) {
+        throw new Error('API não retornou informações do usuário.');
+      }
+      
+      const userData = overview.user;
+      
+      // Transformar os dados do DTO para o formato esperado
+      const projects = (overview.projects || []).map(project => {
+        // Determinar o papel principal no projeto baseado nas roles
+        let roleInProject: 'colaborador' | 'gestor' = 'colaborador';
+        if (project.userRoles && project.userRoles.includes('MANAGER')) {
+          roleInProject = 'gestor';
+        }
+        
+        return {
+          id: project.id,
+          name: project.name,
+          roleInProject,
+          managedCollaborators: roleInProject === 'gestor' ? 
+            (project.managedSubordinates || []).map(sub => ({
+              id: sub.id,
+              name: sub.name,
+              jobTitle: sub.jobTitle
+            })) : undefined
+        };
+      });
+
+      const mentor = overview.mentor ? {
+        id: overview.mentor.id,
+        name: overview.mentor.name,
+        jobTitle: overview.mentor.jobTitle
+      } : null;
+
+      const mentees = (overview.mentees || []).map(mentee => ({
+        id: mentee.id,
+        name: mentee.name,
+        jobTitle: mentee.jobTitle
+      }));
+
+      // Buscar subordinados diretos baseado na estrutura legada
+      const directReports: Array<{
+        id: string;
+        name: string;
+        jobTitle: string;
+      }> = [];
+
+      // Buscar última atividade se necessário
+      let lastLoginAt = userData.updatedAt;
+      try {
+        const evaluationDetailsResponse = await api.get(`/users/${userId}/evaluation-details`);
+        const evaluationDetails = evaluationDetailsResponse.data;
+        if (evaluationDetails?.lastLoginAt || evaluationDetails?.lastActivity) {
+          lastLoginAt = evaluationDetails.lastLoginAt || evaluationDetails.lastActivity;
+        }
+      } catch (error) {
+        console.log('Informações de última atividade não disponíveis para este usuário');
+      }
+
+      const userDetails: UserDetailsData = {
+        ...userData,
+        projects,
+        mentor,
+        mentees,
+        directReports,
+        lastLoginAt
+      };
+
+      console.log('✅ Detalhes do usuário carregados via admin overview:', {
+        userId,
+        userName: userData.name,
+        projectsCount: projects.length,
+        hasMentor: !!mentor,
+        mentorName: mentor?.name || 'Nenhum',
+        menteesCount: mentees.length,
+        menteesNames: mentees.map(m => m.name),
+        projectRoles: projects.map(p => `${p.name}: ${p.roleInProject}`)
+      });
+      
+      return userDetails;
+    } catch (error) {
+      console.error('Erro ao buscar detalhes do usuário via admin overview:', error);
+      
+      if (error instanceof AxiosError && error.response) {
+        const status = error.response.status;
+        const message = error.response.data?.message;
+        
+        console.log('📊 Detalhes do erro da API:', {
+          status,
+          message,
+          responseData: error.response.data,
+          url: error.config?.url
+        });
+        
+        if (status === 404) {
+          throw new Error(`Usuário ${userId} não encontrado.`);
+        } else if (status === 403) {
+          throw new Error('Acesso negado para visualizar detalhes deste usuário.');
+        } else {
+          throw new Error(message || 'Falha ao buscar detalhes do usuário.');
+        }
+      }
+      
+      // Se o erro não é do Axios, pode ser um erro de processamento dos dados
+      if (error instanceof TypeError && error.message.includes('map')) {
+        throw new Error('Dados recebidos da API estão em formato incorreto. Verifique a implementação do backend.');
+      }
+      
+      throw new Error('Erro de conexão. Verifique sua conexão e tente novamente.');
     }
   }
 

@@ -96,7 +96,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     if (roles.includes(ROLES.ADMIN)) return '/admin';
     if (roles.includes(ROLES.RH)) return '/rh';
     if (roles.includes(ROLES.COMMITTEE)) return '/committee';
-    if (roles.includes(ROLES.MANAGER)) return '/manager';
+    if (roles.includes(ROLES.MANAGER)) return '/manager/dashboard';
     if (roles.includes(ROLES.COLLABORATOR)) return '/'; // Rota para colaborador
     return '/login'; // Fallback
   };

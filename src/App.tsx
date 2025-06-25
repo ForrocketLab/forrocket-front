@@ -24,6 +24,7 @@ import UserManagement from './pages/admin/UserManagement';
 import CycleManagement from './pages/admin/CycleManagement';
 import PhaseControl from './pages/admin/PhaseControl';
 import AdminReports from './pages/admin/AdminReports';
+import AuditLogPage from './pages/admin/AuditLog';
 
 function App() {
   return (
@@ -53,6 +54,7 @@ function AppWithToasts() {
                 <Route path='/admin/cycles' element={<CycleManagement />} />
                 <Route path='/admin/phase-control' element={<PhaseControl />} />
                 <Route path='/admin/reports' element={<AdminReports />} />
+                <Route path='/admin/auditlog' element={<AuditLogPage />} />
               </Route>
 
               <Route element={<ProtectedRoute allowedRoles={[ROLES.COLLABORATOR]} />}>

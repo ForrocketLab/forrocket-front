@@ -52,7 +52,7 @@ const SideMenu = ({ isExpanded, toggleSidebar }: SideMenuProps) => {
             <NavLink
               key={item.path}
               to={item.path}
-              end={item.path === '/' || item.path === '/committee' || item.path === '/rh' || item.path === '/manager/dashboard'}
+              end={item.path === '/' || item.path === '/admin' || item.path === '/rh' || item.path === '/committee' || item.path === '/manager/dashboard'}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-200 ${
                   isActive ? 'bg-teal-100 text-[#085F60] font-bold' : 'text-gray-700 hover:bg-gray-100'
@@ -65,7 +65,6 @@ const SideMenu = ({ isExpanded, toggleSidebar }: SideMenuProps) => {
                     size={20}
                     className={`flex-shrink-0 transition-colors ${isActive ? 'text-[#085F60]' : 'text-gray-600'}`}
                   />
-                  {/* ▼▼▼ CORREÇÃO PRINCIPAL AQUI ▼▼▼ */}
                   <span
                     className={`overflow-hidden transition-all whitespace-nowrap ${isExpanded ? 'w-full ml-1' : 'w-0'}`}
                   >

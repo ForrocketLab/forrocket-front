@@ -6,7 +6,8 @@ import AdminService, {
   type CreateUserData,
   type ProjectData,
   type UserSummary,
-  type HierarchyValidationResult
+  type HierarchyValidationResult,
+  type UserDetailsData
 } from '../../services/AdminService';
 import { 
   Users, 
@@ -65,6 +66,13 @@ const UserManagement: React.FC = () => {
   // Estados para modal de criação
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+
+  // Estados para modal de visualização
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+  const [selectedUserDetails, setSelectedUserDetails] = useState<UserDetailsData | null>(null);
+  const [loadingUserDetails, setLoadingUserDetails] = useState(false);
 
   // Dados para o modal
   const [projects, setProjects] = useState<ProjectData[]>([]);
@@ -179,6 +187,7 @@ const UserManagement: React.FC = () => {
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
+    setCreateError(null);
     try {
       setCreateLoading(true);
       
@@ -199,6 +208,7 @@ const UserManagement: React.FC = () => {
       setUsers(prev => [...prev, newUser]);
       
       // Reset form
+      setShowCreateModal(false);
       setCreateFormData({
         userType: 'project_member',
         name: '',
@@ -214,13 +224,47 @@ const UserManagement: React.FC = () => {
       setProjectAssignments([]);
       setSelectedMentor(null);
       setHierarchyValidations(new Map());
-      setShowCreateModal(false);
+      
       showSuccessToast('Usuário criado com sucesso!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao criar usuário:', error);
-      showErrorToast(error instanceof Error ? error.message : 'Erro ao criar usuário');
+      setCreateError(error.message || 'Erro ao criar usuário');
+      showErrorToast(error.message || 'Erro ao criar usuário');
     } finally {
       setCreateLoading(false);
+    }
+  };
+
+  const handleViewUser = async (user: UserData) => {
+    setSelectedUser(user);
+    setShowViewModal(true);
+    setSelectedUserDetails(null);
+    
+    try {
+      setLoadingUserDetails(true);
+      const userDetails = await AdminService.getUserDetails(user.id);
+      setSelectedUserDetails(userDetails);
+    } catch (error) {
+      console.error('Erro ao carregar detalhes do usuário:', error);
+      
+      // Fallback: criar dados básicos se a requisição falhar
+      const fallbackDetails: UserDetailsData = {
+        ...user,
+        projects: [],
+        mentor: user.managerName ? {
+          id: 'fallback-mentor',
+          name: user.managerName,
+          jobTitle: 'Gestor'
+        } : null,
+        mentees: [],
+        directReports: [],
+        lastLoginAt: undefined
+      };
+      
+      setSelectedUserDetails(fallbackDetails);
+      showErrorToast('Alguns detalhes podem não estar disponíveis');
+    } finally {
+      setLoadingUserDetails(false);
     }
   };
 
@@ -573,7 +617,11 @@ const UserManagement: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end gap-2">
-                      <button className="text-teal-600 hover:text-teal-900 p-1">
+                      <button 
+                        onClick={() => handleViewUser(user)}
+                        className="text-teal-600 hover:text-teal-900 p-1"
+                        title="Visualizar detalhes"
+                      >
                         <Eye className="h-4 w-4" />
                       </button>
                       <button className="text-blue-600 hover:text-blue-900 p-1">
@@ -598,6 +646,266 @@ const UserManagement: React.FC = () => {
         )}
       </div>
 
+      {/* View User Modal */}
+      {showViewModal && selectedUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <User className="h-6 w-6 text-teal-600" />
+                Detalhes do Usuário
+              </h2>
+              <button
+                onClick={() => setShowViewModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XCircle className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {/* Informações Básicas */}
+              <div className="bg-gray-50 rounded-lg p-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="h-16 w-16 rounded-full bg-teal-100 flex items-center justify-center">
+                    <span className="text-xl font-bold text-teal-800">
+                      {getInitials(selectedUser.name)}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">{selectedUser.name}</h3>
+                    <p className="text-gray-600 flex items-center gap-1">
+                      <Mail className="h-4 w-4" />
+                      {selectedUser.email}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      {selectedUser.isActive ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <CheckCircle className="h-3 w-3" />
+                          Ativo
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          <XCircle className="h-3 w-3" />
+                          Inativo
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Informações Profissionais */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                    <Briefcase className="h-5 w-5 text-blue-600" />
+                    Informações Profissionais
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="text-gray-600">Cargo:</span>
+                      <span className="ml-2 font-medium">{selectedUser.jobTitle}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Senioridade:</span>
+                      <span className="ml-2 font-medium">{selectedUser.seniority}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Trilha:</span>
+                      <span className="ml-2 font-medium">{selectedUser.careerTrack}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Unidade:</span>
+                      <span className="ml-2 font-medium">{selectedUser.businessUnit}</span>
+                    </div>
+                    {selectedUser.managerName && (
+                      <div>
+                        <span className="text-gray-600">Gestor:</span>
+                        <span className="ml-2 font-medium">{selectedUser.managerName}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-purple-50 rounded-lg p-4">
+                  <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                    <Shield className="h-5 w-5 text-purple-600" />
+                    Permissões do Sistema
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedUser.roles.map((role, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-white border border-purple-200 text-purple-800"
+                      >
+                        {getRoleIcon(role)}
+                        {getRoleLabel(role)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Loading de detalhes ou conteúdo */}
+              {loadingUserDetails ? (
+                <div className="flex justify-center items-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+                  <span className="ml-2 text-gray-600">Carregando detalhes...</span>
+                </div>
+              ) : selectedUserDetails ? (
+                <>
+                  {/* Projetos */}
+                  {selectedUserDetails.projects && selectedUserDetails.projects.length > 0 && (
+                    <div className="bg-green-50 rounded-lg p-4">
+                      <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                        <Building2 className="h-5 w-5 text-green-600" />
+                        Projetos ({selectedUserDetails.projects.length})
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {selectedUserDetails.projects.map((project, index) => (
+                          <div key={index} className="bg-white rounded border border-green-200 p-3">
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="font-medium text-gray-900">{project.name}</div>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                project.roleInProject === 'gestor' 
+                                  ? 'bg-blue-100 text-blue-800' 
+                                  : 'bg-gray-100 text-gray-800'
+                              }`}>
+                                {project.roleInProject === 'gestor' ? '👨‍💼 Gestor' : '👤 Colaborador'}
+                              </span>
+                            </div>
+                            {project.roleInProject === 'gestor' && project.managedCollaborators && project.managedCollaborators.length > 0 && (
+                              <div className="text-sm text-gray-600">
+                                <div className="font-medium mb-1">Gerencia:</div>
+                                <div className="space-y-1">
+                                  {project.managedCollaborators.map((collab, idx) => (
+                                    <div key={idx} className="text-xs bg-blue-50 px-2 py-1 rounded">
+                                      {collab.name} ({collab.jobTitle})
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Mentoria */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Mentor */}
+                    <div className="bg-orange-50 rounded-lg p-4">
+                      <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                        <UserCheck className="h-5 w-5 text-orange-600" />
+                        Mentor
+                      </h4>
+                      {selectedUserDetails.mentor ? (
+                        <div className="bg-white rounded border border-orange-200 p-3">
+                          <div className="font-medium text-gray-900">{selectedUserDetails.mentor.name}</div>
+                          <div className="text-sm text-gray-600">{selectedUserDetails.mentor.jobTitle}</div>
+                        </div>
+                      ) : (
+                        <div className="text-center py-4 text-gray-500">
+                          <UserCheck className="mx-auto h-8 w-8 text-gray-300 mb-2" />
+                          <p className="text-sm">Sem mentor designado</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Mentorados */}
+                    <div className="bg-indigo-50 rounded-lg p-4">
+                      <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                        <Users className="h-5 w-5 text-indigo-600" />
+                        Mentorados ({selectedUserDetails.mentees.length})
+                      </h4>
+                      {selectedUserDetails.mentees.length > 0 ? (
+                        <div className="space-y-2">
+                          {selectedUserDetails.mentees.map((mentee, index) => (
+                            <div key={index} className="bg-white rounded border border-indigo-200 p-2">
+                              <div className="text-sm font-medium text-gray-900">{mentee.name}</div>
+                              <div className="text-xs text-gray-600">{mentee.jobTitle}</div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-4 text-gray-500">
+                          <Users className="mx-auto h-8 w-8 text-gray-300 mb-2" />
+                          <p className="text-sm">Não mentora ninguém</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Liderança Direta */}
+                  {selectedUserDetails.directReports.length > 0 && (
+                    <div className="bg-red-50 rounded-lg p-4">
+                      <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                        <Crown className="h-5 w-5 text-red-600" />
+                        Liderança Direta ({selectedUserDetails.directReports.length})
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {selectedUserDetails.directReports.map((report, index) => (
+                          <div key={index} className="bg-white rounded border border-red-200 p-3">
+                            <div className="font-medium text-gray-900">{report.name}</div>
+                            <div className="text-sm text-gray-600">{report.jobTitle}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <AlertTriangle className="mx-auto h-12 w-12 text-gray-300 mb-2" />
+                  <p>Erro ao carregar detalhes do usuário</p>
+                </div>
+              )}
+
+              {/* Informações do Sistema */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-gray-600" />
+                  Informações do Sistema
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">ID do Usuário:</span>
+                    <span className="ml-2 font-mono text-xs bg-gray-200 px-2 py-1 rounded">
+                      {selectedUser.id}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Criado em:</span>
+                    <span className="ml-2 font-medium">{formatDate(selectedUser.createdAt)}</span>
+                  </div>
+                  {selectedUserDetails?.lastLoginAt && (
+                    <div>
+                      <span className="text-gray-600">Último acesso:</span>
+                      <span className="ml-2 font-medium">{formatDate(selectedUserDetails.lastLoginAt)}</span>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-gray-600">Atualizado em:</span>
+                    <span className="ml-2 font-medium">{formatDate(selectedUser.updatedAt)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-6 border-t">
+              <button
+                onClick={() => setShowViewModal(false)}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Create User Modal - EXPANDIDO */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -611,6 +919,12 @@ const UserManagement: React.FC = () => {
                 <XCircle className="h-6 w-6" />
               </button>
             </div>
+
+            {createError && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-2 text-sm">
+                {createError}
+              </div>
+            )}
 
             {loadingModalData ? (
               <div className="flex justify-center items-center py-12">
