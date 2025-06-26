@@ -121,6 +121,29 @@ class ManagerService {
       throw new Error('Ocorreu um erro de rede. Tente novamente.');
     }
   }
+
+  static async getCollaboratorPerformanceHistory(subordinateId: string): Promise<PerformanceHistoryDto> {
+    try {
+      // O backend espera o ID do liderado para filtrar o histórico
+      const response = await api.get<PerformanceHistoryDto>('/evaluations/manager/performance/history', {
+        headers: {
+          Authorization: `Bearer ${AuthService.getToken()}`,
+        },
+        params: {
+          // Embora o controller use @Param, o nome do parâmetro na função é subordinateId
+          // e a rota não contém um placeholder. O envio via `params` (query string) é o mais provável.
+          subordinateId,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Erro ao buscar histórico de performance para o colaborador ${subordinateId}:`, error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar o histórico de performance.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
 }
 
 export default ManagerService;

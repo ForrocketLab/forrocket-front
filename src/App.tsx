@@ -65,7 +65,6 @@ function AppWithToasts() {
               <Route element={<ProtectedRoute allowedRoles={[ROLES.MANAGER]} />}>
                 <Route path='/manager/dashboard' element={<ManagerDashboardPage />} />
                 <Route path='/manager/collaborators' element={<ManagerCollaborators />} />
-                <Route path='/manager/collaborators/:collaboratorId' element={<ManagerCollaboratorEvaluations />} />
                 <Route path='/manager/collaborators/:id/evaluations' element={<CollaboratorEvaluationDetails />} />
               </Route>
 
