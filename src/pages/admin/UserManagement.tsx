@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+
 import { useGlobalToast } from '../../hooks/useGlobalToast';
 import AdminService, { 
   type UserData, 
@@ -13,11 +13,8 @@ import {
   Users, 
   Plus, 
   Search, 
-  Filter, 
   RefreshCw, 
   Eye,
-  Edit,
-  Trash2,
   Shield,
   User,
   Crown,
@@ -623,9 +620,6 @@ const UserManagement: React.FC = () => {
                         title="Visualizar detalhes"
                       >
                         <Eye className="h-4 w-4" />
-                      </button>
-                      <button className="text-blue-600 hover:text-blue-900 p-1">
-                        <Edit className="h-4 w-4" />
                       </button>
                     </div>
                   </td>

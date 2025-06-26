@@ -11,13 +11,9 @@ import {
   Plus, 
   RefreshCw, 
   Play,
-  Pause,
-  Square,
   Edit,
   Eye,
-  Clock,
   AlertTriangle,
-  CheckCircle,
   XCircle,
   Zap
 } from 'lucide-react';
@@ -51,6 +47,16 @@ const CycleManagement: React.FC = () => {
     equalizationDeadline: '',
     autoSetEndDate: true
   });
+
+  // Estados para modal de visualização
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedCycleForView, setSelectedCycleForView] = useState<CycleData | null>(null);
+
+  // Estados para modal de fechar ciclo
+  const [showCloseModal, setShowCloseModal] = useState(false);
+  const [selectedCycleForClose, setSelectedCycleForClose] = useState<CycleData | null>(null);
+  const [closeLoading, setCloseLoading] = useState(false);
+  const [confirmCloseText, setConfirmCloseText] = useState('');
 
   const { success: showSuccessToast, error: showErrorToast } = useGlobalToast();
 
@@ -106,8 +112,7 @@ const CycleManagement: React.FC = () => {
     }
   };
 
-  const handleActivateCycle = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleActivateCycle = async () => {
     if (!selectedCycleForActivation) return;
 
     try {
@@ -210,6 +215,47 @@ const CycleManagement: React.FC = () => {
     setShowActivateModal(true);
   };
 
+  const openViewModal = (cycle: CycleData) => {
+    setSelectedCycleForView(cycle);
+    setShowViewModal(true);
+  };
+
+  const openCloseModal = (cycle: CycleData) => {
+    setSelectedCycleForClose(cycle);
+    setConfirmCloseText('');
+    setShowCloseModal(true);
+  };
+
+  const handleCloseCycle = async () => {
+    if (!selectedCycleForClose || confirmCloseText !== selectedCycleForClose.name) return;
+
+    try {
+      setCloseLoading(true);
+      await handleUpdateCycleStatus(selectedCycleForClose.id, 'CLOSED');
+      setShowCloseModal(false);
+      setSelectedCycleForClose(null);
+      setConfirmCloseText('');
+    } catch (error) {
+      console.error('Erro ao fechar ciclo:', error);
+      showErrorToast(error instanceof Error ? error.message : 'Erro ao fechar ciclo');
+    } finally {
+      setCloseLoading(false);
+    }
+  };
+
+  const formatDateTimeDetailed = (dateString: string | null) => {
+    if (!dateString) return 'Não definido';
+    const date = new Date(dateString);
+    return date.toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -261,7 +307,8 @@ const CycleManagement: React.FC = () => {
               <div className="flex gap-4 text-sm">
                 <span>Status: {getStatusLabel(activeCycle.status)}</span>
                 <span>Fase: {getPhaseLabel(activeCycle.phase)}</span>
-                <span>Criado: {formatDate(activeCycle.createdAt)}</span>
+                <span>Data de Início: {formatDate(activeCycle.startDate)}</span>
+                <span>Data de Término: {formatDate(activeCycle.endDate)}</span>
               </div>
             </div>
             <div className="flex gap-2">
@@ -353,29 +400,21 @@ const CycleManagement: React.FC = () => {
                       )}
                       
                       {cycle.status === 'OPEN' && (
-                        <>
-                          <button
-                            onClick={() => handleUpdateCycleStatus(cycle.id, 'EQUALIZATION')}
-                            className="text-yellow-600 hover:text-yellow-900 p-1"
-                            title="Mover para equalização"
-                          >
-                            <Pause className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleUpdateCycleStatus(cycle.id, 'CLOSED')}
-                            className="text-red-600 hover:text-red-900 p-1"
-                            title="Fechar ciclo"
-                          >
-                            <Square className="h-4 w-4" />
-                          </button>
-                        </>
+                        <button
+                          onClick={() => openCloseModal(cycle)}
+                          className="bg-red-100 text-red-700 hover:bg-red-200 px-2 py-1 rounded text-sm font-medium border border-red-300 transition-colors"
+                          title="⚠️ FECHAR CICLO (IRREVERSÍVEL)"
+                        >
+                          FECHAR CICLO
+                        </button>
                       )}
                       
-                      <button className="text-teal-600 hover:text-teal-900 p-1" title="Ver detalhes">
+                      <button 
+                        onClick={() => openViewModal(cycle)}
+                        className="text-teal-600 hover:text-teal-900 p-1" 
+                        title="Ver detalhes"
+                      >
                         <Eye className="h-4 w-4" />
-                      </button>
-                      <button className="text-blue-600 hover:text-blue-900 p-1" title="Editar">
-                        <Edit className="h-4 w-4" />
                       </button>
                     </div>
                   </td>
@@ -522,7 +561,8 @@ const CycleManagement: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <Play className="h-6 w-6 text-green-600" />
                 Ativar Ciclo: {selectedCycleForActivation.name}
               </h2>
               <button
@@ -533,8 +573,8 @@ const CycleManagement: React.FC = () => {
               </button>
             </div>
 
-            <form onSubmit={handleActivateCycle} className="space-y-4">
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+            <div className="space-y-6">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <div className="flex">
                   <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5 mr-3" />
                   <div>
@@ -546,87 +586,78 @@ const CycleManagement: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-4">
-                {/* Datas do Ciclo */}
+              {/* Informações do Ciclo a ser Ativado */}
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h3 className="text-lg font-medium text-green-800 mb-4">Configuração do Ciclo</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Data de Início
-                    </label>
-                    <input
-                      type="datetime-local"
-                      value={activateFormData.startDate}
-                      onChange={(e) => setActivateFormData(prev => ({ ...prev, startDate: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                    />
+                    <label className="block text-sm font-medium text-green-700">Período do Ciclo</label>
+                    <p className="text-sm text-green-900 font-medium">
+                      {formatDate(selectedCycleForActivation.startDate)} até {formatDate(selectedCycleForActivation.endDate)}
+                    </p>
+                    <p className="text-xs text-green-600 mt-1">
+                      Duração: {selectedCycleForActivation.startDate && selectedCycleForActivation.endDate ? 
+                        Math.ceil((new Date(selectedCycleForActivation.endDate).getTime() - new Date(selectedCycleForActivation.startDate).getTime()) / (1000 * 60 * 60 * 24)) 
+                        : 0} dias
+                    </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Data de Fim
-                    </label>
-                    <input
-                      type="datetime-local"
-                      value={activateFormData.endDate}
-                      onChange={(e) => setActivateFormData(prev => ({ ...prev, endDate: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                    />
+                    <label className="block text-sm font-medium text-green-700">Status Atual</label>
+                    <p className="text-sm text-green-900 font-medium">
+                      {getStatusLabel(selectedCycleForActivation.status)} → <span className="text-green-600">Aberto</span>
+                    </p>
                   </div>
                 </div>
+              </div>
 
-                {/* Deadlines */}
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-gray-700">Deadlines</h3>
+              {/* Deadlines Configurados */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="text-lg font-medium text-blue-800 mb-4">Cronograma de Deadlines</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-3 bg-white rounded border border-blue-200">
+                    <div>
+                      <h4 className="font-medium text-blue-900">Fase 1: Avaliações</h4>
+                      <p className="text-sm text-blue-700">Autoavaliação, 360°, Mentoring, Reference</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-blue-900">
+                        {formatDate(selectedCycleForActivation.assessmentDeadline)}
+                      </p>
+                    </div>
+                  </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex justify-between items-center p-3 bg-white rounded border border-blue-200">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Deadline Avaliações
-                      </label>
-                      <input
-                        type="datetime-local"
-                        value={activateFormData.assessmentDeadline}
-                        onChange={(e) => setActivateFormData(prev => ({ ...prev, assessmentDeadline: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                      />
+                      <h4 className="font-medium text-blue-900">Fase 2: Gestores</h4>
+                      <p className="text-sm text-blue-700">Avaliações dos gestores</p>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Deadline Gestores
-                      </label>
-                      <input
-                        type="datetime-local"
-                        value={activateFormData.managerDeadline}
-                        onChange={(e) => setActivateFormData(prev => ({ ...prev, managerDeadline: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                      />
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-blue-900">
+                        {formatDate(selectedCycleForActivation.managerDeadline)}
+                      </p>
                     </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center p-3 bg-white rounded border border-blue-200">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Deadline Equalização
-                      </label>
-                      <input
-                        type="datetime-local"
-                        value={activateFormData.equalizationDeadline}
-                        onChange={(e) => setActivateFormData(prev => ({ ...prev, equalizationDeadline: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                      />
+                      <h4 className="font-medium text-blue-900">Fase 3: Equalização</h4>
+                      <p className="text-sm text-blue-700">Equalização pelo comitê</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-blue-900">
+                        {formatDate(selectedCycleForActivation.equalizationDeadline)}
+                      </p>
                     </div>
                   </div>
                 </div>
+              </div>
 
-                {/* Auto Set End Date */}
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="autoSetEndDate"
-                    checked={activateFormData.autoSetEndDate}
-                    onChange={(e) => setActivateFormData(prev => ({ ...prev, autoSetEndDate: e.target.checked }))}
-                    className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="autoSetEndDate" className="ml-2 block text-sm text-gray-900">
-                    Configurar automaticamente a data de fim com base na deadline de equalização
-                  </label>
-                </div>
+              {/* Confirmação */}
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <p className="text-sm text-gray-700 text-center">
+                  <strong>O ciclo será ativado com as datas já configuradas.</strong><br/>
+                  Após a ativação, o ciclo iniciará automaticamente na fase de avaliações.
+                </p>
               </div>
 
               <div className="flex justify-end gap-3 pt-4">
@@ -638,15 +669,252 @@ const CycleManagement: React.FC = () => {
                   Cancelar
                 </button>
                 <button
-                  type="submit"
+                  onClick={handleActivateCycle}
                   disabled={activateLoading}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
+                  className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2 font-medium"
                 >
                   {activateLoading && <RefreshCw className="h-4 w-4 animate-spin" />}
-                  {activateLoading ? 'Ativando...' : 'Ativar Ciclo'}
+                  {activateLoading ? 'Ativando...' : 'Ativar Ciclo com Datas Configuradas'}
                 </button>
               </div>
-            </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Cycle Modal */}
+      {showViewModal && selectedCycleForView && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <Eye className="h-6 w-6 text-teal-600" />
+                Detalhes do Ciclo: {selectedCycleForView.name}
+              </h2>
+              <button
+                onClick={() => setShowViewModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <XCircle className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {/* Informações Básicas */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Informações Básicas</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Nome do Ciclo</label>
+                    <p className="text-lg font-semibold text-gray-900">{selectedCycleForView.name}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">ID do Ciclo</label>
+                    <p className="text-sm text-gray-700 font-mono">{selectedCycleForView.id}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Status</label>
+                    <div className="mt-1">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(selectedCycleForView.status)}`}>
+                        {getStatusLabel(selectedCycleForView.status)}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Fase Atual</label>
+                    <div className="mt-1">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPhaseColor(selectedCycleForView.phase)}`}>
+                        {getPhaseLabel(selectedCycleForView.phase)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Período do Ciclo */}
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Período do Ciclo</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Data de Início</label>
+                    <p className="text-sm text-gray-900">{formatDateTimeDetailed(selectedCycleForView.startDate)}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Data de Término</label>
+                    <p className="text-sm text-gray-900">{formatDateTimeDetailed(selectedCycleForView.endDate)}</p>
+                  </div>
+                </div>
+                {selectedCycleForView.startDate && selectedCycleForView.endDate && (
+                  <div className="mt-3 p-2 bg-blue-100 rounded border">
+                    <p className="text-sm text-blue-800">
+                      <strong>Duração:</strong> {Math.ceil((new Date(selectedCycleForView.endDate).getTime() - new Date(selectedCycleForView.startDate).getTime()) / (1000 * 60 * 60 * 24))} dias
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Deadlines */}
+              <div className="bg-orange-50 rounded-lg p-4">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Deadlines por Fase</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-3 bg-white rounded border">
+                    <div>
+                      <h4 className="font-medium text-gray-900">Fase de Avaliações</h4>
+                      <p className="text-sm text-gray-600">Autoavaliação, 360°, Mentoring, Reference</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-gray-900">
+                        {formatDateTimeDetailed(selectedCycleForView.assessmentDeadline)}
+                      </p>
+                      {selectedCycleForView.assessmentDeadline && (
+                        <p className={`text-xs ${new Date(selectedCycleForView.assessmentDeadline) < new Date() ? 'text-red-600' : 'text-green-600'}`}>
+                          {new Date(selectedCycleForView.assessmentDeadline) < new Date() ? 'Expirado' : 'Ativo'}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center p-3 bg-white rounded border">
+                    <div>
+                      <h4 className="font-medium text-gray-900">Fase de Gestores</h4>
+                      <p className="text-sm text-gray-600">Avaliações dos gestores</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-gray-900">
+                        {formatDateTimeDetailed(selectedCycleForView.managerDeadline)}
+                      </p>
+                      {selectedCycleForView.managerDeadline && (
+                        <p className={`text-xs ${new Date(selectedCycleForView.managerDeadline) < new Date() ? 'text-red-600' : 'text-green-600'}`}>
+                          {new Date(selectedCycleForView.managerDeadline) < new Date() ? 'Expirado' : 'Ativo'}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center p-3 bg-white rounded border">
+                    <div>
+                      <h4 className="font-medium text-gray-900">Fase de Equalização</h4>
+                      <p className="text-sm text-gray-600">Equalização pelo comitê</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-gray-900">
+                        {formatDateTimeDetailed(selectedCycleForView.equalizationDeadline)}
+                      </p>
+                      {selectedCycleForView.equalizationDeadline && (
+                        <p className={`text-xs ${new Date(selectedCycleForView.equalizationDeadline) < new Date() ? 'text-red-600' : 'text-green-600'}`}>
+                          {new Date(selectedCycleForView.equalizationDeadline) < new Date() ? 'Expirado' : 'Ativo'}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Datas de Criação e Atualização */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Auditoria</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Criado em</label>
+                    <p className="text-gray-900">{formatDateTimeDetailed(selectedCycleForView.createdAt)}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Última atualização</label>
+                    <p className="text-gray-900">{formatDateTimeDetailed(selectedCycleForView.updatedAt)}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-6">
+              <button
+                onClick={() => setShowViewModal(false)}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Close Cycle Modal */}
+      {showCloseModal && selectedCycleForClose && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl p-8 w-full max-w-lg shadow-2xl border-4 border-red-200">
+            <div className="text-center">
+              {/* Icon de Alerta */}
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6">
+                <AlertTriangle className="h-8 w-8 text-red-600" />
+              </div>
+              
+              {/* Título */}
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                ⚠️ FECHAR CICLO
+              </h2>
+              
+              {/* Aviso */}
+              <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-6">
+                <p className="text-sm text-red-800 font-medium leading-relaxed">
+                  <strong className="block text-base mb-2">AÇÃO IRREVERSÍVEL!</strong>
+                  Você está prestes a fechar o ciclo <strong>"{selectedCycleForClose.name}"</strong>. 
+                  Esta ação NÃO PODE ser desfeita e o ciclo não poderá ser reaberto.
+                </p>
+              </div>
+
+              {/* Informações do Ciclo */}
+              <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
+                <h3 className="font-medium text-gray-900 mb-2">Detalhes do Ciclo:</h3>
+                <div className="text-sm text-gray-700 space-y-1">
+                  <p><strong>Nome:</strong> {selectedCycleForClose.name}</p>
+                  <p><strong>Status Atual:</strong> {getStatusLabel(selectedCycleForClose.status)}</p>
+                  <p><strong>Fase:</strong> {getPhaseLabel(selectedCycleForClose.phase)}</p>
+                  <p><strong>Período:</strong> {formatDate(selectedCycleForClose.startDate)} até {formatDate(selectedCycleForClose.endDate)}</p>
+                </div>
+              </div>
+              
+              {/* Confirmação */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2 text-left">
+                  Para confirmar, digite o nome do ciclo: <strong>{selectedCycleForClose.name}</strong>
+                </label>
+                <input
+                  type="text"
+                  value={confirmCloseText}
+                  onChange={(e) => setConfirmCloseText(e.target.value)}
+                  placeholder={`Digite "${selectedCycleForClose.name}" para confirmar`}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 text-center font-medium"
+                />
+              </div>
+
+              {/* Botões */}
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCloseModal(false);
+                    setSelectedCycleForClose(null);
+                    setConfirmCloseText('');
+                  }}
+                  className="flex-1 px-4 py-3 text-gray-700 border-2 border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleCloseCycle}
+                  disabled={closeLoading || confirmCloseText !== selectedCycleForClose.name}
+                  className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                  {closeLoading && <RefreshCw className="h-4 w-4 animate-spin" />}
+                  {closeLoading ? 'Fechando...' : 'FECHAR CICLO'}
+                </button>
+              </div>
+
+              {/* Texto de Segurança */}
+              <p className="text-xs text-gray-500 mt-4">
+                Esta ação fechará permanentemente o ciclo e não poderá ser revertida.
+              </p>
+            </div>
           </div>
         </div>
       )}

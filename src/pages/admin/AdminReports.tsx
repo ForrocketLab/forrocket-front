@@ -511,7 +511,7 @@ const AdminReports: React.FC = () => {
         <div className="bg-white rounded-lg p-6 shadow-sm border">
           <h3 className="text-lg font-semibold text-gray-900 mb-6">Informações do Ciclo Ativo</h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             <div>
               <h4 className="text-sm font-medium text-gray-600 mb-2">Nome do Ciclo</h4>
               <p className="text-lg font-bold text-gray-900">{activeCycle.name}</p>
@@ -529,9 +529,15 @@ const AdminReports: React.FC = () => {
               </span>
             </div>
             <div>
-              <h4 className="text-sm font-medium text-gray-600 mb-2">Criado em</h4>
+              <h4 className="text-sm font-medium text-gray-600 mb-2">Data de Início</h4>
               <p className="text-sm text-gray-900">
-                {new Date(activeCycle.createdAt).toLocaleDateString('pt-BR')}
+                {activeCycle.startDate ? new Date(activeCycle.startDate).toLocaleDateString('pt-BR') : 'Não definida'}
+              </p>
+            </div>
+            <div>
+              <h4 className="text-sm font-medium text-gray-600 mb-2">Data de Término</h4>
+              <p className="text-sm text-gray-900">
+                {activeCycle.endDate ? new Date(activeCycle.endDate).toLocaleDateString('pt-BR') : 'Não definida'}
               </p>
             </div>
           </div>

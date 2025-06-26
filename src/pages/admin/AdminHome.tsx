@@ -5,7 +5,6 @@ import AdminService, { type CycleData, type UserData } from '../../services/Admi
 import { useGlobalToast } from '../../hooks/useGlobalToast';
 import { 
   Users, 
-  Settings, 
   RefreshCw, 
   Calendar,
   Zap,
@@ -14,7 +13,8 @@ import {
   Clock,
   AlertTriangle,
   CheckCircle,
-  XCircle
+  XCircle,
+  FileText
 } from 'lucide-react';
 
 const AdminHomePage = () => {
@@ -130,7 +130,7 @@ const AdminHomePage = () => {
       </div>
 
       {/* Status Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {/* Ciclo Ativo */}
         <div className="bg-white rounded-lg p-6 shadow-sm border">
           <div className="flex items-center justify-between mb-4">
@@ -188,6 +188,47 @@ const AdminHomePage = () => {
           <p className="text-sm text-gray-600">
             {allCycles.filter(c => c.status === 'OPEN').length} abertos • {allCycles.filter(c => c.status === 'CLOSED').length} fechados
           </p>
+        </div>
+
+        {/* Dias Restantes do Ciclo Ativo */}
+        <div className="bg-white rounded-lg p-6 shadow-sm border">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-gray-600">Dias Restantes</h3>
+            <Clock className="h-5 w-5 text-orange-600" />
+          </div>
+          {activeCycle && activeCycle.endDate ? (
+            (() => {
+              const now = new Date();
+              const endDate = new Date(activeCycle.endDate);
+              const diffTime = endDate.getTime() - now.getTime();
+              const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              
+              return (
+                <div>
+                  <div className={`text-3xl font-bold mb-2 ${daysRemaining <= 3 ? 'text-red-600' : daysRemaining <= 7 ? 'text-orange-600' : 'text-green-600'}`}>
+                    {daysRemaining > 0 ? daysRemaining : 0}
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    {daysRemaining > 0 ? 
+                      `Para terminar o ciclo ${activeCycle.name}` : 
+                      'Ciclo já deveria ter terminado'
+                    }
+                  </p>
+                  {daysRemaining <= 0 && (
+                    <div className="mt-2 flex items-center text-red-600 text-xs">
+                      <AlertTriangle className="h-3 w-3 mr-1" />
+                      Ciclo em atraso
+                    </div>
+                  )}
+                </div>
+              );
+            })()
+          ) : (
+            <div className="text-center py-4">
+              <Clock className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+              <p className="text-gray-500">Sem deadline definida</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -289,23 +330,23 @@ const AdminHomePage = () => {
           </div>
         </Link>
 
-        {/* Configurações do Sistema */}
-        <Link to="/admin/settings" className="group">
-          <div className="bg-white rounded-lg p-6 shadow-sm border hover:shadow-md transition-all duration-200 group-hover:border-gray-200">
+        {/* Audit Log */}
+        <Link to="/admin/audit-log" className="group">
+          <div className="bg-white rounded-lg p-6 shadow-sm border hover:shadow-md transition-all duration-200 group-hover:border-indigo-200">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-gray-100 rounded-lg">
-                <Settings className="h-6 w-6 text-gray-600" />
+              <div className="p-3 bg-indigo-100 rounded-lg">
+                <FileText className="h-6 w-6 text-indigo-600" />
               </div>
-              <div className="text-sm text-gray-500">Sistema</div>
+              <div className="text-sm text-gray-500">Auditoria</div>
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Configurações
+              Log de Auditoria
             </h3>
             <p className="text-gray-600 text-sm">
-              Configurações gerais do sistema, parâmetros e manutenção.
+              Visualize todas as ações realizadas no sistema. Histórico completo de auditoria.
             </p>
-            <div className="mt-4 flex items-center text-gray-600 text-sm font-medium">
-              Configurar sistema
+            <div className="mt-4 flex items-center text-indigo-600 text-sm font-medium">
+              Ver logs
               <svg className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
