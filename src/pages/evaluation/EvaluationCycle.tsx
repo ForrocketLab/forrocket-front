@@ -40,21 +40,19 @@ const EvaluationPage = () => {
   };
 
   return (
-    <div>
-      <div className="pt-36 min-h-screen bg-[#F1F1F1]">
-        <Topbar
-          onSave={handleSaveAndSubmit}
-          isSaveDisabled={isFinalSaveDisabled}
-          activeButton={activeButton}
-          onNavButtonClick={setActiveButton}
-        />
-        <main className="bg-[#F1F1F1]">
-          {activeButton === 'Autoavaliação' && <SelfEvaluation initialSelfAssessmentData={null} cycleId="2025.1" />}
-          {activeButton === 'Avaliação 360' && <Evaluation360 />}
-          {activeButton === 'Mentoring' && <Mentoring />}
-          {activeButton === 'Referências' && <RefCollaborator />}
-        </main>
-      </div>
+    <div className="min-h-screen bg-[#F1F1F1]">
+      <Topbar
+        onSave={handleSaveAndSubmit}
+        isSaveDisabled={isFinalSaveDisabled}
+        activeButton={activeButton}
+        onNavButtonClick={setActiveButton}
+      />
+      <main className="bg-[#F1F1F1]">
+        {activeButton === 'Autoavaliação' && <SelfEvaluation initialSelfAssessmentData={null} cycleId="2025.1" />}
+        {activeButton === 'Avaliação 360' && <Evaluation360 />}
+        {activeButton === 'Mentoring' && <Mentoring />}
+        {activeButton === 'Referências' && <RefCollaborator />}
+      </main>
     </div>
   );
 };

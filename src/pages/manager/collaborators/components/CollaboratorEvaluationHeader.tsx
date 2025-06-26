@@ -23,7 +23,7 @@ const EvaluationHeader = ({
   onTabChange,
 }: EvaluationHeaderProps) => {
   return (
-    <header className='fixed top-0 left-[256px] right-0 bg-white z-10 shadow-sm'>
+    <header className="bg-white shadow-sm mb-6">
       {/* Barra Superior */}
       <div className='h-16 w-full flex items-center justify-between px-6 border-b border-gray-200'>
         <div className='flex items-center gap-3'>
