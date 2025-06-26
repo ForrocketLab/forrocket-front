@@ -7,6 +7,7 @@ import type { TabItem } from '../collaboratorEvaluations/components/TabNavigatio
 import EvaluationHeader from './components/CollaboratorEvaluationHeader';
 import EvaluationCriteriaList from './components/EvaluationCriteriaList';
 import Manager360Evaluations from './Manager360Evaluations';
+import ExecutionCriteriaList from './components/ExecutionCriteriaList';
 
 export interface ManagerCriterionState {
   score: number;
@@ -20,6 +21,18 @@ export const ALLOWED_CRITERIA_IDS = [
   'capacidade-aprender',
   'team-player',
 ];
+
+export const ALLOWED_EXECUTION_CRITERIA_IDS = [
+  'entregar-qualidade',
+  'atender-prazos',
+  'fazer-mais-menos',
+  'pensar-fora-caixa'
+];
+
+export const ALL_CRITERIA_IDS = [
+  ...ALLOWED_CRITERIA_IDS,
+  ...ALLOWED_EXECUTION_CRITERIA_IDS
+]
 
 const CollaboratorEvaluationDetails: FC = () => {
   const { id: collaboratorIdFromUrl } = useParams<{ id: string }>();
@@ -86,7 +99,7 @@ const CollaboratorEvaluationDetails: FC = () => {
         if (fullEvaluation.managerAssessments && fullEvaluation.managerAssessments.length > 0) {
           const managerExistingAssessment = fullEvaluation.managerAssessments[0];
           managerExistingAssessment.answers.forEach(answer => {
-            if (ALLOWED_CRITERIA_IDS.includes(answer.criterionId)) {
+            if (ALL_CRITERIA_IDS.includes(answer.criterionId)) {
               initialManagerAssessments[answer.criterionId] = {
                 score: answer.score,
                 justification: answer.justification,
@@ -95,7 +108,7 @@ const CollaboratorEvaluationDetails: FC = () => {
           });
         }
 
-        ALLOWED_CRITERIA_IDS.forEach(criterionId => {
+        ALL_CRITERIA_IDS.forEach(criterionId => {
           if (!initialManagerAssessments[criterionId]) {
             initialManagerAssessments[criterionId] = { score: 0, justification: '' };
           }
@@ -103,7 +116,7 @@ const CollaboratorEvaluationDetails: FC = () => {
 
         setManagerAssessments(initialManagerAssessments);
 
-        const isSubmitted = ALLOWED_CRITERIA_IDS.every(criterionId => {
+        const isSubmitted = ALL_CRITERIA_IDS.every(criterionId => {
           const assessment = initialManagerAssessments[criterionId];
           return assessment && assessment.score >= 1 && assessment.score <= 5 && assessment.justification.trim() !== '';
         });
@@ -136,9 +149,9 @@ const CollaboratorEvaluationDetails: FC = () => {
   };
 
   const getManagerCompletionCount = () => {
-    const total = ALLOWED_CRITERIA_IDS.length;
+    const total = ALL_CRITERIA_IDS.length;
     const completed =
-      ALLOWED_CRITERIA_IDS.filter(criterionId => {
+      ALL_CRITERIA_IDS.filter(criterionId => {
         const managerAssessment = managerAssessments[criterionId];
         return (
           managerAssessment &&
@@ -173,7 +186,7 @@ const CollaboratorEvaluationDetails: FC = () => {
       evaluatedUserId: collaboratorIdFromUrl,
     };
 
-    ALLOWED_CRITERIA_IDS.forEach(criterionId => {
+    ALL_CRITERIA_IDS.forEach(criterionId => {
       const camelCaseCriterion = criterionId.replace(/-([a-z])/g, g => g[1].toUpperCase());
       const managerAssessment = managerAssessments[criterionId];
       if (managerAssessment) {
@@ -192,7 +205,17 @@ const CollaboratorEvaluationDetails: FC = () => {
     }
   };
 
-  const { completed, total } = getManagerCompletionCount();
+  const getGroupCompletionCount = (criteriaList: string[]) => {
+  const completed = criteriaList.filter(criterionId => {
+    const a = managerAssessments[criterionId];
+    return a && a.score >= 1 && a.score <= 5 && a.justification.trim() !== '';
+  }).length;
+  return { completed, total: criteriaList.length };
+};
+
+const postureCompletion = getGroupCompletionCount(ALLOWED_CRITERIA_IDS);
+const executionCompletion = getGroupCompletionCount(ALLOWED_EXECUTION_CRITERIA_IDS);
+
 
   const toggleCriterionExpansion = (criterionId: string) => {
     setExpandedCriterion(prevSet => {
@@ -294,17 +317,32 @@ const CollaboratorEvaluationDetails: FC = () => {
 
         <main className='flex-1 pt-28 pb-8'>
           {activeTab === 'evaluation' && detailedSelfAssessment && (
-            <EvaluationCriteriaList
-              isAssessmentSubmitted
-              answers={detailedSelfAssessment.answers}
-              managerAssessments={managerAssessments}
-              expandedCriterion={expandedCriterion}
-              completion={{ completed, total }}
-              getCriterionName={getCriterionName}
-              onToggleExpansion={toggleCriterionExpansion}
-              onRatingChange={handleManagerRatingChange}
-              onJustificationChange={handleManagerJustificationChange}
-            />
+            <>
+              <EvaluationCriteriaList
+                isAssessmentSubmitted={isAssessmentSubmitted}
+                answers={detailedSelfAssessment.answers}
+                managerAssessments={managerAssessments}
+                expandedCriterion={expandedCriterion}
+                completion={postureCompletion}
+                getCriterionName={getCriterionName}
+                onToggleExpansion={toggleCriterionExpansion}
+                onRatingChange={handleManagerRatingChange}
+                onJustificationChange={handleManagerJustificationChange}
+              />
+              <div className="mt-6">
+              <ExecutionCriteriaList
+                isAssessmentSubmitted={isAssessmentSubmitted}
+                answers={detailedSelfAssessment.answers}
+                managerAssessments={managerAssessments}
+                expandedCriterion={expandedCriterion}
+                completion={executionCompletion}
+                getCriterionName={getCriterionName}
+                onToggleExpansion={toggleCriterionExpansion}
+                onRatingChange={handleManagerRatingChange}
+                onJustificationChange={handleManagerJustificationChange}
+              />
+            </div>
+            </>
           )}
           {activeTab === '360-evaluation' && <Manager360Evaluations />}
           {activeTab === 'history' && <div className='text-center p-8'>Conteúdo do Histórico</div>}

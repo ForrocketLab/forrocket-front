@@ -1,6 +1,6 @@
 // src/components/EvaluationCriteriaList.tsx
 import { Star, CheckCircle, ChevronUp, ChevronDown } from 'lucide-react';
-import { ALLOWED_CRITERIA_IDS, type ManagerCriterionState } from '../CollaboratorEvaluationDetails';
+import { ALLOWED_EXECUTION_CRITERIA_IDS, type ManagerCriterionState } from '../CollaboratorEvaluationDetails';
 
 interface EvaluationCriteriaListProps {
   isAssessmentSubmitted: boolean;
@@ -28,7 +28,7 @@ const EvaluationCriteriaList = ({
   return (
     <div className='bg-white rounded-lg shadow-sm border border-gray-200'>
       <div className='flex items-center justify-between px-6 py-4 border-b border-gray-200'>
-        <h2 className='text-lg font-semibold text-gray-900'>Critérios de Postura</h2>
+        <h2 className='text-lg font-semibold text-gray-900'>Critérios de Execução</h2>
         <div className='flex items-center gap-3'>
           <div className='bg-teal-600 text-white text-xs font-medium px-2 py-1 rounded'>
             {completion.completed}/{completion.total} preenchidos
@@ -37,7 +37,7 @@ const EvaluationCriteriaList = ({
       </div>
 
       <div className='divide-y divide-gray-200'>
-        {ALLOWED_CRITERIA_IDS.map((criterionId, index) => {
+        {ALLOWED_EXECUTION_CRITERIA_IDS.map((criterionId, index) => {
           const isExpanded = expandedCriterion.has(criterionId);
           const managerScore = managerAssessments[criterionId]?.score || 0;
           const selfAnswer = answers.find(a => a.criterionId === criterionId);
