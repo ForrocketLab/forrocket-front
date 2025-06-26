@@ -130,8 +130,6 @@ class ManagerService {
           Authorization: `Bearer ${AuthService.getToken()}`,
         },
         params: {
-          // Embora o controller use @Param, o nome do parâmetro na função é subordinateId
-          // e a rota não contém um placeholder. O envio via `params` (query string) é o mais provável.
           subordinateId,
         },
       });

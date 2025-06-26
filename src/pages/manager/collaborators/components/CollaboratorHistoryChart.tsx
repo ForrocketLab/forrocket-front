@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-// 1. Importe o componente 'Cell' do Recharts
 import {
   BarChart,
   Bar,
@@ -13,7 +12,7 @@ import {
   Cell,
 } from 'recharts';
 
-// Opções para o nosso filtro
+// Opções para o filtro
 const metricOptions = [
   { value: 'finalScore', label: 'Nota Final' },
   { value: 'selfScore', label: 'Autoavaliação' },
@@ -91,15 +90,10 @@ const CollaboratorHistoryChart = ({ performanceHistory }: CollaboratorHistoryCha
             />
             <Legend />
 
-            <Bar
-              dataKey={selectedMetric}
-              name={selectedMetricLabel}
-              barSize={40} // 3. Adiciona um tamanho fixo para as barras
-            >
+            <Bar dataKey={selectedMetric} name={selectedMetricLabel} barSize={40}>
               {/* Rótulo com o valor em cima de cada barra */}
               <LabelList dataKey={selectedMetric} position='top' style={{ fill: '#042f2e', fontSize: 12 }} />
 
-              {/* 4. Mapeia os dados para aplicar uma cor diferente a cada barra */}
               {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={BAR_COLORS[index % BAR_COLORS.length]} />
               ))}
