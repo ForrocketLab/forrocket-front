@@ -11,8 +11,8 @@ interface TopbarProps {
 }
 
 const Topbar = ({ onSave, isSaveDisabled, activeButton, onNavButtonClick }: TopbarProps) => {
-    return (
-    <header className="fixed top-0 left-[232px] right-0 bg-white shadow-sm">
+  return (
+    <header className="bg-white shadow-sm mb-6">
       <div className="h-24 w-full flex items-center justify-between px-8 md:px-20">
         <h1 className="text-black font-bold text-lg md:text-xl">Ciclo 2025.1</h1>
         <button 
@@ -38,7 +38,7 @@ const Topbar = ({ onSave, isSaveDisabled, activeButton, onNavButtonClick }: Topb
         ))}
       </nav>
     </header>
-    );
+  );
 };
 
 export default Topbar;
