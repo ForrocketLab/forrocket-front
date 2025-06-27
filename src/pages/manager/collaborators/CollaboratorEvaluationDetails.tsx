@@ -7,6 +7,7 @@ import type { TabItem } from '../collaboratorEvaluations/components/TabNavigatio
 import EvaluationHeader from './components/CollaboratorEvaluationHeader';
 import EvaluationCriteriaList from './components/EvaluationCriteriaList';
 import Manager360Evaluations from './Manager360Evaluations';
+import ManagerEvaluationsHistory from './ManagerEvaluationsHistory';
 
 export interface ManagerCriterionState {
   score: number;
@@ -279,37 +280,35 @@ const CollaboratorEvaluationDetails: FC = () => {
   const collaboratorInitials = getInitials(collaboratorName);
 
   return (
-    <div className='flex min-h-screen bg-gray-50'>
-      <div className='flex flex-col flex-1'>
-        <EvaluationHeader
-          isAssessmentSubmitted={isAssessmentSubmitted}
-          collaboratorName={collaboratorName}
-          collaboratorInitials={collaboratorInitials}
-          collaboratorJobTitle={collaboratorJobTitle}
-          onSubmit={handleSubmitManagerAssessment}
-          tabs={TABS}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-        />
+    <div className='bg-gray-50 min-h-screen'>
+      <EvaluationHeader
+        isAssessmentSubmitted={isAssessmentSubmitted}
+        collaboratorName={collaboratorName}
+        collaboratorInitials={collaboratorInitials}
+        collaboratorJobTitle={collaboratorJobTitle}
+        onSubmit={handleSubmitManagerAssessment}
+        tabs={TABS}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
 
-        <main className='flex-1 pt-28 pb-8'>
-          {activeTab === 'evaluation' && detailedSelfAssessment && (
-            <EvaluationCriteriaList
-              isAssessmentSubmitted={isAssessmentSubmitted}
-              answers={detailedSelfAssessment.answers}
-              managerAssessments={managerAssessments}
-              expandedCriterion={expandedCriterion}
-              completion={{ completed, total }}
-              getCriterionName={getCriterionName}
-              onToggleExpansion={toggleCriterionExpansion}
-              onRatingChange={handleManagerRatingChange}
-              onJustificationChange={handleManagerJustificationChange}
-            />
-          )}
-          {activeTab === '360-evaluation' && <Manager360Evaluations />}
-          {activeTab === 'history' && <div className='text-center p-8'>Conteúdo do Histórico</div>}
-        </main>
-      </div>
+      <main className='px-6 pb-8'>
+        {activeTab === 'evaluation' && detailedSelfAssessment && (
+          <EvaluationCriteriaList
+            isAssessmentSubmitted={isAssessmentSubmitted}
+            answers={detailedSelfAssessment.answers}
+            managerAssessments={managerAssessments}
+            expandedCriterion={expandedCriterion}
+            completion={{ completed, total }}
+            getCriterionName={getCriterionName}
+            onToggleExpansion={toggleCriterionExpansion}
+            onRatingChange={handleManagerRatingChange}
+            onJustificationChange={handleManagerJustificationChange}
+          />
+        )}
+        {activeTab === '360-evaluation' && <Manager360Evaluations />}
+        {activeTab === 'history' && <ManagerEvaluationsHistory />}
+      </main>
     </div>
   );
 };

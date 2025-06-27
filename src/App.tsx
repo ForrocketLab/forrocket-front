@@ -25,6 +25,8 @@ import CycleManagement from './pages/admin/CycleManagement';
 import PhaseControl from './pages/admin/PhaseControl';
 import AdminReports from './pages/admin/AdminReports';
 import AuditLogPage from './pages/admin/AuditLog';
+import TalentMatrixPage from './pages/hr/TalentMatrixPage';
+import TalentMatrixMethodology from './pages/hr/TalentMatrixMethodology';
 
 function App() {
   return (
@@ -66,6 +68,8 @@ function AppWithToasts() {
                 <Route path='/rh' element={<HRHomePage />} />
                 <Route path='/rh/colaboradores' element={<CollaboratorManagement />} />
                 <Route path='/rh/criterios' element={<CriteriaManagement />} />
+                <Route path='/rh/matriz-talento' element={<TalentMatrixPage />} />
+                <Route path='/rh/matriz-talento/metodologia' element={<TalentMatrixMethodology />} />
               </Route>
 
               <Route element={<ProtectedRoute allowedRoles={[ROLES.COMMITTEE]} />}>
@@ -76,7 +80,6 @@ function AppWithToasts() {
               <Route element={<ProtectedRoute allowedRoles={[ROLES.MANAGER]} />}>
                 <Route path='/manager/dashboard' element={<ManagerDashboardPage />} />
                 <Route path='/manager/collaborators' element={<ManagerCollaborators />} />
-                <Route path='/manager/collaborators/:collaboratorId' element={<ManagerCollaboratorEvaluations />} />
                 <Route path='/manager/collaborators/:id/evaluations' element={<CollaboratorEvaluationDetails />} />
               </Route>
 

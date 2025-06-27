@@ -138,7 +138,7 @@ class EvaluationService {
           headers: {
             Authorization: `Bearer ${this.getToken()}`,
           },
-        }
+        },
       );
       console.log('Autoavaliação criada/atualizada com sucesso!', response.data);
       return response.data;
@@ -158,14 +158,11 @@ class EvaluationService {
    */
   async getUserEvaluationsByCycle(cycleId: string): Promise<UserEvaluationsByCycleResponse> {
     try {
-      const response = await api.get<UserEvaluationsByCycleResponse>(
-        `/evaluations/collaborator/cycle/${cycleId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${this.getToken()}`,
-          },
-        }
-      );
+      const response = await api.get<UserEvaluationsByCycleResponse>(`/evaluations/collaborator/cycle/${cycleId}`, {
+        headers: {
+          Authorization: `Bearer ${this.getToken()}`,
+        },
+      });
       console.log(`Avaliações para o ciclo ${cycleId} carregadas com sucesso!`, response.data);
       return response.data;
     } catch (error) {
@@ -180,6 +177,31 @@ class EvaluationService {
       throw new Error('Ocorreu um erro de rede. Tente novamente.');
     }
   }
+
+  async getPerformanceHistory(userId: string): Promise<PerformanceDataDto[]> {
+    try {
+      const response = await api.get<PerformanceDataDto[]>('/performance/history', {
+        headers: {
+          Authorization: `Bearer ${this.getToken()}`,
+        },
+      });
+
+      console.log('Histórico de performance carregado com sucesso!', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar histórico de performance:', error);
+
+      if (error instanceof AxiosError && error.response) {
+        if (error.response.status === 401) {
+          AuthService.logout();
+          throw new Error('Sua sessão expirou ou é inválida. Por favor, faça login novamente.');
+        }
+        throw new Error(error.response.data.message || 'Falha ao buscar o histórico de performance.');
+      }
+
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
 }
 
-export default new EvaluationService(); 
+export default new EvaluationService();
