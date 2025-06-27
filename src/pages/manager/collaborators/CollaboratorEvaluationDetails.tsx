@@ -7,6 +7,7 @@ import type { TabItem } from '../collaboratorEvaluations/components/TabNavigatio
 import EvaluationHeader from './components/CollaboratorEvaluationHeader';
 import EvaluationCriteriaList from './components/EvaluationCriteriaList';
 import Manager360Evaluations from './Manager360Evaluations';
+import ManagerEvaluationsHistory from './ManagerEvaluationsHistory';
 
 export interface ManagerCriterionState {
   score: number;
@@ -306,7 +307,7 @@ const CollaboratorEvaluationDetails: FC = () => {
           />
         )}
         {activeTab === '360-evaluation' && <Manager360Evaluations />}
-        {activeTab === 'history' && <div className='text-center p-8'>Conteúdo do Histórico</div>}
+        {activeTab === 'history' && <ManagerEvaluationsHistory />}
       </main>
     </div>
   );
