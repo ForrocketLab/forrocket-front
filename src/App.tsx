@@ -19,6 +19,8 @@ import CollaboratorManagement from './pages/hr/CollaboratorManagement';
 import CriteriaManagement from './pages/hr/CriteriaManagement';
 import EvaluationPage from './pages/evaluation/EvaluationCycle';
 import { EvaluationProvider } from './contexts/EvaluationProvider';
+import TalentMatrixPage from './pages/hr/TalentMatrixPage';
+import TalentMatrixMethodology from './pages/hr/TalentMatrixMethodology';
 
 function App() {
   return (
@@ -55,6 +57,8 @@ function AppWithToasts() {
                 <Route path='/rh' element={<HRHomePage />} />
                 <Route path='/rh/colaboradores' element={<CollaboratorManagement />} />
                 <Route path='/rh/criterios' element={<CriteriaManagement />} />
+                <Route path='/rh/matriz-talento' element={<TalentMatrixPage />} />
+                <Route path='/rh/matriz-talento/metodologia' element={<TalentMatrixMethodology />} />
               </Route>
 
               <Route element={<ProtectedRoute allowedRoles={[ROLES.COMMITTEE]} />}>
