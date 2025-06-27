@@ -1,6 +1,7 @@
 import { AxiosError } from 'axios';
 import api from '../api';
 import AuthService from './AuthService';
+import type { TalentMatrixData, TalentMatrixPosition, TalentMatrixStats } from '../types/talentMatrix';
 
 // Tipos específicos para RH Dashboard
 interface HRDashboardMetrics {
@@ -632,6 +633,17 @@ class HRService {
       throw error;
     }
   }
+
+  /**
+   * Busca dados da matriz 9-box de talento
+   */
+  static async getTalentMatrix(cycle?: string): Promise<TalentMatrixData> {
+    const url = cycle ? `/users/talent-matrix?cycle=${cycle}` : '/users/talent-matrix';
+    const response = await api.get(url);
+    return response.data;
+  }
+
+
 }
 
 export default HRService;
