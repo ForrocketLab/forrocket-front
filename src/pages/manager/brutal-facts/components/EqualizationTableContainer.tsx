@@ -188,28 +188,30 @@ const EqualizationTableContainer: FC<EqualizationTableContainerProps> = ({ colla
         </div>
       </div>
 
-      {/* Tabela de colaboradores */}
-      <div className='space-y-2'>
-        {filteredCollaborators.length > 0 ? (
-          filteredCollaborators.map(collaborator => (
-            <EqualizatedCollaboratorRow
-              key={collaborator.id}
-              id={collaborator.id}
-              initials={collaborator.initials}
-              name={collaborator.name}
-              jobTitle={collaborator.jobTitle}
-              selfAssessmentScore={collaborator.selfAssessmentScore}
-              evaluation360Score={collaborator.evaluation360Score}
-              managerScore={collaborator.managerScore}
-              finalScore={collaborator.finalScore}
-              finalScoreColor={collaborator.finalScoreColor}
-            />
-          ))
-        ) : (
-          <div className='text-center py-8 text-gray-500'>
-            <p>Nenhum colaborador encontrado com os filtros aplicados.</p>
-          </div>
-        )}
+      {/* Tabela de colaboradores com scroll */}
+      <div className='max-h-[600px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100'>
+        <div className='space-y-2 pr-2'>
+          {filteredCollaborators.length > 0 ? (
+            filteredCollaborators.map(collaborator => (
+              <EqualizatedCollaboratorRow
+                key={collaborator.id}
+                id={collaborator.id}
+                initials={collaborator.initials}
+                name={collaborator.name}
+                jobTitle={collaborator.jobTitle}
+                selfAssessmentScore={collaborator.selfAssessmentScore}
+                evaluation360Score={collaborator.evaluation360Score}
+                managerScore={collaborator.managerScore}
+                finalScore={collaborator.finalScore}
+                finalScoreColor={collaborator.finalScoreColor}
+              />
+            ))
+          ) : (
+            <div className='text-center py-8 text-gray-500'>
+              <p>Nenhum colaborador encontrado com os filtros aplicados.</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
