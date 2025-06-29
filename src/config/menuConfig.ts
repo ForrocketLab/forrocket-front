@@ -3,7 +3,7 @@ import { ROLES } from '../types/roles'; // Seu enum de papéis
 
 import { FaCog } from 'react-icons/fa';
 import { IoBarChartOutline } from 'react-icons/io5';
-import { LuFilePenLine, LuUsers } from 'react-icons/lu';
+import { LuCaptions, LuFilePenLine, LuUsers } from 'react-icons/lu';
 import { FileText, Users, Home, BarChart3, Settings, Shield, Building2, UsersRound } from 'lucide-react';
 
 export interface IconProps {
@@ -46,6 +46,12 @@ export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
     path: '/manager/collaborators',
     label: 'Meus Colaboradores',
     icon: Users,
+    allowedRoles: [ROLES.MANAGER],
+  },
+  {
+    path: '/manager/brutal-facts',
+    label: 'Brutal Facts',
+    icon: LuCaptions,
     allowedRoles: [ROLES.MANAGER],
   },
 
