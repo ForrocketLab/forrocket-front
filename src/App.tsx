@@ -27,6 +27,9 @@ import AdminReports from './pages/admin/AdminReports';
 import AuditLogPage from './pages/admin/AuditLog';
 import TalentMatrixPage from './pages/hr/TalentMatrixPage';
 import TalentMatrixMethodology from './pages/hr/TalentMatrixMethodology';
+import OKRsPage from './pages/okrs/OKRsPage';
+import OKRDetailsPage from './pages/okrs/OKRDetailsPage';
+import EditOKRPage from './pages/okrs/EditOKRPage';
 
 function App() {
   return (
@@ -62,6 +65,9 @@ function AppWithToasts() {
               <Route element={<ProtectedRoute allowedRoles={[ROLES.COLLABORATOR]} />}>
                 <Route path='/' element={<HomePage />} />
                 <Route path='/avaliacao' element={<EvaluationPage />} />
+                <Route path='/okrs' element={<OKRsPage />} />
+                <Route path='/okrs/:id' element={<OKRDetailsPage />} />
+                <Route path='/okrs/:id/edit' element={<EditOKRPage />} />
               </Route>
 
               <Route element={<ProtectedRoute allowedRoles={[ROLES.RH]} />}>
