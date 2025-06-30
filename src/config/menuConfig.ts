@@ -4,7 +4,7 @@ import { ROLES } from '../types/roles'; // Seu enum de papéis
 import { FaCog } from 'react-icons/fa';
 import { IoBarChartOutline } from 'react-icons/io5';
 import { LuFilePenLine, LuUsers } from 'react-icons/lu';
-import { FileText, Users, Home, BarChart3, Settings, Shield, Building2, UsersRound } from 'lucide-react';
+import { FileText, Users, Home, BarChart3, Settings, Shield, Building2, UsersRound, Target } from 'lucide-react';
 
 export interface IconProps {
   size?: number;
@@ -32,6 +32,12 @@ export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
     path: '/avaliacao',
     label: 'Avaliação de Ciclo',
     icon: LuFilePenLine,
+    allowedRoles: [ROLES.COLLABORATOR],
+  },
+  {
+    path: '/okrs',
+    label: 'Meus OKRs',
+    icon: Target,
     allowedRoles: [ROLES.COLLABORATOR],
   },
 
