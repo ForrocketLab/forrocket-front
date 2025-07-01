@@ -19,6 +19,7 @@ import CollaboratorManagement from './pages/hr/CollaboratorManagement';
 import CriteriaManagement from './pages/hr/CriteriaManagement';
 import EvaluationPage from './pages/evaluation/EvaluationCycle';
 import { EvaluationProvider } from './contexts/EvaluationProvider';
+import RHImport from './pages/hr/HRImport';
 
 function App() {
   return (
@@ -55,6 +56,7 @@ function AppWithToasts() {
                 <Route path='/rh' element={<HRHomePage />} />
                 <Route path='/rh/colaboradores' element={<CollaboratorManagement />} />
                 <Route path='/rh/criterios' element={<CriteriaManagement />} />
+                <Route path='/rh/importar-historicos' element={<RHImport />} />
               </Route>
 
               <Route element={<ProtectedRoute allowedRoles={[ROLES.COMMITTEE]} />}>

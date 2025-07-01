@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import { ROLES } from '../types/roles'; // Seu enum de papéis
 
-import { FaCog, FaHome } from 'react-icons/fa';
+import { FaCog, FaHome, FaArrowAltCircleDown } from 'react-icons/fa';
 import { IoBarChartOutline } from 'react-icons/io5';
 import { LuFilePenLine, LuLayoutDashboard, LuLayoutTemplate, LuUsers } from 'react-icons/lu';
 import { MdPeople } from 'react-icons/md';
@@ -87,4 +87,10 @@ export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
     icon: FaCog,
     allowedRoles: [ROLES.RH, ROLES.ADMIN],
   },
+  {
+    path:'/rh/importar-historicos',
+    label: 'Importar Histórico',
+    icon: FaArrowAltCircleDown,
+    allowedRoles: [ROLES.RH, ROLES.ADMIN],
+  }
 ];
