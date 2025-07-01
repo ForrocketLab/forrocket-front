@@ -417,38 +417,6 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
             {renderScoreBar(summary.evaluationScores.mentoring, 'Mentoring')}
           </div>
         </div>
-
-        {/* Resumo Personalizado */}
-        <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-400">
-          <h4 className="text-md font-semibold text-blue-900 mb-2">Resumo Consolidado</h4>
-          <p className="text-sm text-blue-800">{summary.customSummary}</p>
-        </div>
-
-        {/* Avaliação de Comitê se existir */}
-        {summary.committeeAssessment && (
-          <div className="bg-green-50 rounded-lg p-4 border-l-4 border-green-400">
-            <h4 className="text-md font-semibold text-green-900 mb-3">Avaliação de Comitê</h4>
-            <div className="flex justify-between items-start mb-2">
-              <div>
-                <p className="font-medium">{summary.committeeAssessment.author.name}</p>
-                <p className="text-sm text-gray-600">Membro do Comitê</p>
-              </div>
-              <span className="bg-green-600 text-white px-3 py-1 rounded text-lg font-bold">
-                {summary.committeeAssessment.finalScore}
-              </span>
-            </div>
-            <div className="text-sm text-gray-700">
-              <p><strong>Justificativa:</strong></p>
-              <p className="mt-1">{summary.committeeAssessment.justification}</p>
-              {summary.committeeAssessment.observations && (
-                <>
-                  <p className="mt-2"><strong>Observações:</strong></p>
-                  <p className="mt-1">{summary.committeeAssessment.observations}</p>
-                </>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     );
   };

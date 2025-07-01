@@ -3,6 +3,7 @@ import { Search, Filter, Star, Copy, Edit3, AlertCircle, Calendar, Users, CheckC
 import { useCommitteeCollaborators, useCollaboratorEvaluationSummary, useCommitteeAssessmentActions, useCommitteeMetrics } from '../../hooks/useCommittee';
 import CommitteeService, { type CollaboratorForEqualization, type CommitteeAssessment } from '../../services/CommitteeService';
 import ExportButton from '../../components/ExportButton';
+import GenAISummaryCard from '../../components/GenAISummaryCard';
 import { useGlobalToast } from '../../hooks/useGlobalToast';
 
 interface ProcessedCollaborator {
@@ -17,7 +18,6 @@ interface ProcessedCollaborator {
   managerAssessment: number | null;
   mentoring: number | null;
   finalScore: number | null;
-  summary: string;
   committeeAssessmentId?: string;
 }
 
@@ -31,6 +31,7 @@ const EqualizacoesPage: FC = () => {
   const [editingCollaborators, setEditingCollaborators] = useState<string[]>([]);
   const [collaboratorSummaries, setCollaboratorSummaries] = useState<{[key: string]: any}>({});
   const [showFilters, setShowFilters] = useState(false);
+  const [showGenAI, setShowGenAI] = useState<{[key: string]: boolean}>({});
   const [activeFilters, setActiveFilters] = useState({
     status: 'all', // 'all', 'pending', 'completed'
     discrepancy: 'all', // 'all', 'high', 'moderate', 'low'
@@ -73,7 +74,6 @@ const EqualizacoesPage: FC = () => {
       managerAssessment: evaluationScores?.managerAssessment || null,
       mentoring: evaluationScores?.mentoring || null,
       finalScore: collaborator.committeeAssessment?.finalScore || null,
-      summary: summary?.customSummary || 'Clique para carregar dados de avaliação...',
       committeeAssessmentId: collaborator.committeeAssessment?.id
     };
   });
@@ -314,6 +314,24 @@ const EqualizacoesPage: FC = () => {
         ))}
       </div>
     );
+  };
+
+  const handleGenAISummaryGenerated = (collaboratorId: string, summary: string) => {
+    // Atualizar o resumo do colaborador com o resumo gerado por IA
+    setCollaboratorSummaries(prev => ({
+      ...prev,
+      [collaboratorId]: {
+        ...prev[collaboratorId],
+        customSummary: summary
+      }
+    }));
+  };
+
+  const toggleGenAI = (collaboratorId: string) => {
+    setShowGenAI(prev => ({
+      ...prev,
+      [collaboratorId]: !prev[collaboratorId]
+    }));
   };
 
   // Loading state
@@ -755,6 +773,35 @@ const EqualizacoesPage: FC = () => {
             {expandedCards.includes(collaborator.id) && (
               <div className="px-4 pb-4 border-t border-gray-100">
                 <div className="pt-4">
+                  {/* Botão para mostrar/ocultar GenAI */}
+                  <div className="mb-4 flex justify-between items-center">
+                    <h4 className="text-lg font-semibold text-gray-900">Análise Inteligente</h4>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleGenAI(collaborator.id);
+                      }}
+                      className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 text-sm"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      {showGenAI[collaborator.id] ? 'Ocultar IA' : '🤖 Análise Inteligente'}
+                    </button>
+                  </div>
+
+                  {/* Componente GenAI */}
+                  {showGenAI[collaborator.id] && (
+                    <div className="mb-6">
+                      <GenAISummaryCard
+                        collaboratorId={collaborator.id}
+                        collaboratorName={collaborator.name}
+                        cycle={metricsData?.cycle || '2025.1'}
+                        onSummaryGenerated={(summary) => handleGenAISummaryGenerated(collaborator.id, summary)}
+                      />
+                    </div>
+                  )}
+
                   {/* Barras de Progresso */}
                   <div className="grid grid-cols-3 gap-6 mb-6">
                     <div>
@@ -791,19 +838,6 @@ const EqualizacoesPage: FC = () => {
                           className="h-2 bg-[#085F60] rounded-full"
                           style={{ width: `${((collaborator.assessment360 || 0) / 5) * 100}%` }}
                         ></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Resumo */}
-                  <div className="mb-6">
-                    <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-                      <svg className="w-4 h-4 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                      </svg>
-                      <div>
-                        <p className="text-sm font-medium text-blue-900">Resumo</p>
-                        <p className="text-sm text-blue-800">{collaborator.summary}</p>
                       </div>
                     </div>
                   </div>

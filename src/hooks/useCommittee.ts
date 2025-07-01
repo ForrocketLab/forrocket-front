@@ -4,7 +4,9 @@ import CommitteeService, {
   type CollaboratorEvaluationSummary,
   type CommitteeMetrics,
   type CreateCommitteeAssessment,
-  type UpdateCommitteeAssessment
+  type UpdateCommitteeAssessment,
+  type GenAISummaryRequest,
+  type GenAISummaryResponse
 } from '../services/CommitteeService';
 
 export const useCommitteeCollaborators = () => {
@@ -139,4 +141,61 @@ export const useCommitteeMetrics = () => {
   }, []);
 
   return { data, loading, error, refetch: fetchMetrics };
+};
+
+export const useGenAISummary = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [summary, setSummary] = useState<GenAISummaryResponse | null>(null);
+  const [checkingExisting, setCheckingExisting] = useState(false);
+
+  const checkExistingSummary = async (collaboratorId: string, cycle: string) => {
+    try {
+      setCheckingExisting(true);
+      setError(null);
+      
+      const existingSummary = await CommitteeService.getExistingGenAISummary(collaboratorId, cycle);
+      setSummary(existingSummary);
+      return existingSummary;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setCheckingExisting(false);
+    }
+  };
+
+  const generateSummary = async (data: GenAISummaryRequest) => {
+    try {
+      setLoading(true);
+      setError(null);
+      setSummary(null);
+      
+      const result = await CommitteeService.generateGenAISummary(data);
+      setSummary(result);
+      return result;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearSummary = () => {
+    setSummary(null);
+    setError(null);
+  };
+
+  return { 
+    generateSummary, 
+    checkExistingSummary,
+    clearSummary,
+    summary, 
+    loading, 
+    checkingExisting,
+    error 
+  };
 }; 
