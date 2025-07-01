@@ -1,6 +1,6 @@
-import { type FC, useState, useEffect } from 'react';
+import { type FC, useState } from 'react';
 import { Search, Filter, Star, Copy, Edit3, AlertCircle, Calendar, Users, CheckCircle, Clock, TrendingUp } from 'lucide-react';
-import { useCommitteeCollaborators, useCollaboratorEvaluationSummary, useCommitteeAssessmentActions, useCommitteeMetrics } from '../../hooks/useCommittee';
+import { useCommitteeCollaborators, useCommitteeAssessmentActions, useCommitteeMetrics } from '../../hooks/useCommittee';
 import CommitteeService, { type CollaboratorForEqualization, type CommitteeAssessment } from '../../services/CommitteeService';
 import ExportButton from '../../components/ExportButton';
 import GenAISummaryCard from '../../components/GenAISummaryCard';
@@ -19,6 +19,7 @@ interface ProcessedCollaborator {
   mentoring: number | null;
   finalScore: number | null;
   committeeAssessmentId?: string;
+  committeeAssessmentStatus?: 'DRAFT' | 'SUBMITTED';
 }
 
 const EqualizacoesPage: FC = () => {
@@ -27,7 +28,7 @@ const EqualizacoesPage: FC = () => {
   const [expandedCards, setExpandedCards] = useState<string[]>([]); // Usar IDs de string
   const [ratings, setRatings] = useState<{[key: string]: number}>({});
   const [justifications, setJustifications] = useState<{[key: string]: string}>({});
-  const [selectedCollaboratorId, setSelectedCollaboratorId] = useState<string | null>(null);
+
   const [editingCollaborators, setEditingCollaborators] = useState<string[]>([]);
   const [collaboratorSummaries, setCollaboratorSummaries] = useState<{[key: string]: any}>({});
   const [showFilters, setShowFilters] = useState(false);
@@ -74,7 +75,8 @@ const EqualizacoesPage: FC = () => {
       managerAssessment: evaluationScores?.managerAssessment || null,
       mentoring: evaluationScores?.mentoring || null,
       finalScore: collaborator.committeeAssessment?.finalScore || null,
-      committeeAssessmentId: collaborator.committeeAssessment?.id
+      committeeAssessmentId: collaborator.committeeAssessment?.id,
+      committeeAssessmentStatus: collaborator.committeeAssessment?.status
     };
   });
 
@@ -185,12 +187,10 @@ const EqualizacoesPage: FC = () => {
   const handleSubmit = async (collaborator: ProcessedCollaborator) => {
     const rating = ratings[collaborator.id];
     const justification = justifications[collaborator.id];
-    
     if (!rating || !justification?.trim()) {
       toast.warning('Campos Obrigatórios', 'Por favor, preencha a avaliação e justificativa antes de concluir.');
       return;
     }
-
     try {
       if (collaborator.committeeAssessmentId) {
         await updateAssessment(collaborator.committeeAssessmentId, {
@@ -204,12 +204,8 @@ const EqualizacoesPage: FC = () => {
           justification: justification.trim()
         });
       }
-      
       toast.success('Avaliação Submetida!', 'A avaliação foi salva com sucesso.');
-      
-      // Remover do modo de edição se estava sendo editado
       setEditingCollaborators(prev => prev.filter(id => id !== collaborator.id));
-      
       refetch();
     } catch (error) {
       console.error('Erro ao submeter avaliação:', error);
@@ -220,7 +216,6 @@ const EqualizacoesPage: FC = () => {
   const handleEditResult = async (collaborator: ProcessedCollaborator) => {
     // Adicionar ao modo de edição
     setEditingCollaborators(prev => [...prev, collaborator.id]);
-    
     // Pré-preencher os campos com os valores atuais
     if (collaborator.finalScore) {
       setRatings(prev => ({
@@ -228,7 +223,6 @@ const EqualizacoesPage: FC = () => {
         [collaborator.id]: collaborator.finalScore!
       }));
     }
-    
     // Buscar justificativa existente se tiver ID da avaliação
     if (collaborator.committeeAssessmentId) {
       try {
@@ -237,7 +231,6 @@ const EqualizacoesPage: FC = () => {
         const existingAssessment = assessments.assessments.find(
           (assessment: CommitteeAssessment) => assessment.id === collaborator.committeeAssessmentId
         );
-        
         if (existingAssessment) {
           setJustifications(prev => ({
             ...prev,
@@ -923,6 +916,7 @@ const EqualizacoesPage: FC = () => {
                         <button 
                           onClick={() => handleEditResult(collaborator)}
                           className="flex items-center gap-2 px-4 py-2 border border-[#085F60] text-[#085F60] rounded-lg hover:bg-[#085F60] hover:text-white transition-colors"
+                          title="Editar resultado"
                         >
                           <Edit3 className="w-4 h-4" />
                           Editar resultado
