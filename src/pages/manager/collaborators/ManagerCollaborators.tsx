@@ -16,17 +16,15 @@ const ManagerCollaborators: FC = () => {
   const filterButtonRef = useRef<HTMLButtonElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+useEffect(() => {
     const fetchManagerCollaborators = async () => {
       if (!user || user.roles.length === 0) {
         setError('Usuário não autenticado ou papéis não disponíveis.');
         setIsLoading(false);
         return;
       }
-
       setIsLoading(true);
       setError(null);
-
       try {
         const activeCycle = await DashboardService.getActiveCycle();
         if (!activeCycle || activeCycle.status !== 'OPEN') {
@@ -34,7 +32,6 @@ const ManagerCollaborators: FC = () => {
           setIsLoading(false);
           return;
         }
-
         const dashboardData = await DashboardService.getManagerDashboard(activeCycle.name);
         const allSubordinates: DashboardSubordinate[] = dashboardData.collaboratorsInfo.flatMap(
           group => group.subordinates,
@@ -47,7 +44,16 @@ const ManagerCollaborators: FC = () => {
       }
     };
 
+    // Busca os dados na carga inicial
     fetchManagerCollaborators();
+
+    // Adiciona um "ouvinte" que busca os dados sempre que a janela ganha foco
+    window.addEventListener('focus', fetchManagerCollaborators);
+
+    // Remove o "ouvinte" quando o componente é desmontado
+    return () => {
+      window.removeEventListener('focus', fetchManagerCollaborators);
+    };
   }, [user]);
 
   // Efeito para fechar o popup ao clicar fora

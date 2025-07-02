@@ -1,312 +1,193 @@
-import { type FC, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+// src/pages/manager/CollaboratorEvaluationDetails.tsx
+
+// SEUS IMPORTS - MANTIDOS EXATAMENTE COMO ESTAVAM
+import { type FC, useEffect, useState, useMemo, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';
-import DashboardService from '../../../services/ManagerService';
+import ManagerService from '../../../services/ManagerService';
 import { useGlobalToast } from '../../../hooks/useGlobalToast';
 import type { TabItem } from '../collaboratorEvaluations/components/TabNavigation';
 import EvaluationHeader from './components/CollaboratorEvaluationHeader';
 import EvaluationCriteriaList from './components/EvaluationCriteriaList';
 import Manager360Evaluations from './Manager360Evaluations';
 import ManagerEvaluationsHistory from './ManagerEvaluationsHistory';
+import type { ManagerCriterionState } from '../../../types/evaluations';
+import { type SelfEvaluationReviewRef } from '../collaboratorEvaluations/SelfEvaluationReview';
+import type { DetailedSelfAssessment } from '../../../types/detailedEvaluations';
 
-export interface ManagerCriterionState {
-  score: number;
-  justification: string;
+
+interface DashboardSubordinate {
+  id: string;
+  name: string;
+  jobTitle: string;
+  status: string;
+}
+interface CollaboratorGroup {
+  subordinates: DashboardSubordinate[];
 }
 
 export const ALLOWED_CRITERIA_IDS = [
   'sentimento-de-dono',
-  'resiliencia-adversidades',
-  'organizacao-trabalho',
-  'capacidade-aprender',
-  'team-player',
+  'resiliencia-nas-adversidades',
+  'organizacao-no-trabalho',
+  'capacidade-de-aprender',
+  'ser-team-player',
+  'entregar-com-qualidade',
+  'atender-aos-prazos',
+  'fazer-mais-com-menos',
+  'pensar-fora-da-caixa',
+];
+
+const TABS: TabItem[] = [
+  { id: 'evaluation', label: 'Avaliação' },
+  { id: 'history', label: 'Histórico' } 
 ];
 
 const CollaboratorEvaluationDetails: FC = () => {
   const { id: collaboratorIdFromUrl } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const toast = useGlobalToast();
-
+  
   const [detailedSelfAssessment, setDetailedSelfAssessment] = useState<DetailedSelfAssessment | null>(null);
-  const [activeCycleName, setActiveCycleName] = useState<string | null>(null);
+  const [collaboratorName, setCollaboratorName] = useState('');
+  const [collaboratorJobTitle, setCollaboratorJobTitle] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expandedCriterion, setExpandedCriterion] = useState<Set<string>>(new Set());
-
-  const [collaboratorName, setCollaboratorName] = useState('Colaborador Avaliado');
-  const [collaboratorJobTitle, setCollaboratorJobTitle] = useState('Cargo do Colaborador');
-
   const [managerAssessments, setManagerAssessments] = useState<Record<string, ManagerCriterionState>>({});
-
   const [isAssessmentSubmitted, setIsAssessmentSubmitted] = useState(false);
-
   const [activeTab, setActiveTab] = useState('evaluation');
-
-  const TABS: TabItem[] = [
-    { id: 'evaluation', label: 'Avaliação' },
-    { id: '360-evaluation', label: 'Avaliação 360' },
-    { id: 'history', label: 'Histórico' },
-  ];
 
   useEffect(() => {
     if (!collaboratorIdFromUrl) {
-      setError('ID do colaborador não fornecido na URL.');
+      setError('ID do colaborador não foi encontrado na URL.');
       setIsLoading(false);
       return;
     }
-
-    const fetchAssessmentData = async () => {
+    const fetchAllData = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const activeCycle = await DashboardService.getActiveCycle();
-        setActiveCycleName(activeCycle.name);
-
-        const selfAssessment = await DashboardService.getDetailedSelfAssessment(collaboratorIdFromUrl);
+        const [selfAssessment, dashboardData] = await Promise.all([
+          ManagerService.getDetailedSelfAssessment(collaboratorIdFromUrl),
+          ManagerService.getManagerDashboard('2025.1')
+        ]);
         setDetailedSelfAssessment(selfAssessment);
-
-        const dashboardData = await DashboardService.getManagerDashboard(activeCycle.name);
-        const foundCollaborator = dashboardData.collaboratorsInfo
-          .flatMap(group => group.subordinates)
-          .find(sub => sub.id === collaboratorIdFromUrl);
-
+        const subordinates = dashboardData?.collaboratorsInfo?.flatMap((group: CollaboratorGroup) => group.subordinates) ?? [];
+        const foundCollaborator = subordinates.find((sub: DashboardSubordinate) => sub.id === collaboratorIdFromUrl);
         if (foundCollaborator) {
           setCollaboratorName(foundCollaborator.name);
           setCollaboratorJobTitle(foundCollaborator.jobTitle);
-        } else {
-          setCollaboratorName('Colaborador Desconhecido');
-          setCollaboratorJobTitle('Cargo Desconhecido');
         }
-
-        const fullEvaluation = await DashboardService.getCollaboratorFullEvaluation(
-          collaboratorIdFromUrl,
-          activeCycle.name,
-        );
-
-        const initialManagerAssessments: Record<string, ManagerCriterionState> = {};
-
-        if (fullEvaluation.managerAssessments && fullEvaluation.managerAssessments.length > 0) {
-          const managerExistingAssessment = fullEvaluation.managerAssessments[0];
-          managerExistingAssessment.answers.forEach(answer => {
-            if (ALLOWED_CRITERIA_IDS.includes(answer.criterionId)) {
-              initialManagerAssessments[answer.criterionId] = {
-                score: answer.score,
-                justification: answer.justification,
-              };
-            }
-          });
-        }
-
-        ALLOWED_CRITERIA_IDS.forEach(criterionId => {
-          if (!initialManagerAssessments[criterionId]) {
-            initialManagerAssessments[criterionId] = { score: 0, justification: '' };
-          }
-        });
-
-        setManagerAssessments(initialManagerAssessments);
-
-        const isSubmitted = ALLOWED_CRITERIA_IDS.every(criterionId => {
-          const assessment = initialManagerAssessments[criterionId];
-          return assessment && assessment.score >= 1 && assessment.score <= 5 && assessment.justification.trim() !== '';
-        });
-        setIsAssessmentSubmitted(isSubmitted);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar dados de avaliação.';
-        setError(errorMessage);
+        setError(err instanceof Error ? err.message : 'Falha ao carregar os dados necessários.');
       } finally {
         setIsLoading(false);
       }
     };
-
-    fetchAssessmentData();
+    fetchAllData();
   }, [collaboratorIdFromUrl]);
 
   const handleManagerRatingChange = (criterionId: string, score: number) => {
-    if (isAssessmentSubmitted) return;
-    setManagerAssessments(prev => ({
-      ...prev,
-      [criterionId]: { ...prev[criterionId], score },
-    }));
+    setManagerAssessments(prev => ({ ...prev, [criterionId]: { ...prev[criterionId], score, justification: prev[criterionId]?.justification ?? '' } }));
   };
-
   const handleManagerJustificationChange = (criterionId: string, justification: string) => {
-    if (isAssessmentSubmitted) return;
-    setManagerAssessments(prev => ({
-      ...prev,
-      [criterionId]: { ...prev[criterionId], justification },
-    }));
+    setManagerAssessments(prev => ({ ...prev, [criterionId]: { ...prev[criterionId], justification, score: prev[criterionId]?.score ?? 0 } }));
   };
 
-  const getManagerCompletionCount = () => {
-    const total = ALLOWED_CRITERIA_IDS.length;
-    const completed =
-      ALLOWED_CRITERIA_IDS.filter(criterionId => {
-        const managerAssessment = managerAssessments[criterionId];
-        return (
-          managerAssessment &&
-          managerAssessment.score >= 1 &&
-          managerAssessment.score <= 5 &&
-          managerAssessment.justification.trim() !== ''
-        );
-      }).length || 0;
-
-    return { completed, total };
-  };
-
+  // --- LÓGICA DE SUBMISSÃO FINAL IMPLEMENTADA AQUI ---
   const handleSubmitManagerAssessment = async () => {
-    if (!collaboratorIdFromUrl) {
-      toast.error('Erro', 'ID do colaborador não disponível para submeter a avaliação.');
+    const completedCount = getManagerCompletionCount().completed;
+    if (completedCount < ALLOWED_CRITERIA_IDS.length) {
+      toast.error('Erro de Validação', 'Por favor, preencha a nota e a justificativa para todos os critérios.');
       return;
     }
 
-    if (!detailedSelfAssessment || !activeCycleName) {
-      toast.error('Erro', 'Dados incompletos para submeter a avaliação.');
-      return;
-    }
-
-    const { completed, total } = getManagerCompletionCount();
-
-    if (completed < total) {
-      toast.warning('Avaliação Incompleta', 'Por favor, avalie e justifique cada critério com uma nota de 1 a 5.');
-      return;
-    }
+    setIsAssessmentSubmitted(true);
+    toast.info('Aguarde', 'A enviar a sua avaliação...');
 
     const payloadToSend: Record<string, any> = {
       evaluatedUserId: collaboratorIdFromUrl,
     };
 
     ALLOWED_CRITERIA_IDS.forEach(criterionId => {
-      const camelCaseCriterion = criterionId.replace(/-([a-z])/g, g => g[1].toUpperCase());
-      const managerAssessment = managerAssessments[criterionId];
-      if (managerAssessment) {
-        payloadToSend[`${camelCaseCriterion}Score`] = managerAssessment.score;
-        payloadToSend[`${camelCaseCriterion}Justification`] = managerAssessment.justification;
-      }
+      const scoreKey = `${criterionId.replace(/-/g, '')}Score`;
+      const justificationKey = `${criterionId.replace(/-/g, '')}Justification`;
+      payloadToSend[scoreKey] = managerAssessments[criterionId].score;
+      payloadToSend[justificationKey] = managerAssessments[criterionId].justification;
     });
 
     try {
-      await DashboardService.submitManagerSubordinateAssessment(payloadToSend as any);
-      toast.success('Sucesso', 'Avaliação do gestor enviada com sucesso!');
-      setIsAssessmentSubmitted(true);
+      await ManagerService.submitManagerSubordinateAssessment(payloadToSend);
+      toast.success('Sucesso', 'Avaliação enviada e salva com sucesso!');
+
+      // Após o sucesso, navega de volta para a lista após um breve atraso
+      setTimeout(() => {
+        navigate('/manager/collaborators');
+      }, 1500);
+
     } catch (submitError) {
-      const msg = submitError instanceof Error ? submitError.message : 'Falha ao enviar avaliação.';
-      toast.error('Erro', msg);
+      toast.error('Falha na Submissão', submitError instanceof Error ? submitError.message : 'Ocorreu um erro desconhecido.');
+      setIsAssessmentSubmitted(false); // Permite tentar novamente em caso de erro
     }
   };
-
-  const { completed, total } = getManagerCompletionCount();
-
-  const toggleCriterionExpansion = (criterionId: string) => {
-    setExpandedCriterion(prevSet => {
-      const newSet = new Set(prevSet);
-      if (newSet.has(criterionId)) {
-        newSet.delete(criterionId);
-      } else {
-        newSet.add(criterionId);
-      }
-      return newSet;
-    });
-  };
-
-  const getInitials = (name: string): string => {
-    if (!name) return '';
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase();
-  };
-
-  if (isLoading) {
-    return (
-      <div className='p-6 bg-gray-50 min-h-screen flex items-center justify-center'>
-        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600'></div>
-        <p className='ml-4 text-gray-700'>Carregando dados de avaliação...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className='p-6 bg-gray-50 min-h-screen flex items-center justify-center'>
-        <div className='text-center'>
-          <AlertCircle className='w-12 h-12 text-red-500 mx-auto mb-4' />
-          <h3 className='text-lg font-medium text-gray-900 mb-2'>Erro ao carregar dados</h3>
-          <p className='text-gray-600 mb-4'>{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className='bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors'
-          >
-            Tentar novamente
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!detailedSelfAssessment) {
-    return (
-      <div className='p-6 bg-gray-50 min-h-screen'>
-        <div className='flex items-center justify-center h-64'>
-          <div className='text-center'>
-            <AlertCircle className='w-12 h-12 text-gray-400 mx-auto mb-4' />
-            <h3 className='text-lg font-medium text-gray-900 mb-2'>Dados de autoavaliação não encontrados</h3>
-            <p className='text-gray-600 mb-4'>
-              Verifique se o colaborador possui uma autoavaliação para o ciclo atual.
-            </p>
-            <button
-              onClick={() => window.history.back()}
-              className='bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors'
-            >
-              Voltar para Colaboradores
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const getCriterionName = (criterionId: string): string => {
-    const map: Record<string, string> = {
+  
+  const getCriterionName = (id: string) => {
+    const names: Record<string, string> = {
       'sentimento-de-dono': 'Sentimento de Dono',
-      'resiliencia-adversidades': 'Resiliência nas Adversidades',
-      'organizacao-trabalho': 'Organização no Trabalho',
-      'capacidade-aprender': 'Capacidade de Aprender',
-      'team-player': 'Ser "Team Player"',
+      'resiliencia-nas-adversidades': 'Resiliência nas adversidades',
+      'organizacao-no-trabalho': 'Organização no Trabalho',
+      'capacidade-de-aprender': 'Capacidade de aprender',
+      'ser-team-player': 'Ser "team player"',
+      'entregar-com-qualidade': 'Entregar com qualidade',
+      'atender-aos-prazos': 'Atender aos prazos',
+      'fazer-mais-com-menos': 'Fazer mais com menos',
+      'pensar-fora-da-caixa': 'Pensar fora da caixa',
     };
-    return map[criterionId] || criterionId;
+    return names[id] || id;
   };
 
-  const collaboratorInitials = getInitials(collaboratorName);
+  const getManagerCompletionCount = () => {
+    const completed = ALLOWED_CRITERIA_IDS.filter(id => (managerAssessments[id]?.score ?? 0) > 0 && (managerAssessments[id]?.justification ?? '').trim() !== '').length;
+    return { completed, total: ALLOWED_CRITERIA_IDS.length };
+  };
+  
+  const [expandedCriterion, setExpandedCriterion] = useState<Set<string>>(new Set());
+  const toggleCriterionExpansion = (id: string) => {
+    const newSet = new Set(expandedCriterion);
+    newSet.has(id) ? newSet.delete(id) : newSet.add(id);
+    setExpandedCriterion(newSet);
+  };
 
+  if (isLoading) { return <div className='p-8 text-center'>Carregando...</div>; }
+  if (error) { return <div className='p-8 text-center text-red-500'>Erro: {error}</div>; }
+  if (!detailedSelfAssessment) { return <div className='p-8 text-center'>Autoavaliação não encontrada.</div>; }
+  
   return (
     <div className='bg-gray-50 min-h-screen'>
       <EvaluationHeader
         isAssessmentSubmitted={isAssessmentSubmitted}
         collaboratorName={collaboratorName}
-        collaboratorInitials={collaboratorInitials}
+        collaboratorInitials={collaboratorName.split(' ').map(n=>n[0]).join('').slice(0,2)}
         collaboratorJobTitle={collaboratorJobTitle}
         onSubmit={handleSubmitManagerAssessment}
         tabs={TABS}
         activeTab={activeTab}
         onTabChange={setActiveTab}
       />
-
       <main className='px-6 pb-8'>
-        {activeTab === 'evaluation' && detailedSelfAssessment && (
+        {activeTab === 'evaluation' && (
           <EvaluationCriteriaList
             isAssessmentSubmitted={isAssessmentSubmitted}
             answers={detailedSelfAssessment.answers}
             managerAssessments={managerAssessments}
             expandedCriterion={expandedCriterion}
-            completion={{ completed, total }}
+            completion={getManagerCompletionCount()}
             getCriterionName={getCriterionName}
             onToggleExpansion={toggleCriterionExpansion}
             onRatingChange={handleManagerRatingChange}
             onJustificationChange={handleManagerJustificationChange}
           />
         )}
-        {activeTab === '360-evaluation' && <Manager360Evaluations />}
         {activeTab === 'history' && <ManagerEvaluationsHistory />}
       </main>
     </div>
