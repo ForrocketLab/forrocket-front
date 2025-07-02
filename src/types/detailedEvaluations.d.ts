@@ -1,30 +1,28 @@
-interface SelfAssessmentAnswer {
-  id: string;
-  selfAssessmentId: string;
-  criterionId: string; // O ID do critério/pergunta
-  score: number;
-  justification: string; // A resposta/justificativa
-}
+// src/types/detailedEvaluations.d.ts
 
-interface CompletionStatusCategory {
+// ALTERADO: Importa o tipo base do nosso ficheiro central
+import { type SelfAssessmentAnswer } from './evaluations';
+
+export interface CompletionStatusCategory {
   completed: number;
   total: number;
 }
 
-interface DetailedSelfAssessment {
-  id: string; // ID da autoavaliação
+// Esta interface agora usa o tipo importado, garantindo consistência
+export interface DetailedSelfAssessment {
+  id: string;
   cycle: string;
-  authorId: string; // O ID do autor da autoavaliação
+  authorId: string;
   status: 'DRAFT' | 'SUBMITTED';
   createdAt: string;
   updatedAt: string;
-  submittedAt?: string; // Data de submissão (pode ser usado como submissionDate)
-  answers: SelfAssessmentAnswer[]; // Array de respostas para cada critério/pergunta
+  submittedAt?: string;
+  answers: SelfAssessmentAnswer[]; // Usa o tipo importado
   completionStatus: {
     comportamento: CompletionStatusCategory;
     execucao: CompletionStatusCategory;
     gestao: CompletionStatusCategory;
-    [key: string]: CompletionStatusCategory; // Para permitir outras categorias dinâmicas
+    [key: string]: CompletionStatusCategory;
   };
   overallCompletion: {
     completed: number;
@@ -32,15 +30,4 @@ interface DetailedSelfAssessment {
   };
 }
 
-// NOVAS INTERFACES PARA AVALIAÇÃO DO GESTOR
-interface ManagerAssessmentCriterion {
-  criterionId: string;
-  score: number;
-  justification: string;
-}
-
-interface CreateManagerSubordinateAssessment {
-  evaluatedUserId: string; // ID do colaborador que está sendo avaliado
-  cycle: string; // Ciclo atual (ex: 2025.2)
-  assessments: ManagerAssessmentCriterion[];
-}
+// REMOVIDO: As outras interfaces foram movidas para 'evaluations.d.ts' para centralização.

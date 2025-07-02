@@ -2,6 +2,7 @@ import { AxiosError } from 'axios';
 import api from '../api';
 import AuthService from './AuthService';
 
+
 class ManagerService {
   static async getManagerDashboard(cycle: string): Promise<ManagerDashboardResponse> {
     try {
