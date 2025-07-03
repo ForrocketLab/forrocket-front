@@ -120,6 +120,20 @@ interface CommitteeAssessment {
   };
 }
 
+interface GenAISummaryRequest {
+  collaboratorId: string;
+  cycle: string;
+}
+
+interface GenAISummaryResponse {
+  summary: string;
+  collaboratorName: string;
+  jobTitle: string;
+  cycle: string;
+  averageScore: number;
+  totalEvaluations: number;
+}
+
 class CommitteeService {
   private readonly BASE_PATH = '/evaluations/committee';
 
@@ -228,6 +242,35 @@ class CommitteeService {
     }
   }
 
+  async generateGenAISummary(data: GenAISummaryRequest): Promise<GenAISummaryResponse> {
+    try {
+      const response = await api.post<GenAISummaryResponse>(`${this.BASE_PATH}/collaborator-summary`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao gerar resumo por GenAI:', error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao gerar resumo por IA');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  async getExistingGenAISummary(collaboratorId: string, cycle: string): Promise<GenAISummaryResponse | null> {
+    try {
+      const response = await api.get<GenAISummaryResponse>(`${this.BASE_PATH}/collaborator-summary/${collaboratorId}?cycle=${cycle}`);
+      return response.data;
+    } catch (error) {
+      if (error instanceof AxiosError && error.response?.status === 404) {
+        return null; // Resumo não encontrado
+      }
+      console.error('Erro ao buscar resumo existente:', error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar resumo existente');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
   static async exportCollaboratorData(collaboratorId: string) {
     const response = await api.get(`/evaluations/committee/export/${collaboratorId}`);
     return response.data;
@@ -242,5 +285,7 @@ export type {
   CommitteeMetrics,
   CreateCommitteeAssessment,
   UpdateCommitteeAssessment,
-  CommitteeAssessment
+  CommitteeAssessment,
+  GenAISummaryRequest,
+  GenAISummaryResponse
 }; 

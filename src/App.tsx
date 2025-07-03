@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import LoginPage from './pages/login/login';
 import { AuthProvider } from './contexts/AuthProvider';
 import HomePage from './pages/home/Home';
@@ -27,16 +27,14 @@ import AuditLogPage from './pages/admin/AuditLog';
 import TalentMatrixPage from './pages/hr/TalentMatrixPage';
 import TalentMatrixMethodology from './pages/hr/TalentMatrixMethodology';
 import ManagerBrutalFacts from './pages/manager/brutal-facts/ManagerBrutalFacts';
+import OKRsPage from './pages/okrs/OKRsPage';
+import OKRDetailsPage from './pages/okrs/OKRDetailsPage';
+import EditOKRPage from './pages/okrs/EditOKRPage';
+import PDIsPage from './pages/pdis/PDIsPage';
+import PDIDetailsPage from './pages/pdis/PDIDetailsPage';
+import PDIForm from './pages/pdis/PDIForm';
 
 function App() {
-  return (
-    <BrowserRouter>
-      <AppWithToasts />
-    </BrowserRouter>
-  );
-}
-
-function AppWithToasts() {
   const { toasts, removeToast } = useToastSubscription();
 
   return (
@@ -62,6 +60,9 @@ function AppWithToasts() {
               <Route element={<ProtectedRoute allowedRoles={[ROLES.COLLABORATOR]} />}>
                 <Route path='/' element={<HomePage />} />
                 <Route path='/avaliacao' element={<EvaluationPage />} />
+                <Route path='/okrs' element={<OKRsPage />} />
+                <Route path='/okrs/:id' element={<OKRDetailsPage />} />
+                <Route path='/okrs/:id/edit' element={<EditOKRPage />} />
               </Route>
 
               <Route element={<ProtectedRoute allowedRoles={[ROLES.RH]} />}>
@@ -86,6 +87,12 @@ function AppWithToasts() {
 
               <Route element={<ProtectedRoute allowedRoles={[ROLES.COLLABORATOR]} />}>
                 <Route path='/dashboard' element={<h1>Gestor</h1>} />
+              </Route>
+
+              <Route element={<ProtectedRoute allowedRoles={[ROLES.COLLABORATOR, ROLES.MANAGER, ROLES.RH]} />}>
+                <Route path='/pdis' element={<PDIsPage />} />
+                <Route path='/pdis/:id' element={<PDIDetailsPage />} />
+                <Route path='/pdis/:id/edit' element={<PDIForm />} />
               </Route>
 
               {/* ROTA DE FALLBACK (404) */}
