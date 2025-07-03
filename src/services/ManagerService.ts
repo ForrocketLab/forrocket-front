@@ -2,7 +2,8 @@ import { AxiosError } from 'axios';
 import api from '../api';
 import AuthService from './AuthService';
 import type { BrutalFactsMetricsDto, TeamAnalysisDto, TeamHistoricalPerformanceDto } from '../types/brutalFacts';
-
+import { CreateManagerSubordinateAssessment } from '../types/evaluations';
+import { DetailedSelfAssessment } from '../types/detailedEvaluations';
 
 class ManagerService {
   static async getManagerDashboard(cycle: string): Promise<ManagerDashboardResponse> {
@@ -187,14 +188,11 @@ class ManagerService {
 
   static async getTeamHistoricalPerformance(): Promise<TeamHistoricalPerformanceDto> {
     try {
-      const response = await api.get<TeamHistoricalPerformanceDto>(
-        '/evaluations/manager/team-historical-performance',
-        {
-          headers: {
-            Authorization: `Bearer ${AuthService.getToken()}`,
-          },
+      const response = await api.get<TeamHistoricalPerformanceDto>('/evaluations/manager/team-historical-performance', {
+        headers: {
+          Authorization: `Bearer ${AuthService.getToken()}`,
         },
-      );
+      });
       return response.data;
     } catch (error) {
       console.error('Erro ao buscar performance histórica da equipe:', error);

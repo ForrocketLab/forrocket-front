@@ -16,11 +16,11 @@ import {
   generateCombinedSummaryText,
   processHistoricalPerformanceData,
 } from '../../../utils/brutalFactsUtils';
-import type { 
-  BrutalFactsMetricsDto, 
-  TeamAnalysisDto, 
+import type {
+  BrutalFactsMetricsDto,
+  TeamAnalysisDto,
   ProcessedCollaboratorData,
-  PerformanceData
+  PerformanceData,
 } from '../../../types/brutalFacts';
 import ManagerService from '../../../services/ManagerService';
 
@@ -70,7 +70,7 @@ const ManagerBrutalFacts = () => {
           const historicalData = await ManagerService.getTeamHistoricalPerformance();
           const processedHistoricalData = processHistoricalPerformanceData(historicalData);
           setHistoricalPerformanceData(processedHistoricalData);
-          
+
           toast.success('Dados carregados', 'Todos os dados foram carregados com sucesso.');
         } catch (historicalError) {
           console.warn('Erro ao carregar dados históricos:', historicalError);
@@ -79,15 +79,22 @@ const ManagerBrutalFacts = () => {
             { cycle: '2023.1', finalScore: 3.8, selfScore: 3.5, managerScore: 4.1 },
             { cycle: '2023.2', finalScore: 4.2, selfScore: 4.0, managerScore: 4.4 },
             { cycle: '2024.1', finalScore: 4.0, selfScore: 3.8, managerScore: 4.2 },
-            { cycle: currentCycle, finalScore: metricsData.overallScoreAverage || 4.0, selfScore: metricsData.teamPerformance.selfAssessmentTeamAverage, managerScore: metricsData.teamPerformance.managerAssessmentTeamAverage },
+            {
+              cycle: currentCycle,
+              finalScore: metricsData.overallScoreAverage || 4.0,
+              selfScore: metricsData.teamPerformance.selfAssessmentTeamAverage,
+              managerScore: metricsData.teamPerformance.managerAssessmentTeamAverage,
+            },
           ];
           setHistoricalPerformanceData(fallbackData);
-          
-          toast.warning('Dados principais carregados', 'Dados históricos não disponíveis. Usando dados simulados para o gráfico.');
+
+          toast.warning(
+            'Dados principais carregados',
+            'Dados históricos não disponíveis. Usando dados simulados para o gráfico.',
+          );
         } finally {
           setHistoricalLoading(false);
         }
-
       } catch (err) {
         console.error('Erro ao carregar dados:', err);
         setError('Erro ao carregar dados. Usando dados de exemplo.');
@@ -120,11 +127,9 @@ const ManagerBrutalFacts = () => {
   if (loading) {
     return (
       <div className='h-screen flex flex-col items-center justify-center'>
-        <LoadingSpinner className="w-12 h-12 mb-4" />
+        <LoadingSpinner className='w-12 h-12 mb-4' />
         <div className='text-lg text-gray-600'>Carregando dados...</div>
-        {historicalLoading && (
-          <div className='text-sm text-gray-500 mt-2'>Buscando dados históricos...</div>
-        )}
+        {historicalLoading && <div className='text-sm text-gray-500 mt-2'>Buscando dados históricos...</div>}
       </div>
     );
   }
@@ -149,7 +154,7 @@ const ManagerBrutalFacts = () => {
   // Usa dados históricos reais ou fallback
   const performanceDataToUse = historicalPerformanceData.length > 0 ? historicalPerformanceData : [];
 
-  const insightsText = teamAnalysisData 
+  const insightsText = teamAnalysisData
     ? generateInsightsText(teamAnalysisData)
     : 'Os colaboradores demonstram evolução consistente nas avaliações, com destaque para o crescimento nas competências comportamentais.';
 
@@ -242,10 +247,7 @@ const ManagerBrutalFacts = () => {
       </div>
 
       {/* Container de Resumo */}
-      <BrutalFactsSummary
-        title='Resumo'
-        summaryText={summaryText}
-      />
+      <BrutalFactsSummary title='Resumo' summaryText={summaryText} />
 
       {/* Container de Desempenho com Gráfico */}
       <PerformanceChartContainer

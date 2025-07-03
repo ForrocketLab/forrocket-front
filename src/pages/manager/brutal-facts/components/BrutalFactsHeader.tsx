@@ -16,10 +16,10 @@ const BrutalFactsHeader = ({ onToggleDownload }: BrutalFactsHeaderProps) => {
         {/* Botão de download à direita */}
         <button
           onClick={onToggleDownload}
-          className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 font-medium'
+          className='flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors duration-200 font-medium hover:cursor-pointer'
+          style={{ backgroundColor: '#08605F' }}
         >
           <HiDownload className='text-lg' />
-          Download
         </button>
       </div>
     </div>
