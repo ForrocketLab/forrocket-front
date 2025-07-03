@@ -15,7 +15,7 @@ import {
 
 interface PerformanceData {
   cycle: string;
-  finalScore: number;
+  finalScore: number | null;
   selfScore: number;
   managerScore: number;
 }

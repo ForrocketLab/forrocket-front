@@ -1,4 +1,4 @@
-import { type FC, useMemo, useState, useEffect, useRef } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { LuSearch, LuFilter } from 'react-icons/lu';
 import EqualizatedCollaboratorRow from './EqualizatedCollaboratorRow';
 
@@ -19,7 +19,7 @@ interface EqualizationTableContainerProps {
   collaboratorsData: CollaboratorData[];
 }
 
-const EqualizationTableContainer: FC<EqualizationTableContainerProps> = ({ collaboratorsData }) => {
+const EqualizationTableContainer = ({ collaboratorsData }: EqualizationTableContainerProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPerformance, setFilterPerformance] = useState('all');
@@ -110,7 +110,6 @@ const EqualizationTableContainer: FC<EqualizationTableContainerProps> = ({ colla
               style={{ backgroundColor: '#08605F' }}
             >
               <LuFilter className='text-white' size={16} />
-              Filtros
             </button>
 
             {/* Popover de filtros */}
