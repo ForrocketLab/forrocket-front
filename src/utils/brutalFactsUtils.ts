@@ -4,6 +4,7 @@ import type {
   ProcessedCollaboratorData,
   CollaboratorMetricDto,
   PerformanceData,
+  TeamHistoricalPerformanceDto,
 } from '../types/brutalFacts';
 
 /**
@@ -153,4 +154,16 @@ export function generateHistoricalPerformanceData(currentMetrics: BrutalFactsMet
   ];
 
   return historicalData;
+}
+
+/**
+ * Converte dados históricos da API para formato usado no gráfico
+ */
+export function processHistoricalPerformanceData(historicalData: TeamHistoricalPerformanceDto): PerformanceData[] {
+  return historicalData.performanceByCycle.map(cycle => ({
+    cycle: cycle.cycle,
+    finalScore: cycle.averageOverallScore || 0, // Usa 0 como fallback se for null
+    selfScore: cycle.averageSelfAssessment,
+    managerScore: cycle.averageReceived360, // Mapeia averageReceived360 para managerScore
+  }));
 }

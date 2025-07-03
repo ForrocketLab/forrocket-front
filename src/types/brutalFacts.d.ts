@@ -69,3 +69,26 @@ export interface HistoricalPerformanceDto {
   averageSelfScore: number;
   averageManagerScore: number;
 }
+
+// DTO para Performance Histórica da Equipe
+export interface TeamHistoricalPerformanceDto {
+  managerId: string;
+  performanceByCycle: PerformanceCycleDto[];
+  totalCycles: number;
+}
+
+export interface PerformanceCycleDto {
+  cycle: string;
+  averageOverallScore: number | null;
+  averageSelfAssessment: number;
+  averageReceived360: number;
+  totalCollaborators: number;
+}
+
+// Tipos processados para o gráfico
+export interface ProcessedPerformanceData {
+  cycle: string;
+  finalScore: number | null;
+  selfScore: number;
+  managerScore: number; // Será mapeado para averageReceived360
+}

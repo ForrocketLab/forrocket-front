@@ -7,13 +7,21 @@ import PerformanceChartContainer from './components/PerformanceChartContainer';
 import EqualizationTableContainer from './components/EqualizationTableContainer';
 import { FaSortAmountUp, FaStar } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
+import LoadingSpinner from '../../../components/LoadingSpinner';
+import { useGlobalToast } from '../../../hooks/useGlobalToast';
 import {
   transformCollaboratorData,
   processMetricsForCards,
-  // generateInsightsText,
-  generateHistoricalPerformanceData,
+  generateInsightsText,
+  generateCombinedSummaryText,
+  processHistoricalPerformanceData,
 } from '../../../utils/brutalFactsUtils';
-import type { BrutalFactsMetricsDto, TeamAnalysisDto, ProcessedCollaboratorData } from '../../../types/brutalFacts';
+import type { 
+  BrutalFactsMetricsDto, 
+  TeamAnalysisDto, 
+  ProcessedCollaboratorData,
+  PerformanceData
+} from '../../../types/brutalFacts';
 import ManagerService from '../../../services/ManagerService';
 
 const ManagerBrutalFacts = () => {
@@ -23,7 +31,10 @@ const ManagerBrutalFacts = () => {
   const [brutalFactsData, setBrutalFactsData] = useState<BrutalFactsMetricsDto | null>(null);
   const [teamAnalysisData, setTeamAnalysisData] = useState<TeamAnalysisDto | null>(null);
   const [processedCollaborators, setProcessedCollaborators] = useState<ProcessedCollaboratorData[]>([]);
+  const [historicalPerformanceData, setHistoricalPerformanceData] = useState<PerformanceData[]>([]);
+  const [historicalLoading, setHistoricalLoading] = useState(false);
 
+  const toast = useGlobalToast();
   const currentCycle = '2025.1';
 
   // Opções para o filtro do gráfico
@@ -40,6 +51,7 @@ const ManagerBrutalFacts = () => {
         setLoading(true);
         setError(null);
 
+        // Carrega dados principais
         const [metricsData, analysisData] = await Promise.all([
           ManagerService.getBrutalFactsMetrics(currentCycle),
           ManagerService.getTeamAnalysis(currentCycle),
@@ -51,17 +63,52 @@ const ManagerBrutalFacts = () => {
         // Processa colaboradores para uso nos componentes
         const processed = metricsData.collaboratorsMetrics.map(transformCollaboratorData);
         setProcessedCollaborators(processed);
+
+        // Carrega dados históricos de performance
+        setHistoricalLoading(true);
+        try {
+          const historicalData = await ManagerService.getTeamHistoricalPerformance();
+          const processedHistoricalData = processHistoricalPerformanceData(historicalData);
+          setHistoricalPerformanceData(processedHistoricalData);
+          
+          toast.success('Dados carregados', 'Todos os dados foram carregados com sucesso.');
+        } catch (historicalError) {
+          console.warn('Erro ao carregar dados históricos:', historicalError);
+          // Usa dados simulados se não conseguir carregar históricos
+          const fallbackData: PerformanceData[] = [
+            { cycle: '2023.1', finalScore: 3.8, selfScore: 3.5, managerScore: 4.1 },
+            { cycle: '2023.2', finalScore: 4.2, selfScore: 4.0, managerScore: 4.4 },
+            { cycle: '2024.1', finalScore: 4.0, selfScore: 3.8, managerScore: 4.2 },
+            { cycle: currentCycle, finalScore: metricsData.overallScoreAverage || 4.0, selfScore: metricsData.teamPerformance.selfAssessmentTeamAverage, managerScore: metricsData.teamPerformance.managerAssessmentTeamAverage },
+          ];
+          setHistoricalPerformanceData(fallbackData);
+          
+          toast.warning('Dados principais carregados', 'Dados históricos não disponíveis. Usando dados simulados para o gráfico.');
+        } finally {
+          setHistoricalLoading(false);
+        }
+
       } catch (err) {
         console.error('Erro ao carregar dados:', err);
         setError('Erro ao carregar dados. Usando dados de exemplo.');
+        toast.error('Erro ao carregar dados', 'Não foi possível carregar os dados do servidor. Tente novamente.');
         // Em caso de erro, usa dados mockados
         setProcessedCollaborators([]);
+        // Dados de fallback para o gráfico
+        const fallbackData: PerformanceData[] = [
+          { cycle: '2023.1', finalScore: 3.8, selfScore: 3.5, managerScore: 4.1 },
+          { cycle: '2023.2', finalScore: 4.2, selfScore: 4.0, managerScore: 4.4 },
+          { cycle: '2024.1', finalScore: 4.0, selfScore: 3.8, managerScore: 4.2 },
+          { cycle: '2024.2', finalScore: 4.5, selfScore: 4.3, managerScore: 4.7 },
+        ];
+        setHistoricalPerformanceData(fallbackData);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentCycle]);
 
   const handleDownload = () => {
@@ -73,7 +120,11 @@ const ManagerBrutalFacts = () => {
   if (loading) {
     return (
       <div className='h-screen flex flex-col items-center justify-center'>
+        <LoadingSpinner className="w-12 h-12 mb-4" />
         <div className='text-lg text-gray-600'>Carregando dados...</div>
+        {historicalLoading && (
+          <div className='text-sm text-gray-500 mt-2'>Buscando dados históricos...</div>
+        )}
       </div>
     );
   }
@@ -95,8 +146,16 @@ const ManagerBrutalFacts = () => {
     },
   );
 
-  // Gera dados de performance histórica baseados nos dados reais ou usa fallback
-  const performanceDataToUse = brutalFactsData ? generateHistoricalPerformanceData(brutalFactsData) : [];
+  // Usa dados históricos reais ou fallback
+  const performanceDataToUse = historicalPerformanceData.length > 0 ? historicalPerformanceData : [];
+
+  const insightsText = teamAnalysisData 
+    ? generateInsightsText(teamAnalysisData)
+    : 'Os colaboradores demonstram evolução consistente nas avaliações, com destaque para o crescimento nas competências comportamentais.';
+
+  const summaryText = teamAnalysisData
+    ? generateCombinedSummaryText(teamAnalysisData)
+    : 'Análise detalhada não disponível. Exibindo dados de exemplo.';
 
   function getScoreText(score: number | null): string {
     if (score === null) return 'N/A';
@@ -185,7 +244,7 @@ const ManagerBrutalFacts = () => {
       {/* Container de Resumo */}
       <BrutalFactsSummary
         title='Resumo'
-        summaryText={teamAnalysisData?.feedbackAnalysisSummary || 'Nenhum resumo encontrado.'}
+        summaryText={summaryText}
       />
 
       {/* Container de Desempenho com Gráfico */}
@@ -194,7 +253,7 @@ const ManagerBrutalFacts = () => {
         onMetricChange={setSelectedMetric}
         performanceData={performanceDataToUse}
         metricOptions={metricOptions}
-        insightText={teamAnalysisData?.scoreAnalysisSummary || 'Nenhum resumo encontrado.'}
+        insightText={insightsText}
       />
 
       {/* Container da Tabela de Equalizações */}

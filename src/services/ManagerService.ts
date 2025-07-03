@@ -1,7 +1,7 @@
 import { AxiosError } from 'axios';
 import api from '../api';
 import AuthService from './AuthService';
-import type { BrutalFactsMetricsDto, TeamAnalysisDto } from '../types/brutalFacts';
+import type { BrutalFactsMetricsDto, TeamAnalysisDto, TeamHistoricalPerformanceDto } from '../types/brutalFacts';
 
 class ManagerService {
   static async getManagerDashboard(cycle: string): Promise<ManagerDashboardResponse> {
@@ -179,6 +179,26 @@ class ManagerService {
       console.error('Erro ao buscar análise da equipe:', error);
       if (error instanceof AxiosError && error.response) {
         throw new Error(error.response.data.message || 'Falha ao buscar análise da equipe.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  static async getTeamHistoricalPerformance(): Promise<TeamHistoricalPerformanceDto> {
+    try {
+      const response = await api.get<TeamHistoricalPerformanceDto>(
+        '/evaluations/manager/team-historical-performance',
+        {
+          headers: {
+            Authorization: `Bearer ${AuthService.getToken()}`,
+          },
+        },
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar performance histórica da equipe:', error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar performance histórica da equipe.');
       }
       throw new Error('Ocorreu um erro de rede. Tente novamente.');
     }
