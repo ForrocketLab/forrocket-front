@@ -11,7 +11,6 @@ import CommitteePage from './pages/committee/Committee';
 import EqualizacoesPage from './pages/committee/Equalizacoes';
 import ToastContainer from './components/ToastContainer';
 import { useToastSubscription } from './hooks/useGlobalToast';
-import ManagerCollaboratorEvaluations from './pages/manager/collaboratorEvaluations/ManagerCollaboratorEvaluations';
 import ManagerDashboardPage from './pages/manager/dashboard/ManagerDashboard';
 import CollaboratorEvaluationDetails from './pages/manager/collaborators/CollaboratorEvaluationDetails';
 import ManagerCollaborators from './pages/manager/collaborators/ManagerCollaborators';
@@ -27,6 +26,7 @@ import AdminReports from './pages/admin/AdminReports';
 import AuditLogPage from './pages/admin/AuditLog';
 import TalentMatrixPage from './pages/hr/TalentMatrixPage';
 import TalentMatrixMethodology from './pages/hr/TalentMatrixMethodology';
+import ManagerBrutalFacts from './pages/manager/brutal-facts/ManagerBrutalFacts';
 import OKRsPage from './pages/okrs/OKRsPage';
 import OKRDetailsPage from './pages/okrs/OKRDetailsPage';
 import EditOKRPage from './pages/okrs/EditOKRPage';
@@ -82,6 +82,7 @@ function App() {
                 <Route path='/manager/dashboard' element={<ManagerDashboardPage />} />
                 <Route path='/manager/collaborators' element={<ManagerCollaborators />} />
                 <Route path='/manager/collaborators/:id/evaluations' element={<CollaboratorEvaluationDetails />} />
+                <Route path='/manager/brutal-facts' element={<ManagerBrutalFacts />} />
               </Route>
 
               <Route element={<ProtectedRoute allowedRoles={[ROLES.COLLABORATOR]} />}>
@@ -89,9 +90,9 @@ function App() {
               </Route>
 
               <Route element={<ProtectedRoute allowedRoles={[ROLES.COLLABORATOR, ROLES.MANAGER, ROLES.RH]} />}>
-                <Route path="/pdis" element={<PDIsPage />} />
-                <Route path="/pdis/:id" element={<PDIDetailsPage />} />
-                <Route path="/pdis/:id/edit" element={<PDIForm />} />
+                <Route path='/pdis' element={<PDIsPage />} />
+                <Route path='/pdis/:id' element={<PDIDetailsPage />} />
+                <Route path='/pdis/:id/edit' element={<PDIForm />} />
               </Route>
 
               {/* ROTA DE FALLBACK (404) */}

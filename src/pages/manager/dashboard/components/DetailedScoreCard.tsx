@@ -4,7 +4,7 @@ import BaseCard from './BaseCard';
 export interface DetailedScoreCardProps {
   title: string;
   description: string;
-  score: number | string;
+  score: number | null;
   ratingText: string;
   color: string;
   icon: ReactNode;
@@ -25,7 +25,7 @@ const DetailedScoreCard = ({ title, description, score, ratingText, color, icon 
           <div style={{ color: color }}>{icon}</div>
           <div className='flex flex-col text-right'>
             <span className='text-2xl font-bold' style={{ color: color }}>
-              {score}
+              {score ?? '-'}
             </span>
             <span className='text-sm font-medium' style={{ color: color }}>
               {ratingText}

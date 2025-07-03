@@ -13,7 +13,7 @@ const ManagerEvaluationsHistory = () => {
 
   const [performanceHistory, setPerformanceHistory] = useState<PerformanceHistoryDto>();
   const [loading, setLoading] = useState(true);
-
+  console.log('loading', loading);
   useEffect(() => {
     const fetchData = async () => {
       if (!id) {
@@ -65,7 +65,7 @@ const ManagerEvaluationsHistory = () => {
           title='Sua Nota Atual'
           description={`Nota final do ciclo realizado em ${cardData.recentCycleName}.`}
           score={cardData.recentScore ?? '-'}
-          ratingText={5 ? 'Great' : 'N/A'}
+          ratingText={cardData.recentScore ? 'Great' : 'N/A'}
           color='#419958'
           icon={<FaStar size={32} />}
         />
