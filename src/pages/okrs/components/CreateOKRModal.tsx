@@ -65,7 +65,7 @@ const CreateOKRModal: React.FC<CreateOKRModalProps> = ({ onClose, onSuccess }) =
     const newKeyResult: CreateKeyResultDto = {
       title: '',
       description: '',
-      type: KeyResultType.NUMBER,
+      type: KeyResultType.PERCENTAGE,
       targetValue: 100, // Meta padrão sempre 100%
       unit: '%'
     };

@@ -5,6 +5,7 @@ import { FaCog } from 'react-icons/fa';
 import { IoBarChartOutline } from 'react-icons/io5';
 import { LuFilePenLine, LuUsers } from 'react-icons/lu';
 import { FileText, Users, Home, BarChart3, Settings, Shield, Building2, UsersRound, Target } from 'lucide-react';
+import SchoolIcon from '@mui/icons-material/School';
 
 export interface IconProps {
   size?: number;
@@ -125,5 +126,11 @@ export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
     label: 'Audit Log',
     icon: FileText,
     allowedRoles: [ROLES.ADMIN],
+  },
+  {
+    path: '/pdis',
+    label: 'Meus PDIs',
+    icon: SchoolIcon,
+    allowedRoles: [ROLES.COLLABORATOR, ROLES.MANAGER, ROLES.RH],
   },
 ];
