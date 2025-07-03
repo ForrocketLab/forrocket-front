@@ -24,7 +24,7 @@ const HRImport: FC = () => {
 
   const onDrop = useCallback((acceptedFiles: File[], fileRejections: FileRejection[]) => {
     if (fileRejections.length > 0) {
-      showErrorToast('Arquivo(s) Rejeitado(s)', `Apenas arquivos .xlsx e .csv são permitidos.`);
+      showErrorToast('Arquivo(s) Rejeitado(s)', `Apenas arquivos .xlsx e .xls são permitidos.`);
     }
     setFiles(prev => [...prev, ...acceptedFiles.filter(newFile => !prev.some(f => f.name === newFile.name))]);
   }, [showErrorToast]);
@@ -33,7 +33,7 @@ const HRImport: FC = () => {
     onDrop,
     accept: {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-      'text/csv': ['.csv'],
+      'application/vnd.ms-excel': ['.xls'],
     },
   });
 
@@ -61,7 +61,7 @@ const HRImport: FC = () => {
 
     try {
       await api.post<UploadResponse[]>('/import/historical-data', formData);
-      
+
       setUploadedFileResults(prevResults => [
         ...prevResults,
         ...currentFilesToUpload.map(file => ({ name: file.name, size: file.size }))
@@ -107,7 +107,8 @@ const HRImport: FC = () => {
               <div className="flex flex-col items-center justify-center text-gray-500">
                 <UploadCloud className="w-12 h-12 mb-4 text-gray-400"/>
                 <p className="font-semibold text-gray-700">Clique para selecionar ou arraste os arquivos aqui</p>
-                <p className="text-sm">Formatos suportados: .xlsx ou .csv</p>
+                {/* Texto atualizado para refletir os formatos aceitos */}
+                <p className="text-sm">Formatos suportados: .xlsx ou .xls</p>
               </div>
             </div>
           </div>
@@ -157,7 +158,7 @@ const HRImport: FC = () => {
                 <span className="w-1/5 text-right">Ações</span>
               </li>
               {uploadedFileResults.length === 0 ? (
-                 <li className="text-center text-gray-500 p-6">Nenhum arquivo importado ainda.</li>
+                  <li className="text-center text-gray-500 p-6">Nenhum arquivo importado ainda.</li>
               ) : (
                 uploadedFileResults.map(fileResult => (
                   <li key={fileResult.name} className="flex justify-between items-center px-4 py-3">
