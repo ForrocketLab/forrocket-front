@@ -1,4 +1,4 @@
-import { type FC, useState } from 'react';
+import React, { type FC, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Users, CheckCircle, ChevronDown, ChevronUp, AlertCircle, Download, Copy } from 'lucide-react';
@@ -574,9 +574,8 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {displayCollaborators.map((collaborator) => (
-                <>
+                <React.Fragment key={collaborator.id}>
                   <tr 
-                    key={collaborator.id} 
                     className={`cursor-pointer transition-all duration-200 ${
                       expandedCollaborators.includes(collaborator.id) 
                         ? 'bg-blue-50 hover:bg-blue-100 border-l-4 border-[#085F60]' 
@@ -640,7 +639,7 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
                       </td>
                     </tr>
                   )}
-                </>
+                </React.Fragment>
               ))}
             </tbody>
           </table>

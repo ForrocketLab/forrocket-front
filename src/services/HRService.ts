@@ -2,6 +2,7 @@ import { AxiosError } from 'axios';
 import api from '../api';
 import AuthService from './AuthService';
 import type { TalentMatrixData, TalentMatrixPosition, TalentMatrixStats } from '../types/talentMatrix';
+import type { CollaboratorDetailedEvolution } from '../types/evaluations';
 
 // Tipos específicos para RH Dashboard
 interface HRDashboardMetrics {
@@ -133,6 +134,49 @@ export interface AdvancedFiltersResponse {
   users: CollaboratorWithProjectsAndProgress[];
   totalCount: number;
   filteredCount: number;
+}
+
+interface EvolutionDashboard {
+  organizationStats: {
+    totalCollaborators: number;
+    collaboratorsWithHistory: number;
+    currentOverallAverage: number;
+    previousOverallAverage: number;
+    organizationGrowthPercentage: number;
+  };
+  performanceDistribution: {
+    highPerformers: number;
+    solidPerformers: number;
+    developing: number;
+    critical: number;
+  };
+  trendAnalysis: {
+    improving: number;
+    declining: number;
+    stable: number;
+  };
+  highlights: string[];
+  recommendedActions: string[];
+  lastUpdated: string;
+}
+
+interface CollaboratorEvolutionSummary {
+  collaboratorId: string;
+  name: string;
+  jobTitle: string;
+  seniority: string;
+  businessUnit: string;
+  latestScore: number;
+  latestCycle: string;
+  historicalAverage: number;
+  totalCycles: number;
+  evolutionTrend: {
+    trend: 'improving' | 'declining' | 'stable';
+    percentageChange: number;
+    description: string;
+  };
+  performanceCategory: 'high-performer' | 'solid-performer' | 'developing' | 'critical';
+  managerName: string | null;
 }
 
 class HRService {

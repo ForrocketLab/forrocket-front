@@ -82,6 +82,12 @@ export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
     allowedRoles: [ROLES.RH],
   },
   {
+    path: '/rh/evolucao-historica',
+    label: 'Evolução Histórica',
+    icon: TrendingUp,
+    allowedRoles: [ROLES.RH],
+  },
+  {
     path: '/rh/criterios',
     label: 'Gestão de Critérios',
     icon: Settings,
