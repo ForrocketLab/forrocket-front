@@ -2,6 +2,7 @@ import { AxiosError } from 'axios';
 import api from '../api';
 import AuthService from './AuthService';
 import type { TalentMatrixData, TalentMatrixPosition, TalentMatrixStats } from '../types/talentMatrix';
+import type { CollaboratorDetailedEvolution } from '../types/evaluations';
 
 // Tipos específicos para RH Dashboard
 interface HRDashboardMetrics {
@@ -110,6 +111,49 @@ export interface CollaboratorFilters {
   careerTrack?: string;
   isActive?: boolean;
   roles?: string[];
+}
+
+interface EvolutionDashboard {
+  organizationStats: {
+    totalCollaborators: number;
+    collaboratorsWithHistory: number;
+    currentOverallAverage: number;
+    previousOverallAverage: number;
+    organizationGrowthPercentage: number;
+  };
+  performanceDistribution: {
+    highPerformers: number;
+    solidPerformers: number;
+    developing: number;
+    critical: number;
+  };
+  trendAnalysis: {
+    improving: number;
+    declining: number;
+    stable: number;
+  };
+  highlights: string[];
+  recommendedActions: string[];
+  lastUpdated: string;
+}
+
+interface CollaboratorEvolutionSummary {
+  collaboratorId: string;
+  name: string;
+  jobTitle: string;
+  seniority: string;
+  businessUnit: string;
+  latestScore: number;
+  latestCycle: string;
+  historicalAverage: number;
+  totalCycles: number;
+  evolutionTrend: {
+    trend: 'improving' | 'declining' | 'stable';
+    percentageChange: number;
+    description: string;
+  };
+  performanceCategory: 'high-performer' | 'solid-performer' | 'developing' | 'critical';
+  managerName: string | null;
 }
 
 class HRService {
@@ -643,7 +687,162 @@ class HRService {
     return response.data;
   }
 
+  // === MÉTODOS DE EVOLUÇÃO HISTÓRICA ===
 
+  /**
+   * Dashboard de evolução organizacional
+   */
+  static async getEvolutionDashboard(): Promise<EvolutionDashboard> {
+    try {
+      const response = await api.get<EvolutionDashboard>('/hr/evolution/dashboard');
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar dashboard de evolução:', error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar dados do dashboard.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  /**
+   * Lista de colaboradores com evolução (com filtros)
+   */
+  static async getCollaboratorsEvolutionSummary(filters?: {
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+    filterBy?: string;
+  }): Promise<CollaboratorEvolutionSummary[]> {
+    try {
+      const response = await api.get<CollaboratorEvolutionSummary[]>('/hr/evolution/collaborators/summary', { 
+        params: filters 
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar sumário de evolução dos colaboradores:', error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar dados dos colaboradores.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  /**
+   * Evolução detalhada de um colaborador específico
+   */
+  static async getCollaboratorDetailedEvolution(collaboratorId: string): Promise<CollaboratorDetailedEvolution> {
+    try {
+      const response = await api.get<CollaboratorDetailedEvolution>(`/hr/evolution/collaborators/${collaboratorId}/detailed`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar evolução detalhada do colaborador:', error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar evolução detalhada.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  /**
+   * Comparação entre múltiplos colaboradores
+   */
+  static async compareCollaboratorsEvolution(params: {
+    collaboratorIds: string[];
+    cycles?: string[];
+    pillar?: string;
+  }): Promise<any> {
+    try {
+      // Converter arrays para string separada por vírgula para query params
+      const queryParams = new URLSearchParams();
+      queryParams.append('collaboratorIds', params.collaboratorIds.join(','));
+      if (params.cycles) queryParams.append('cycles', params.cycles.join(','));
+      if (params.pillar) queryParams.append('pillar', params.pillar);
+
+      const url = `/hr/evolution/comparison${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      const response = await api.get(url);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao comparar evolução dos colaboradores:', error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao comparar colaboradores.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  /**
+   * Análise de tendências organizacionais
+   */
+  static async getOrganizationalTrends(params?: {
+    startCycle?: string;
+    endCycle?: string;
+  }): Promise<any> {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params?.startCycle) queryParams.append('startCycle', params.startCycle);
+      if (params?.endCycle) queryParams.append('endCycle', params.endCycle);
+
+      const url = `/hr/evolution/trends${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      const response = await api.get(url);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar tendências organizacionais:', error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar tendências organizacionais.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  /**
+   * Evolução de pilar específico
+   */
+  static async getCollaboratorPillarEvolution(
+    collaboratorId: string,
+    pillar: 'BEHAVIOR' | 'EXECUTION' | 'MANAGEMENT'
+  ): Promise<any> {
+    try {
+      const response = await api.get(`/hr/evolution/collaborators/${collaboratorId}/pillar-evolution/${pillar}`);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar evolução do pilar:', error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar evolução do pilar.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  async getHistoricalEvolution() {
+    try {
+      const response = await api.get('/hr/historical-evolution');
+      console.log('API Response:', response.data);
+      
+      // Garantir que os dados estão no formato correto
+      const mappedData = {
+        ...response.data,
+        recommendedActions: response.data.recommendedActions?.map((action: any) => ({
+          type: action.type || 'other',
+          title: action.title,
+          description: action.description,
+          priority: action.priority || 'medium'
+        })) || [],
+        highlights: response.data.highlights?.map((highlight: any) => ({
+          type: highlight.type || 'info',
+          title: highlight.title,
+          description: highlight.description,
+          value: highlight.value,
+          priority: highlight.priority || 'medium'
+        })) || []
+      };
+
+      console.log('Mapped Data:', mappedData);
+      return mappedData;
+    } catch (error) {
+      console.error('Error fetching historical evolution:', error);
+      throw error;
+    }
+  }
 }
 
 export default HRService;
