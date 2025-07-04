@@ -3,7 +3,7 @@ import { ROLES } from '../types/roles'; // Seu enum de papéis
 
 import { FaCog } from 'react-icons/fa';
 import { IoBarChartOutline } from 'react-icons/io5';
-import { LuCaptions, LuFilePenLine, LuUsers } from 'react-icons/lu';
+import { LuCaptions, LuChartSpline, LuFilePenLine, LuUsers } from 'react-icons/lu';
 import { FileText, Users, Home, BarChart3, Settings, Shield, Building2, UsersRound, Target } from 'lucide-react';
 import SchoolIcon from '@mui/icons-material/School';
 
@@ -33,6 +33,12 @@ export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
     path: '/avaliacao',
     label: 'Avaliação de Ciclo',
     icon: LuFilePenLine,
+    allowedRoles: [ROLES.COLLABORATOR],
+  },
+  {
+    path: '/evolution',
+    label: 'Evolução',
+    icon: LuChartSpline,
     allowedRoles: [ROLES.COLLABORATOR],
   },
   {

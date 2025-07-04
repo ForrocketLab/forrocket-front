@@ -33,6 +33,7 @@ import EditOKRPage from './pages/okrs/EditOKRPage';
 import PDIsPage from './pages/pdis/PDIsPage';
 import PDIDetailsPage from './pages/pdis/PDIDetailsPage';
 import PDIForm from './pages/pdis/PDIForm';
+import CollaboratorEvolution from './pages/manager/collaborators/CollaboratorEvolution';
 
 function App() {
   const { toasts, removeToast } = useToastSubscription();
@@ -60,6 +61,7 @@ function App() {
               <Route element={<ProtectedRoute allowedRoles={[ROLES.COLLABORATOR]} />}>
                 <Route path='/' element={<HomePage />} />
                 <Route path='/avaliacao' element={<EvaluationPage />} />
+                <Route path='/evolution' element={<CollaboratorEvolution />} />
                 <Route path='/okrs' element={<OKRsPage />} />
                 <Route path='/okrs/:id' element={<OKRDetailsPage />} />
                 <Route path='/okrs/:id/edit' element={<EditOKRPage />} />
