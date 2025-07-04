@@ -12,8 +12,6 @@ import { useGlobalToast } from '../../../hooks/useGlobalToast';
 import {
   transformCollaboratorData,
   processMetricsForCards,
-  generateInsightsText,
-  generateCombinedSummaryText,
   processHistoricalPerformanceData,
 } from '../../../utils/brutalFactsUtils';
 import type {
@@ -21,6 +19,7 @@ import type {
   TeamAnalysisDto,
   ProcessedCollaboratorData,
   PerformanceData,
+  TeamHistoricalPerformanceDto,
 } from '../../../types/brutalFacts';
 import ManagerService from '../../../services/ManagerService';
 
@@ -32,6 +31,7 @@ const ManagerBrutalFacts = () => {
   const [teamAnalysisData, setTeamAnalysisData] = useState<TeamAnalysisDto | null>(null);
   const [processedCollaborators, setProcessedCollaborators] = useState<ProcessedCollaboratorData[]>([]);
   const [historicalPerformanceData, setHistoricalPerformanceData] = useState<PerformanceData[]>([]);
+  const [rawHistoricalData, setRawHistoricalData] = useState<TeamHistoricalPerformanceDto | null>(null);
   const [historicalLoading, setHistoricalLoading] = useState(false);
 
   const toast = useGlobalToast();
@@ -68,6 +68,7 @@ const ManagerBrutalFacts = () => {
         setHistoricalLoading(true);
         try {
           const historicalData = await ManagerService.getTeamHistoricalPerformance();
+          setRawHistoricalData(historicalData); // Armazena dados brutos para exportação
           const processedHistoricalData = processHistoricalPerformanceData(historicalData);
           setHistoricalPerformanceData(processedHistoricalData);
 
@@ -115,13 +116,7 @@ const ManagerBrutalFacts = () => {
     };
 
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentCycle]);
-
-  const handleDownload = () => {
-    // TODO: Implementar lógica de download dos brutal facts
-    console.log('Download dos brutal facts iniciado');
-  };
 
   // Se ainda está carregando, mostra loading
   if (loading) {
@@ -155,11 +150,11 @@ const ManagerBrutalFacts = () => {
   const performanceDataToUse = historicalPerformanceData.length > 0 ? historicalPerformanceData : [];
 
   const insightsText = teamAnalysisData
-    ? generateInsightsText(teamAnalysisData)
+    ? teamAnalysisData.scoreAnalysisSummary
     : 'Os colaboradores demonstram evolução consistente nas avaliações, com destaque para o crescimento nas competências comportamentais.';
 
   const summaryText = teamAnalysisData
-    ? generateCombinedSummaryText(teamAnalysisData)
+    ? teamAnalysisData.feedbackAnalysisSummary
     : 'Análise detalhada não disponível. Exibindo dados de exemplo.';
 
   function getScoreText(score: number | null): string {
@@ -172,7 +167,11 @@ const ManagerBrutalFacts = () => {
   return (
     <div className='h-screen flex flex-col'>
       {/* Header */}
-      <BrutalFactsHeader onToggleDownload={handleDownload} />
+      <BrutalFactsHeader
+        brutalFactsData={brutalFactsData}
+        teamAnalysisData={teamAnalysisData}
+        historicalPerformanceData={rawHistoricalData}
+      />
 
       {/* Mensagem de erro se houver */}
       {error && (
