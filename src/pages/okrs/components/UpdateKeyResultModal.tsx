@@ -59,8 +59,6 @@ const UpdateKeyResultModal: React.FC<UpdateKeyResultModalProps> = ({
     switch (keyResult.type) {
       case 'PERCENTAGE':
         return '%';
-      case 'BINARY':
-        return 'Complete (1) ou Pendente (0)';
       default:
         return keyResult.unit || '';
     }
@@ -71,12 +69,12 @@ const UpdateKeyResultModal: React.FC<UpdateKeyResultModalProps> = ({
   };
 
   const getStep = () => {
-    return keyResult.type === 'BINARY' ? 1 : 0.01;
+    return 0.01;
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+    <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 shadow-xl">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-800">Atualizar Progresso</h2>
           <button

@@ -111,6 +111,29 @@ export interface CollaboratorFilters {
   careerTrack?: string;
   isActive?: boolean;
   roles?: string[];
+  projectId?: string;
+  jobTitle?: string;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  description: string;
+  isActive: boolean;
+}
+
+export interface CollaboratorWithProjectsAndProgress extends CollaboratorWithEvaluationProgress {
+  projects: Array<{
+    id: string;
+    name: string;
+    roleInProject: string;
+  }>;
+}
+
+export interface AdvancedFiltersResponse {
+  users: CollaboratorWithProjectsAndProgress[];
+  totalCount: number;
+  filteredCount: number;
 }
 
 interface EvolutionDashboard {
@@ -687,161 +710,111 @@ class HRService {
     return response.data;
   }
 
-  // === MÉTODOS DE EVOLUÇÃO HISTÓRICA ===
-
   /**
-   * Dashboard de evolução organizacional
+   * Busca usuários com filtros avançados
    */
-  static async getEvolutionDashboard(): Promise<EvolutionDashboard> {
-    try {
-      const response = await api.get<EvolutionDashboard>('/hr/evolution/dashboard');
-      return response.data;
-    } catch (error) {
-      console.error('Erro ao buscar dashboard de evolução:', error);
-      if (error instanceof AxiosError && error.response) {
-        throw new Error(error.response.data.message || 'Falha ao buscar dados do dashboard.');
-      }
-      throw new Error('Ocorreu um erro de rede. Tente novamente.');
-    }
-  }
-
-  /**
-   * Lista de colaboradores com evolução (com filtros)
-   */
-  static async getCollaboratorsEvolutionSummary(filters?: {
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
-    filterBy?: string;
-  }): Promise<CollaboratorEvolutionSummary[]> {
-    try {
-      const response = await api.get<CollaboratorEvolutionSummary[]>('/hr/evolution/collaborators/summary', { 
-        params: filters 
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Erro ao buscar sumário de evolução dos colaboradores:', error);
-      if (error instanceof AxiosError && error.response) {
-        throw new Error(error.response.data.message || 'Falha ao buscar dados dos colaboradores.');
-      }
-      throw new Error('Ocorreu um erro de rede. Tente novamente.');
-    }
-  }
-
-  /**
-   * Evolução detalhada de um colaborador específico
-   */
-  static async getCollaboratorDetailedEvolution(collaboratorId: string): Promise<CollaboratorDetailedEvolution> {
-    try {
-      const response = await api.get<CollaboratorDetailedEvolution>(`/hr/evolution/collaborators/${collaboratorId}/detailed`);
-      return response.data;
-    } catch (error) {
-      console.error('Erro ao buscar evolução detalhada do colaborador:', error);
-      if (error instanceof AxiosError && error.response) {
-        throw new Error(error.response.data.message || 'Falha ao buscar evolução detalhada.');
-      }
-      throw new Error('Ocorreu um erro de rede. Tente novamente.');
-    }
-  }
-
-  /**
-   * Comparação entre múltiplos colaboradores
-   */
-  static async compareCollaboratorsEvolution(params: {
-    collaboratorIds: string[];
-    cycles?: string[];
-    pillar?: string;
-  }): Promise<any> {
-    try {
-      // Converter arrays para string separada por vírgula para query params
-      const queryParams = new URLSearchParams();
-      queryParams.append('collaboratorIds', params.collaboratorIds.join(','));
-      if (params.cycles) queryParams.append('cycles', params.cycles.join(','));
-      if (params.pillar) queryParams.append('pillar', params.pillar);
-
-      const url = `/hr/evolution/comparison${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-      const response = await api.get(url);
-      return response.data;
-    } catch (error) {
-      console.error('Erro ao comparar evolução dos colaboradores:', error);
-      if (error instanceof AxiosError && error.response) {
-        throw new Error(error.response.data.message || 'Falha ao comparar colaboradores.');
-      }
-      throw new Error('Ocorreu um erro de rede. Tente novamente.');
-    }
-  }
-
-  /**
-   * Análise de tendências organizacionais
-   */
-  static async getOrganizationalTrends(params?: {
-    startCycle?: string;
-    endCycle?: string;
-  }): Promise<any> {
+  static async getUsersWithAdvancedFilters(filters: CollaboratorFilters): Promise<AdvancedFiltersResponse> {
     try {
       const queryParams = new URLSearchParams();
-      if (params?.startCycle) queryParams.append('startCycle', params.startCycle);
-      if (params?.endCycle) queryParams.append('endCycle', params.endCycle);
-
-      const url = `/hr/evolution/trends${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-      const response = await api.get(url);
-      return response.data;
-    } catch (error) {
-      console.error('Erro ao buscar tendências organizacionais:', error);
-      if (error instanceof AxiosError && error.response) {
-        throw new Error(error.response.data.message || 'Falha ao buscar tendências organizacionais.');
-      }
-      throw new Error('Ocorreu um erro de rede. Tente novamente.');
-    }
-  }
-
-  /**
-   * Evolução de pilar específico
-   */
-  static async getCollaboratorPillarEvolution(
-    collaboratorId: string,
-    pillar: 'BEHAVIOR' | 'EXECUTION' | 'MANAGEMENT'
-  ): Promise<any> {
-    try {
-      const response = await api.get(`/hr/evolution/collaborators/${collaboratorId}/pillar-evolution/${pillar}`);
-      return response.data;
-    } catch (error) {
-      console.error('Erro ao buscar evolução do pilar:', error);
-      if (error instanceof AxiosError && error.response) {
-        throw new Error(error.response.data.message || 'Falha ao buscar evolução do pilar.');
-      }
-      throw new Error('Ocorreu um erro de rede. Tente novamente.');
-    }
-  }
-
-  async getHistoricalEvolution() {
-    try {
-      const response = await api.get('/hr/historical-evolution');
-      console.log('API Response:', response.data);
       
-      // Garantir que os dados estão no formato correto
-      const mappedData = {
-        ...response.data,
-        recommendedActions: response.data.recommendedActions?.map((action: any) => ({
-          type: action.type || 'other',
-          title: action.title,
-          description: action.description,
-          priority: action.priority || 'medium'
-        })) || [],
-        highlights: response.data.highlights?.map((highlight: any) => ({
-          type: highlight.type || 'info',
-          title: highlight.title,
-          description: highlight.description,
-          value: highlight.value,
-          priority: highlight.priority || 'medium'
-        })) || []
-      };
+      if (filters.search) queryParams.append('search', filters.search);
+      if (filters.projectId) queryParams.append('projectId', filters.projectId);
+      if (filters.jobTitle) queryParams.append('jobTitle', filters.jobTitle);
+      if (filters.businessUnit) queryParams.append('businessUnit', filters.businessUnit);
+      if (filters.seniority) queryParams.append('seniority', filters.seniority);
+      if (filters.careerTrack) queryParams.append('careerTrack', filters.careerTrack);
+      if (filters.isActive !== undefined) queryParams.append('isActive', String(filters.isActive));
+      if (filters.roles && filters.roles.length > 0) queryParams.append('roles', JSON.stringify(filters.roles));
 
-      console.log('Mapped Data:', mappedData);
-      return mappedData;
+      const url = `/users/with-filters?${queryParams.toString()}`;
+      console.log('🔍 Fazendo requisição para:', url);
+      console.log('🔍 Filtros enviados:', filters);
+
+      const response = await api.get<AdvancedFiltersResponse>(url);
+      console.log('📊 Resposta recebida:', response.data);
+      return response.data;
     } catch (error) {
-      console.error('Error fetching historical evolution:', error);
-      throw error;
+      console.error('Erro ao buscar usuários com filtros avançados:', error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar usuários.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
     }
+  }
+
+  /**
+   * Busca lista de projetos disponíveis
+   */
+  static async getProjectsList(): Promise<Project[]> {
+    try {
+      const response = await api.get<Project[]>('/projects/list');
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar lista de projetos:', error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar projetos.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  /**
+   * Filtra colaboradores com projetos localmente
+   */
+  static filterCollaboratorsWithProjectsAndProgress(
+    collaborators: CollaboratorWithProjectsAndProgress[],
+    filters: CollaboratorFilters
+  ): CollaboratorWithProjectsAndProgress[] {
+    return collaborators.filter(collaborator => {
+      // Filtro por busca (nome ou email)
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        const matchesSearch = 
+          collaborator.name.toLowerCase().includes(searchLower) ||
+          collaborator.email.toLowerCase().includes(searchLower);
+        if (!matchesSearch) return false;
+      }
+
+      // Filtro por projeto
+      if (filters.projectId) {
+        const hasProject = collaborator.projects.some(project => project.id === filters.projectId);
+        if (!hasProject) return false;
+      }
+
+      // Filtro por cargo
+      if (filters.jobTitle) {
+        const jobTitleLower = filters.jobTitle.toLowerCase();
+        if (!collaborator.jobTitle.toLowerCase().includes(jobTitleLower)) return false;
+      }
+
+      // Filtro por unidade de negócio
+      if (filters.businessUnit && collaborator.businessUnit !== filters.businessUnit) {
+        return false;
+      }
+
+      // Filtro por senioridade
+      if (filters.seniority && collaborator.seniority !== filters.seniority) {
+        return false;
+      }
+
+      // Filtro por trilha de carreira
+      if (filters.careerTrack && collaborator.careerTrack !== filters.careerTrack) {
+        return false;
+      }
+
+      // Filtro por status ativo
+      if (filters.isActive !== undefined && collaborator.isActive !== filters.isActive) {
+        return false;
+      }
+
+      // Filtro por roles
+      if (filters.roles && filters.roles.length > 0) {
+        const hasAnyRole = filters.roles.some(role => collaborator.roles.includes(role));
+        if (!hasAnyRole) return false;
+      }
+
+      return true;
+    });
   }
 }
 

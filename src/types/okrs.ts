@@ -21,9 +21,7 @@ export enum KeyResultStatus {
 }
 
 export enum KeyResultType {
-  PERCENTAGE = 'PERCENTAGE',
-  NUMBER = 'NUMBER',
-  BINARY = 'BINARY'
+  PERCENTAGE = 'PERCENTAGE'
 }
 
 // DTOs de criação
@@ -203,7 +201,7 @@ export const getQuarterOptions = (): Array<{ value: string; label: string }> => 
 
 export const getKeyResultTypeOptions = (): Array<{ value: KeyResultType; label: string }> => {
   return [
-    { value: KeyResultType.NUMBER, label: 'Métrica' }
+    { value: KeyResultType.PERCENTAGE, label: 'Porcentagem' }
   ];
 };
 

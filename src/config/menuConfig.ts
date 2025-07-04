@@ -3,8 +3,9 @@ import { ROLES } from '../types/roles'; // Seu enum de papéis
 
 import { FaCog } from 'react-icons/fa';
 import { IoBarChartOutline } from 'react-icons/io5';
-import { LuFilePenLine, LuUsers } from 'react-icons/lu';
-import { FileText, Users, Home, BarChart3, Settings, Shield, Building2, UsersRound, Target, TrendingUp } from 'lucide-react';
+import { LuCaptions, LuChartSpline, LuFilePenLine, LuUsers } from 'react-icons/lu';
+import { FileText, Users, Home, BarChart3, Settings, Shield, Building2, UsersRound, Target } from 'lucide-react';
+import SchoolIcon from '@mui/icons-material/School';
 
 export interface IconProps {
   size?: number;
@@ -35,6 +36,12 @@ export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
     allowedRoles: [ROLES.COLLABORATOR],
   },
   {
+    path: '/evolution',
+    label: 'Evolução',
+    icon: LuChartSpline,
+    allowedRoles: [ROLES.COLLABORATOR],
+  },
+  {
     path: '/okrs',
     label: 'Meus OKRs',
     icon: Target,
@@ -52,6 +59,12 @@ export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
     path: '/manager/collaborators',
     label: 'Meus Colaboradores',
     icon: Users,
+    allowedRoles: [ROLES.MANAGER],
+  },
+  {
+    path: '/manager/brutal-facts',
+    label: 'Brutal Facts',
+    icon: LuCaptions,
     allowedRoles: [ROLES.MANAGER],
   },
 
@@ -131,5 +144,11 @@ export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
     label: 'Audit Log',
     icon: FileText,
     allowedRoles: [ROLES.ADMIN],
+  },
+  {
+    path: '/pdis',
+    label: 'Meus PDIs',
+    icon: SchoolIcon,
+    allowedRoles: [ROLES.COLLABORATOR, ROLES.MANAGER, ROLES.RH],
   },
 ];

@@ -219,7 +219,7 @@ const EditOKRPage: React.FC = () => {
       objectiveId: objectives[objectiveIndex].id,
       title: '',
       description: '',
-      type: KeyResultType.NUMBER,
+      type: KeyResultType.PERCENTAGE,
       targetValue: 100, // Meta padrão sempre 100% 
       currentValue: 0,
       unit: '%',
