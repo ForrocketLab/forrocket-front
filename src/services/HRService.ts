@@ -2,7 +2,6 @@ import { AxiosError } from 'axios';
 import api from '../api';
 import AuthService from './AuthService';
 import type { TalentMatrixData, TalentMatrixPosition, TalentMatrixStats } from '../types/talentMatrix';
-import type { CollaboratorDetailedEvolution } from '../types/evaluations';
 
 // Tipos específicos para RH Dashboard
 interface HRDashboardMetrics {
@@ -179,6 +178,36 @@ interface CollaboratorEvolutionSummary {
   managerName: string | null;
 }
 
+interface CriterionEvolution {
+  id: string;
+  name: string;
+  pillar: string;
+  cycles: {
+    cycle: string;
+    selfAverage: number;
+    managerAverage: number;
+    finalAverage: number;
+    participationCount: number;
+  }[];
+}
+
+interface OrganizationalTrends {
+  criteriaEvolution: CriterionEvolution[];
+  pillarsEvolution: {
+    pillar: string;
+    cycles: {
+      cycle: string;
+      average: number;
+      participationCount: number;
+    }[];
+  }[];
+  overallTrends: {
+    cycle: string;
+    overallAverage: number;
+    totalParticipants: number;
+  }[];
+}
+
 class HRService {
   private static instance: HRService;
   private cache: Map<string, { data: any; timestamp: number }> = new Map();
@@ -266,83 +295,79 @@ class HRService {
   // Simula dados do dashboard RH baseado nas APIs disponíveis
   static async getHRDashboard(): Promise<HRDashboardResponse> {
     try {
-      const [cyclePhase, collaboratorsData] = await Promise.all([
-        this.getActiveCyclePhase(),
-        this.getCollaboratorsForEqualization()
-      ]);
-
-      // Processar dados dos colaboradores
-      const collaborators: CollaboratorStatus[] = collaboratorsData.collaborators?.map((collab: any) => ({
-        id: collab.id,
-        name: collab.name,
-        email: collab.email,
-        jobTitle: collab.jobTitle,
-        seniority: collab.seniority,
-        businessUnit: collab.businessUnit || 'Não definido',
-        initials: this.getInitials(collab.name),
-        status: collab.hasCommitteeAssessment ? 'FINALIZADO' : 'PENDING',
-        selfAssessmentStatus: 'PENDENTE', // Simplificado por enquanto
-        managerAssessmentStatus: 'PENDENTE',
-        peerAssessmentsCompleted: 0
-      })) || [];
-
-      // Calcular métricas por unidade de negócio
-      const businessUnitsMap = new Map<string, { total: number; completed: number }>();
-      
-      collaborators.forEach(collab => {
-        const unit = collab.businessUnit;
-        if (!businessUnitsMap.has(unit)) {
-          businessUnitsMap.set(unit, { total: 0, completed: 0 });
-        }
-        const unitData = businessUnitsMap.get(unit)!;
-        unitData.total++;
-        if (collab.status === 'FINALIZADO') {
-          unitData.completed++;
-        }
-      });
-
-      const businessUnits: BusinessUnitProgress[] = Array.from(businessUnitsMap.entries()).map(([name, data]) => ({
-        name,
-        totalCollaborators: data.total,
-        completedEvaluations: data.completed,
-        progressPercentage: data.total > 0 ? Math.round((data.completed / data.total) * 100) : 0
-      }));
-
-      // Calcular métricas gerais
-      const totalCollaborators = collaborators.length;
-      const evaluationsCompleted = collaborators.filter(c => c.status === 'FINALIZADO').length;
-      const evaluationsPending = totalCollaborators - evaluationsCompleted;
-      const cycleProgress = totalCollaborators > 0 ? Math.round((evaluationsCompleted / totalCollaborators) * 100) : 0;
-
-      // Calcular dias restantes para fechamento do ciclo
-      const getDaysRemaining = (endDate: string | null): number => {
-        if (!endDate) return 30; // Default
-        const end = new Date(endDate);
-        const now = new Date();
-        const diffTime = end.getTime() - now.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return Math.max(diffDays, 0);
-      };
-
-      return {
-        activeCycle: {
-          id: cyclePhase.cycleId,
-          name: cyclePhase.cycleName,
-          phase: cyclePhase.currentPhase,
-          startDate: null, // Dados não disponíveis na API atual
-          endDate: null
-        },
-        metrics: {
-          totalCollaborators,
-          evaluationsCompleted,
-          evaluationsPending,
-          cycleProgress
-        },
-        businessUnits,
-        collaborators
-      };
+      const response = await api.get('/evaluations/hr/dashboard');
+      return response.data;
     } catch (error) {
-      console.error('Erro ao buscar dados do dashboard RH:', error);
+      if (error instanceof AxiosError && error.response?.status === 401) {
+        AuthService.logout();
+      }
+      throw error;
+    }
+  }
+
+  static async getEvolutionDashboard(): Promise<EvolutionDashboard> {
+    try {
+      const response = await api.get('/hr/evolution/dashboard');
+      return response.data;
+    } catch (error) {
+      if (error instanceof AxiosError && error.response?.status === 401) {
+        AuthService.logout();
+      }
+      throw error;
+    }
+  }
+
+  static async getCollaboratorsEvolutionSummary(filters?: any): Promise<CollaboratorEvolutionSummary[]> {
+    try {
+      const response = await api.get('/hr/evolution/collaborators/summary', { params: filters });
+      return response.data;
+    } catch (error) {
+      if (error instanceof AxiosError && error.response?.status === 401) {
+        AuthService.logout();
+      }
+      throw error;
+    }
+  }
+
+  static async getCollaboratorDetailedEvolution(collaboratorId: string): Promise<any> {
+    try {
+      const response = await api.get(`/hr/evolution/collaborators/${collaboratorId}/detailed`);
+      return response.data;
+    } catch (error) {
+      if (error instanceof AxiosError && error.response?.status === 401) {
+        AuthService.logout();
+      }
+      throw error;
+    }
+  }
+
+  static async compareCollaboratorsEvolution(params: {
+    collaboratorIds: string[];
+    cycles?: string[];
+    pillar?: string;
+  }): Promise<any> {
+    try {
+      const response = await api.get('/hr/evolution/comparison', { params });
+      return response.data;
+    } catch (error) {
+      if (error instanceof AxiosError && error.response?.status === 401) {
+        AuthService.logout();
+      }
+      throw error;
+    }
+  }
+
+  static async getOrganizationalTrends(params?: {
+    startCycle?: string;
+    endCycle?: string;
+  }): Promise<OrganizationalTrends> {
+    try {
+      const response = await api.get('/hr/evolution/trends', { params });
+      return response.data;
+    } catch (error) {
+      if (error instanceof AxiosError && error.response?.status === 401) {
+        AuthService.logout();
+      }
       throw error;
     }
   }

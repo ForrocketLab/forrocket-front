@@ -4,7 +4,7 @@ import { ROLES } from '../types/roles'; // Seu enum de papéis
 import { FaCog } from 'react-icons/fa';
 import { IoBarChartOutline } from 'react-icons/io5';
 import { LuCaptions, LuChartSpline, LuFilePenLine, LuUsers } from 'react-icons/lu';
-import { FileText, Users, Home, BarChart3, Settings, Shield, Building2, UsersRound, Target } from 'lucide-react';
+import { FileText, Users, Home, BarChart3, Settings, Shield, Building2, UsersRound, Target, TrendingUp } from 'lucide-react';
 import SchoolIcon from '@mui/icons-material/School';
 
 export interface IconProps {
