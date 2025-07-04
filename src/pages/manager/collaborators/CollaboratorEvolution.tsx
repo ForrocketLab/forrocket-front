@@ -92,24 +92,26 @@ const CollaboratorEvolution = () => {
   return (
     <div className='p-4 md:p-8 bg-gray-100 min-h-screen'>
       {/* Header */}
-      <div className='flex justify-between items-center mb-6'>
-        <h1 className='text-2xl font-bold text-gray-900'>Evolução de {selectedCycle || 'Carregando...'}</h1>
-        <div className='flex items-center gap-2'>
-          <label htmlFor='cycle-select' className='text-sm font-medium text-gray-700'>
-            Ciclo:
-          </label>
-          <select
-            id='cycle-select'
-            value={selectedCycle}
-            onChange={handleCycleChange}
-            className='px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white'
-          >
-            {availableCycles.map(cycle => (
-              <option key={cycle} value={cycle}>
-                {cycle}
-              </option>
-            ))}
-          </select>
+      <div className='bg-white shadow-md p-6 mb-6'>
+        <div className='flex justify-between items-center'>
+          <h1 className='text-2xl font-bold text-gray-900'>Evolução de {selectedCycle || 'Carregando...'}</h1>
+          <div className='flex items-center gap-2'>
+            <label htmlFor='cycle-select' className='text-sm font-medium text-gray-700'>
+              Ciclo:
+            </label>
+            <select
+              id='cycle-select'
+              value={selectedCycle}
+              onChange={handleCycleChange}
+              className='px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white'
+            >
+              {availableCycles.map(cycle => (
+                <option key={cycle} value={cycle}>
+                  {cycle}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6'>
