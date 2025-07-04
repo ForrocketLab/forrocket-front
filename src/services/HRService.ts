@@ -110,6 +110,29 @@ export interface CollaboratorFilters {
   careerTrack?: string;
   isActive?: boolean;
   roles?: string[];
+  projectId?: string;
+  jobTitle?: string;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  description: string;
+  isActive: boolean;
+}
+
+export interface CollaboratorWithProjectsAndProgress extends CollaboratorWithEvaluationProgress {
+  projects: Array<{
+    id: string;
+    name: string;
+    roleInProject: string;
+  }>;
+}
+
+export interface AdvancedFiltersResponse {
+  users: CollaboratorWithProjectsAndProgress[];
+  totalCount: number;
+  filteredCount: number;
 }
 
 class HRService {
@@ -643,7 +666,112 @@ class HRService {
     return response.data;
   }
 
+  /**
+   * Busca usuários com filtros avançados
+   */
+  static async getUsersWithAdvancedFilters(filters: CollaboratorFilters): Promise<AdvancedFiltersResponse> {
+    try {
+      const queryParams = new URLSearchParams();
+      
+      if (filters.search) queryParams.append('search', filters.search);
+      if (filters.projectId) queryParams.append('projectId', filters.projectId);
+      if (filters.jobTitle) queryParams.append('jobTitle', filters.jobTitle);
+      if (filters.businessUnit) queryParams.append('businessUnit', filters.businessUnit);
+      if (filters.seniority) queryParams.append('seniority', filters.seniority);
+      if (filters.careerTrack) queryParams.append('careerTrack', filters.careerTrack);
+      if (filters.isActive !== undefined) queryParams.append('isActive', String(filters.isActive));
+      if (filters.roles && filters.roles.length > 0) queryParams.append('roles', JSON.stringify(filters.roles));
 
+      const url = `/users/with-filters?${queryParams.toString()}`;
+      console.log('🔍 Fazendo requisição para:', url);
+      console.log('🔍 Filtros enviados:', filters);
+
+      const response = await api.get<AdvancedFiltersResponse>(url);
+      console.log('📊 Resposta recebida:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar usuários com filtros avançados:', error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar usuários.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  /**
+   * Busca lista de projetos disponíveis
+   */
+  static async getProjectsList(): Promise<Project[]> {
+    try {
+      const response = await api.get<Project[]>('/projects/list');
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar lista de projetos:', error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar projetos.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  /**
+   * Filtra colaboradores com projetos localmente
+   */
+  static filterCollaboratorsWithProjectsAndProgress(
+    collaborators: CollaboratorWithProjectsAndProgress[],
+    filters: CollaboratorFilters
+  ): CollaboratorWithProjectsAndProgress[] {
+    return collaborators.filter(collaborator => {
+      // Filtro por busca (nome ou email)
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        const matchesSearch = 
+          collaborator.name.toLowerCase().includes(searchLower) ||
+          collaborator.email.toLowerCase().includes(searchLower);
+        if (!matchesSearch) return false;
+      }
+
+      // Filtro por projeto
+      if (filters.projectId) {
+        const hasProject = collaborator.projects.some(project => project.id === filters.projectId);
+        if (!hasProject) return false;
+      }
+
+      // Filtro por cargo
+      if (filters.jobTitle) {
+        const jobTitleLower = filters.jobTitle.toLowerCase();
+        if (!collaborator.jobTitle.toLowerCase().includes(jobTitleLower)) return false;
+      }
+
+      // Filtro por unidade de negócio
+      if (filters.businessUnit && collaborator.businessUnit !== filters.businessUnit) {
+        return false;
+      }
+
+      // Filtro por senioridade
+      if (filters.seniority && collaborator.seniority !== filters.seniority) {
+        return false;
+      }
+
+      // Filtro por trilha de carreira
+      if (filters.careerTrack && collaborator.careerTrack !== filters.careerTrack) {
+        return false;
+      }
+
+      // Filtro por status ativo
+      if (filters.isActive !== undefined && collaborator.isActive !== filters.isActive) {
+        return false;
+      }
+
+      // Filtro por roles
+      if (filters.roles && filters.roles.length > 0) {
+        const hasAnyRole = filters.roles.some(role => collaborator.roles.includes(role));
+        if (!hasAnyRole) return false;
+      }
+
+      return true;
+    });
+  }
 }
 
 export default HRService;
