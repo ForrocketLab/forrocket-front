@@ -178,9 +178,9 @@ class EvaluationService {
     }
   }
 
-  async getPerformanceHistory(userId: string): Promise<PerformanceDataDto[]> {
+  async getPerformanceHistory(): Promise<PerformanceHistoryDto> {
     try {
-      const response = await api.get<PerformanceDataDto[]>('/performance/history', {
+      const response = await api.get<PerformanceHistoryDto>('/evaluations/collaborator/performance/history', {
         headers: {
           Authorization: `Bearer ${this.getToken()}`,
         },
