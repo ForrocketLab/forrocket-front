@@ -5,6 +5,13 @@ import type { BrutalFactsMetricsDto, TeamAnalysisDto, TeamHistoricalPerformanceD
 import { CreateManagerSubordinateAssessment } from '../types/evaluations';
 import { DetailedSelfAssessment } from '../types/detailedEvaluations';
 
+export interface Project {
+  projectId: string;
+  projectName: string;
+}
+
+export type ClientScores = Record<string, number>;
+
 class ManagerService {
   static async getManagerDashboard(cycle: string): Promise<ManagerDashboardResponse> {
     try {
@@ -198,6 +205,44 @@ class ManagerService {
       console.error('Erro ao buscar performance histórica da equipe:', error);
       if (error instanceof AxiosError && error.response) {
         throw new Error(error.response.data.message || 'Falha ao buscar performance histórica da equipe.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  static async getCollaboratorProjects(subordinateId: string): Promise<Project[]> {
+    try {
+      // Endpoint ajustado conforme especificação para buscar projetos do usuário.
+      const response = await api.get<Project[]>(`/users/${subordinateId}/projects`, {
+        headers: {
+          Authorization: `Bearer ${AuthService.getToken()}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Erro ao buscar projetos para o colaborador ${subordinateId}:`, error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar os projetos do colaborador.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  static async getClientProjectScores(projectId: string): Promise<ClientScores> {
+    try {
+      // 🎯 IMPORTANTE: Altere a URL base para o endereço e porta corretos do seu backend!
+      const backendUrl = `http://localhost:3000/api/projects/${projectId}/scores`;
+      const response = await api.get<ClientScores>(backendUrl, {
+        headers: {
+          Authorization: `Bearer ${AuthService.getToken()}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Erro ao buscar notas do cliente para o projeto ${projectId}:`, error);
+      if (error instanceof AxiosError && error.response) {
+        if (error.response.status === 404) return {}; // Retorna objeto vazio se não houver notas
+        throw new Error(error.response.data.message || 'Falha ao buscar as notas do cliente.');
       }
       throw new Error('Ocorreu um erro de rede. Tente novamente.');
     }

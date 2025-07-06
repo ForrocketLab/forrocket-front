@@ -1,33 +1,16 @@
-import { useParams } from 'react-router-dom';
 import DetailedScoreCard from '../dashboard/components/DetailedScoreCard';
 import { FaSortAmountUp, FaStar } from 'react-icons/fa';
 import BaseCard from '../dashboard/components/BaseCard';
 import { LuFilePenLine } from 'react-icons/lu';
 import CollaboratorHistoryChart from './components/CollaboratorHistoryChart';
 import CollaboratorCycleHistory from './components/CollaboratorCycleHistory';
-import { useEffect, useMemo, useState } from 'react';
-import ManagerService from '../../../services/ManagerService';
+import { useMemo } from 'react';
 
-const ManagerEvaluationsHistory = () => {
-  const { id } = useParams();
+interface ManagerEvaluationsHistoryProps {
+  performanceHistory: PerformanceHistoryDto;
+}
 
-  const [performanceHistory, setPerformanceHistory] = useState<PerformanceHistoryDto>();
-  const [loading, setLoading] = useState(true);
-  console.log('loading', loading);
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!id) {
-        console.error('ID do colaborador não fornecido.');
-        setLoading(false);
-        return;
-      }
-      const data = await ManagerService.getCollaboratorPerformanceHistory(id);
-      setPerformanceHistory(data);
-      setLoading(false);
-    };
-    fetchData();
-  }, [id]);
-
+const ManagerEvaluationsHistory: React.FC<ManagerEvaluationsHistoryProps> = ({ performanceHistory }) => {
   const cardData = useMemo(() => {
     const completedCycles = performanceHistory?.performanceData.filter(p => typeof p.finalScore === 'number');
 
