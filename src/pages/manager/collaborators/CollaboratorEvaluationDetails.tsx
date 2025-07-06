@@ -11,6 +11,7 @@ import EvaluationHeader from './components/CollaboratorEvaluationHeader';
 import EvaluationCriteriaList from './components/EvaluationCriteriaList';
 import Manager360Evaluations from './Manager360Evaluations';
 import ManagerEvaluationsHistory from './ManagerEvaluationsHistory';
+import ClientEvaluation from '../collaborators/components/ClientEvaluation';
 import type { ManagerCriterionState } from '../../../types/evaluations';
 import { type SelfEvaluationReviewRef } from '../collaboratorEvaluations/SelfEvaluationReview';
 import type { DetailedSelfAssessment } from '../../../types/detailedEvaluations';
@@ -40,7 +41,8 @@ export const ALLOWED_CRITERIA_IDS = [
 
 const TABS: TabItem[] = [
   { id: 'evaluation', label: 'Avaliação' },
-  { id: 'history', label: 'Histórico' } 
+  { id: 'history', label: 'Histórico' }, 
+  { id: 'customer', label: 'Avaliação do Cliente' }
 ];
 
 const CollaboratorEvaluationDetails: FC = () => {
@@ -49,6 +51,7 @@ const CollaboratorEvaluationDetails: FC = () => {
   const toast = useGlobalToast();
   
   const [detailedSelfAssessment, setDetailedSelfAssessment] = useState<DetailedSelfAssessment | null>(null);
+  const [performanceHistory, setPerformanceHistory] = useState<PerformanceHistoryDto | null>(null);
   const [collaboratorName, setCollaboratorName] = useState('');
   const [collaboratorJobTitle, setCollaboratorJobTitle] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -67,11 +70,13 @@ const CollaboratorEvaluationDetails: FC = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const [selfAssessment, dashboardData] = await Promise.all([
+        const [selfAssessment, dashboardData, historyData] = await Promise.all([
           ManagerService.getDetailedSelfAssessment(collaboratorIdFromUrl),
-          ManagerService.getManagerDashboard('2025.1')
+          ManagerService.getManagerDashboard('2025.1'),
+          ManagerService.getCollaboratorPerformanceHistory(collaboratorIdFromUrl),
         ]);
         setDetailedSelfAssessment(selfAssessment);
+        setPerformanceHistory(historyData);
         const subordinates = dashboardData?.collaboratorsInfo?.flatMap((group: CollaboratorGroup) => group.subordinates) ?? [];
         const foundCollaborator = subordinates.find((sub: DashboardSubordinate) => sub.id === collaboratorIdFromUrl);
         if (foundCollaborator) {
@@ -188,7 +193,8 @@ const CollaboratorEvaluationDetails: FC = () => {
             onJustificationChange={handleManagerJustificationChange}
           />
         )}
-        {activeTab === 'history' && <ManagerEvaluationsHistory />}
+        {activeTab === 'history' && performanceHistory && <ManagerEvaluationsHistory performanceHistory={performanceHistory} />}
+        {activeTab === 'customer' && collaboratorIdFromUrl && performanceHistory && <ClientEvaluation collaboratorId={collaboratorIdFromUrl} performanceHistory={performanceHistory} />}
       </main>
     </div>
   );
