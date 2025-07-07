@@ -1,8 +1,9 @@
-import { type FC, useState, useEffect } from 'react';
-import { Search, Filter, Star, Copy, Edit3, AlertCircle } from 'lucide-react';
-import { useCommitteeCollaborators, useCollaboratorEvaluationSummary, useCommitteeAssessmentActions } from '../../hooks/useCommittee';
+import { type FC, useState } from 'react';
+import { Search, Filter, Star, Copy, Edit3, AlertCircle, Calendar, Users, CheckCircle, Clock, TrendingUp } from 'lucide-react';
+import { useCommitteeCollaborators, useCommitteeAssessmentActions, useCommitteeMetrics } from '../../hooks/useCommittee';
 import CommitteeService, { type CollaboratorForEqualization, type CommitteeAssessment } from '../../services/CommitteeService';
 import ExportButton from '../../components/ExportButton';
+import GenAISummaryCard from '../../components/GenAISummaryCard';
 import { useGlobalToast } from '../../hooks/useGlobalToast';
 
 interface ProcessedCollaborator {
@@ -15,9 +16,10 @@ interface ProcessedCollaborator {
   selfAssessment: number | null;
   assessment360: number | null;
   managerAssessment: number | null;
+  mentoring: number | null;
   finalScore: number | null;
-  summary: string;
   committeeAssessmentId?: string;
+  committeeAssessmentStatus?: 'DRAFT' | 'SUBMITTED';
 }
 
 const EqualizacoesPage: FC = () => {
@@ -26,11 +28,19 @@ const EqualizacoesPage: FC = () => {
   const [expandedCards, setExpandedCards] = useState<string[]>([]); // Usar IDs de string
   const [ratings, setRatings] = useState<{[key: string]: number}>({});
   const [justifications, setJustifications] = useState<{[key: string]: string}>({});
-  const [selectedCollaboratorId, setSelectedCollaboratorId] = useState<string | null>(null);
+
   const [editingCollaborators, setEditingCollaborators] = useState<string[]>([]);
   const [collaboratorSummaries, setCollaboratorSummaries] = useState<{[key: string]: any}>({});
+  const [showFilters, setShowFilters] = useState(false);
+  const [showGenAI, setShowGenAI] = useState<{[key: string]: boolean}>({});
+  const [activeFilters, setActiveFilters] = useState({
+    status: 'all', // 'all', 'pending', 'completed'
+    discrepancy: 'all', // 'all', 'high', 'moderate', 'low'
+    scoreRange: 'all' // 'all', '1-2', '3', '4-5'
+  });
   
   const { data: collaboratorsData, loading, error, refetch } = useCommitteeCollaborators();
+  const { data: metricsData, loading: metricsLoading } = useCommitteeMetrics();
   const { createAssessment, updateAssessment, submitAssessment, loading: actionLoading } = useCommitteeAssessmentActions();
 
   // Buscar dados de summary quando um card é expandido
@@ -63,17 +73,88 @@ const EqualizacoesPage: FC = () => {
       selfAssessment: evaluationScores?.selfAssessment || null,
       assessment360: evaluationScores?.assessment360 || null,
       managerAssessment: evaluationScores?.managerAssessment || null,
+      mentoring: evaluationScores?.mentoring || null,
       finalScore: collaborator.committeeAssessment?.finalScore || null,
-      summary: summary?.customSummary || 'Clique para carregar dados de avaliação...',
-      committeeAssessmentId: collaborator.committeeAssessment?.id
+      committeeAssessmentId: collaborator.committeeAssessment?.id,
+      committeeAssessmentStatus: collaborator.committeeAssessment?.status
     };
   });
 
   const filteredCollaborators = processedCollaborators.filter(collaborator => {
+    // Filtro de busca
     const matchesSearch = collaborator.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          collaborator.role.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
+    
+    // Filtro de status
+    const matchesStatus = activeFilters.status === 'all' ||
+                         (activeFilters.status === 'pending' && collaborator.status === 'Pendente') ||
+                         (activeFilters.status === 'completed' && collaborator.status === 'Finalizado');
+    
+    // Filtro de discrepância
+    let matchesDiscrepancy = true;
+    if (activeFilters.discrepancy !== 'all') {
+      const scores = [
+        collaborator.selfAssessment,
+        collaborator.assessment360,
+        collaborator.managerAssessment,
+        collaborator.mentoring
+      ].filter(score => score !== null && score !== undefined);
+      
+      if (scores.length >= 2) {
+        const maxScore = Math.max(...scores);
+        const minScore = Math.min(...scores);
+        const difference = maxScore - minScore;
+        
+        if (activeFilters.discrepancy === 'high') {
+          matchesDiscrepancy = difference >= 1.5;
+        } else if (activeFilters.discrepancy === 'moderate') {
+          matchesDiscrepancy = difference >= 1.0 && difference < 1.5;
+        } else if (activeFilters.discrepancy === 'low') {
+          matchesDiscrepancy = difference < 1.0;
+        }
+      } else {
+        // Colaboradores com menos de 2 notas são considerados "baixa discrepância"
+        // pois não há dados suficientes para calcular discrepância
+        if (activeFilters.discrepancy === 'high' || activeFilters.discrepancy === 'moderate') {
+          matchesDiscrepancy = false;
+        } else if (activeFilters.discrepancy === 'low') {
+          matchesDiscrepancy = true;
+        }
+      }
+    }
+    
+    // Filtro de faixa de nota final
+    const matchesScoreRange = activeFilters.scoreRange === 'all' ||
+                             (activeFilters.scoreRange === '1-2' && collaborator.finalScore && collaborator.finalScore <= 2) ||
+                             (activeFilters.scoreRange === '3' && collaborator.finalScore && collaborator.finalScore === 3) ||
+                             (activeFilters.scoreRange === '4-5' && collaborator.finalScore && collaborator.finalScore >= 4);
+    
+    return matchesSearch && matchesStatus && matchesDiscrepancy && matchesScoreRange;
   });
+
+  // Calcular métricas para os cards
+  const totalCollaborators = processedCollaborators.length;
+  const pendingCount = processedCollaborators.filter(c => c.status === 'Pendente').length;
+  const completedCount = processedCollaborators.filter(c => c.status === 'Finalizado').length;
+  const completionPercentage = totalCollaborators > 0 ? Math.round((completedCount / totalCollaborators) * 100) : 0;
+  
+  // Dados de métricas do backend
+  const daysRemaining = metricsData?.deadlines?.daysRemaining || null;
+  
+  // Detectar colaboradores com discrepâncias altas
+  const highDiscrepancyCount = processedCollaborators.filter(collaborator => {
+    const scores = [
+      collaborator.selfAssessment,
+      collaborator.assessment360,
+      collaborator.managerAssessment,
+      collaborator.mentoring
+    ].filter(score => score !== null && score !== undefined);
+    
+    if (scores.length < 2) return false;
+    const maxScore = Math.max(...scores);
+    const minScore = Math.min(...scores);
+    return (maxScore - minScore) >= 1.5; // Alta discrepância
+  }).length;
 
   const toggleCardExpansion = (id: string) => {
     setExpandedCards(prev => {
@@ -106,12 +187,10 @@ const EqualizacoesPage: FC = () => {
   const handleSubmit = async (collaborator: ProcessedCollaborator) => {
     const rating = ratings[collaborator.id];
     const justification = justifications[collaborator.id];
-    
     if (!rating || !justification?.trim()) {
       toast.warning('Campos Obrigatórios', 'Por favor, preencha a avaliação e justificativa antes de concluir.');
       return;
     }
-
     try {
       if (collaborator.committeeAssessmentId) {
         await updateAssessment(collaborator.committeeAssessmentId, {
@@ -125,12 +204,8 @@ const EqualizacoesPage: FC = () => {
           justification: justification.trim()
         });
       }
-      
       toast.success('Avaliação Submetida!', 'A avaliação foi salva com sucesso.');
-      
-      // Remover do modo de edição se estava sendo editado
       setEditingCollaborators(prev => prev.filter(id => id !== collaborator.id));
-      
       refetch();
     } catch (error) {
       console.error('Erro ao submeter avaliação:', error);
@@ -141,7 +216,6 @@ const EqualizacoesPage: FC = () => {
   const handleEditResult = async (collaborator: ProcessedCollaborator) => {
     // Adicionar ao modo de edição
     setEditingCollaborators(prev => [...prev, collaborator.id]);
-    
     // Pré-preencher os campos com os valores atuais
     if (collaborator.finalScore) {
       setRatings(prev => ({
@@ -149,7 +223,6 @@ const EqualizacoesPage: FC = () => {
         [collaborator.id]: collaborator.finalScore!
       }));
     }
-    
     // Buscar justificativa existente se tiver ID da avaliação
     if (collaborator.committeeAssessmentId) {
       try {
@@ -158,7 +231,6 @@ const EqualizacoesPage: FC = () => {
         const existingAssessment = assessments.assessments.find(
           (assessment: CommitteeAssessment) => assessment.id === collaborator.committeeAssessmentId
         );
-        
         if (existingAssessment) {
           setJustifications(prev => ({
             ...prev,
@@ -200,6 +272,25 @@ const EqualizacoesPage: FC = () => {
     });
   };
 
+  const handleFilterChange = (filterType: string, value: string) => {
+    setActiveFilters(prev => ({
+      ...prev,
+      [filterType]: value
+    }));
+  };
+
+  const clearAllFilters = () => {
+    setActiveFilters({
+      status: 'all',
+      discrepancy: 'all',
+      scoreRange: 'all'
+    });
+  };
+
+  const hasActiveFilters = activeFilters.status !== 'all' || 
+                          activeFilters.discrepancy !== 'all' || 
+                          activeFilters.scoreRange !== 'all';
+
   const StarRating: FC<{rating: number, onRatingChange: (rating: number) => void}> = ({ rating, onRatingChange }) => {
     return (
       <div className="flex gap-1">
@@ -216,6 +307,24 @@ const EqualizacoesPage: FC = () => {
         ))}
       </div>
     );
+  };
+
+  const handleGenAISummaryGenerated = (collaboratorId: string, summary: string) => {
+    // Atualizar o resumo do colaborador com o resumo gerado por IA
+    setCollaboratorSummaries(prev => ({
+      ...prev,
+      [collaboratorId]: {
+        ...prev[collaboratorId],
+        customSummary: summary
+      }
+    }));
+  };
+
+  const toggleGenAI = (collaboratorId: string) => {
+    setShowGenAI(prev => ({
+      ...prev,
+      [collaboratorId]: !prev[collaboratorId]
+    }));
   };
 
   // Loading state
@@ -257,9 +366,145 @@ const EqualizacoesPage: FC = () => {
         <h1 className="text-2xl font-semibold text-gray-900">Equalizações</h1>
       </div>
 
-      {/* Barra de Busca */}
+      {/* Cards de Métricas */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        {/* Total de Colaboradores */}
+        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Users className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-600">Total</h3>
+              <p className="text-xs text-gray-500">Colaboradores no ciclo</p>
+              <div className="text-2xl font-bold text-blue-600 mt-1">{totalCollaborators}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Equalizações Pendentes */}
+        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <Clock className="w-6 h-6 text-yellow-600" />
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-600">Pendentes</h3>
+              <p className="text-xs text-gray-500">Aguardando equalização</p>
+              <div className="text-2xl font-bold text-yellow-600 mt-1">{pendingCount}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Equalizações Finalizadas */}
+        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-600">Finalizadas</h3>
+              <p className="text-xs text-gray-500">Equalizações concluídas</p>
+              <div className="text-2xl font-bold text-green-600 mt-1">{completedCount}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Progresso Geral */}
+        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-[#085F60] bg-opacity-10 rounded-lg flex items-center justify-center">
+              <TrendingUp className="w-6 h-6 text-[#085F60]" />
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-600">Progresso</h3>
+              <p className="text-xs text-gray-500">Percentual concluído</p>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="text-2xl font-bold text-[#085F60]">{completionPercentage}%</div>
+                <div className="flex-1 bg-gray-200 rounded-full h-2 w-16">
+                  <div 
+                    className="bg-[#085F60] h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${completionPercentage}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Alertas e Prazos */}
+      <div className="space-y-4 mb-6">
+        {/* Alerta de Prazo */}
+        {daysRemaining !== null && (
+          <div className={`p-4 rounded-lg border-l-4 ${
+            daysRemaining <= 2 
+              ? 'bg-red-50 border-red-400' 
+              : daysRemaining <= 5 
+                ? 'bg-yellow-50 border-yellow-400' 
+                : 'bg-blue-50 border-blue-400'
+          }`}>
+            <div className="flex items-center gap-3">
+              <Calendar className={`w-5 h-5 ${
+                daysRemaining <= 2 
+                  ? 'text-red-600' 
+                  : daysRemaining <= 5 
+                    ? 'text-yellow-600' 
+                    : 'text-blue-600'
+              }`} />
+              <div>
+                <h4 className={`text-sm font-semibold ${
+                  daysRemaining <= 2 
+                    ? 'text-red-900' 
+                    : daysRemaining <= 5 
+                      ? 'text-yellow-900' 
+                      : 'text-blue-900'
+                }`}>
+                  {daysRemaining <= 2 ? '🚨 Prazo Crítico!' : daysRemaining <= 5 ? '⚠️ Prazo Próximo' : '📅 Prazo para Equalização'}
+                </h4>
+                <p className={`text-sm ${
+                  daysRemaining <= 2 
+                    ? 'text-red-800' 
+                    : daysRemaining <= 5 
+                      ? 'text-yellow-800' 
+                      : 'text-blue-800'
+                }`}>
+                  {daysRemaining === 0 
+                    ? 'Último dia para finalizar as equalizações!' 
+                    : daysRemaining === 1 
+                      ? 'Resta apenas 1 dia para finalizar as equalizações'
+                      : `Restam ${daysRemaining} dias para finalizar as equalizações`
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Alerta de Discrepâncias */}
+        {highDiscrepancyCount > 0 && (
+          <div className="p-4 bg-orange-50 rounded-lg border-l-4 border-orange-400">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-orange-600" />
+              <div>
+                <h4 className="text-sm font-semibold text-orange-900">
+                  ⚠️ Discrepâncias Detectadas
+                </h4>
+                <p className="text-sm text-orange-800">
+                  {highDiscrepancyCount} colaborador{highDiscrepancyCount > 1 ? 'es' : ''} com discrepâncias altas (≥1.5 pontos) entre avaliações. 
+                  Requer atenção especial do comitê.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+
+      </div>
+
+      {/* Barra de Busca e Filtros */}
       <div className="mb-6">
-        <div className="flex gap-4">
+        <div className="flex gap-4 items-start">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
@@ -270,10 +515,189 @@ const EqualizacoesPage: FC = () => {
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#085F60] focus:border-transparent"
             />
           </div>
-          <button className="bg-[#085F60] p-3 rounded-lg text-white hover:bg-[#064b4c] transition-colors">
-            <Filter className="w-4 h-4" />
-          </button>
+          
+          {/* Botão de Filtro */}
+          <div className="relative">
+            <button 
+              onClick={() => setShowFilters(!showFilters)}
+              className={`p-3 rounded-lg transition-colors flex items-center gap-2 ${
+                hasActiveFilters 
+                  ? 'bg-[#085F60] text-white' 
+                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <Filter className="w-4 h-4" />
+              {hasActiveFilters && (
+                <span className="bg-white text-[#085F60] text-xs px-1.5 py-0.5 rounded-full font-medium">
+                  •
+                </span>
+              )}
+            </button>
+
+            {/* Dropdown de Filtros */}
+            {showFilters && (
+              <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Filtros</h3>
+                    <button
+                      onClick={() => setShowFilters(false)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* Filtro de Status */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Status da Equalização
+                      </label>
+                      <div className="space-y-2">
+                        {[
+                          { value: 'all', label: 'Todos' },
+                          { value: 'pending', label: 'Pendentes' },
+                          { value: 'completed', label: 'Finalizadas' }
+                        ].map(option => (
+                          <label key={option.value} className="flex items-center">
+                            <input
+                              type="radio"
+                              name="status"
+                              value={option.value}
+                              checked={activeFilters.status === option.value}
+                              onChange={(e) => handleFilterChange('status', e.target.value)}
+                              className="mr-2 text-[#085F60] focus:ring-[#085F60]"
+                            />
+                            <span className="text-sm text-gray-700">{option.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Filtro de Discrepância */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Nível de Discrepância
+                      </label>
+                      <div className="space-y-2">
+                        {[
+                          { value: 'all', label: 'Todas' },
+                          { value: 'high', label: 'Alta (≥1.5 pontos)' },
+                          { value: 'moderate', label: 'Moderada (1.0-1.4 pontos)' },
+                          { value: 'low', label: 'Baixa (<1.0 ponto)' }
+                        ].map(option => (
+                          <label key={option.value} className="flex items-center">
+                            <input
+                              type="radio"
+                              name="discrepancy"
+                              value={option.value}
+                              checked={activeFilters.discrepancy === option.value}
+                              onChange={(e) => handleFilterChange('discrepancy', e.target.value)}
+                              className="mr-2 text-[#085F60] focus:ring-[#085F60]"
+                            />
+                            <span className="text-sm text-gray-700">{option.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Filtro de Faixa de Nota */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Faixa de Nota Final
+                      </label>
+                      <div className="space-y-2">
+                        {[
+                          { value: 'all', label: 'Todas as notas' },
+                          { value: '1-2', label: 'Baixa (1-2)' },
+                          { value: '3', label: 'Média (3)' },
+                          { value: '4-5', label: 'Alta (4-5)' }
+                        ].map(option => (
+                          <label key={option.value} className="flex items-center">
+                            <input
+                              type="radio"
+                              name="scoreRange"
+                              value={option.value}
+                              checked={activeFilters.scoreRange === option.value}
+                              onChange={(e) => handleFilterChange('scoreRange', e.target.value)}
+                              className="mr-2 text-[#085F60] focus:ring-[#085F60]"
+                            />
+                            <span className="text-sm text-gray-700">{option.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Botões de Ação */}
+                  <div className="flex gap-3 mt-6 pt-4 border-t border-gray-200">
+                    <button
+                      onClick={clearAllFilters}
+                      className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      Limpar Filtros
+                    </button>
+                    <button
+                      onClick={() => setShowFilters(false)}
+                      className="flex-1 px-4 py-2 bg-[#085F60] text-white rounded-lg hover:bg-[#064b4c] transition-colors"
+                    >
+                      Aplicar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* Indicadores de Filtros Ativos */}
+        {hasActiveFilters && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="text-sm text-gray-600">Filtros ativos:</span>
+            {activeFilters.status !== 'all' && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                Status: {activeFilters.status === 'pending' ? 'Pendentes' : 'Finalizadas'}
+                <button
+                  onClick={() => handleFilterChange('status', 'all')}
+                  className="hover:text-blue-600"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+            {activeFilters.discrepancy !== 'all' && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">
+                Discrepância: {
+                  activeFilters.discrepancy === 'high' ? 'Alta' :
+                  activeFilters.discrepancy === 'moderate' ? 'Moderada' : 'Baixa'
+                }
+                <button
+                  onClick={() => handleFilterChange('discrepancy', 'all')}
+                  className="hover:text-orange-600"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+            {activeFilters.scoreRange !== 'all' && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                Nota: {
+                  activeFilters.scoreRange === '1-2' ? '1-2' :
+                  activeFilters.scoreRange === '3' ? '3' : '4-5'
+                }
+                <button
+                  onClick={() => handleFilterChange('scoreRange', 'all')}
+                  className="hover:text-green-600"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Lista de Colaboradores */}
@@ -342,6 +766,35 @@ const EqualizacoesPage: FC = () => {
             {expandedCards.includes(collaborator.id) && (
               <div className="px-4 pb-4 border-t border-gray-100">
                 <div className="pt-4">
+                  {/* Botão para mostrar/ocultar GenAI */}
+                  <div className="mb-4 flex justify-between items-center">
+                    <h4 className="text-lg font-semibold text-gray-900">Análise Inteligente</h4>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleGenAI(collaborator.id);
+                      }}
+                      className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 text-sm"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      {showGenAI[collaborator.id] ? 'Ocultar IA' : '🤖 Análise Inteligente'}
+                    </button>
+                  </div>
+
+                  {/* Componente GenAI */}
+                  {showGenAI[collaborator.id] && (
+                    <div className="mb-6">
+                      <GenAISummaryCard
+                        collaboratorId={collaborator.id}
+                        collaboratorName={collaborator.name}
+                        cycle={metricsData?.cycle || '2025.1'}
+                        onSummaryGenerated={(summary) => handleGenAISummaryGenerated(collaborator.id, summary)}
+                      />
+                    </div>
+                  )}
+
                   {/* Barras de Progresso */}
                   <div className="grid grid-cols-3 gap-6 mb-6">
                     <div>
@@ -378,19 +831,6 @@ const EqualizacoesPage: FC = () => {
                           className="h-2 bg-[#085F60] rounded-full"
                           style={{ width: `${((collaborator.assessment360 || 0) / 5) * 100}%` }}
                         ></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Resumo */}
-                  <div className="mb-6">
-                    <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-                      <svg className="w-4 h-4 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                      </svg>
-                      <div>
-                        <p className="text-sm font-medium text-blue-900">Resumo</p>
-                        <p className="text-sm text-blue-800">{collaborator.summary}</p>
                       </div>
                     </div>
                   </div>
@@ -476,6 +916,7 @@ const EqualizacoesPage: FC = () => {
                         <button 
                           onClick={() => handleEditResult(collaborator)}
                           className="flex items-center gap-2 px-4 py-2 border border-[#085F60] text-[#085F60] rounded-lg hover:bg-[#085F60] hover:text-white transition-colors"
+                          title="Editar resultado"
                         >
                           <Edit3 className="w-4 h-4" />
                           Editar resultado

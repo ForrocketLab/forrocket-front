@@ -1,4 +1,4 @@
-import { type FC, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 
 interface BaseCardProps {
   title: string;
@@ -7,7 +7,7 @@ interface BaseCardProps {
   className?: string;
 }
 
-const BaseCard: FC<BaseCardProps> = ({ title, leftContent, rightContent, className = 'bg-white text-gray-800' }) => {
+const BaseCard = ({ title, leftContent, rightContent, className = 'bg-white text-gray-800' }: BaseCardProps) => {
   return (
     <div className={`flex flex-col w-full p-6 rounded-2xl shadow-md ${className}`}>
       <h3 className='text-[16px] font-bold'>{title}</h3>

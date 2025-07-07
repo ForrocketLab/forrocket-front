@@ -1,6 +1,8 @@
-// src/components/EvaluationCriteriaList.tsx
+// src/pages/manager/collaboratorEvaluations/components/EvaluationCriteriaList.tsx
+
+import type { SelfAssessmentAnswer, ManagerCriterionState } from '../../../../types/evaluations';
 import { Star, CheckCircle, ChevronUp, ChevronDown } from 'lucide-react';
-import { ALLOWED_CRITERIA_IDS, type ManagerCriterionState } from '../CollaboratorEvaluationDetails';
+import { ALLOWED_CRITERIA_IDS } from '../CollaboratorEvaluationDetails';
 
 interface EvaluationCriteriaListProps {
   isAssessmentSubmitted: boolean;
@@ -41,7 +43,8 @@ const EvaluationCriteriaList = ({
           const isExpanded = expandedCriterion.has(criterionId);
           const managerScore = managerAssessments[criterionId]?.score || 0;
           const selfAnswer = answers.find(a => a.criterionId === criterionId);
-          const hasManagerAssessment = managerScore > 0 && managerAssessments[criterionId]?.justification.trim() !== '';
+          const hasManagerAssessment =
+            managerScore > 0 && (managerAssessments[criterionId]?.justification || '').trim() !== '';
 
           return (
             <div key={criterionId}>
@@ -59,7 +62,6 @@ const EvaluationCriteriaList = ({
                   )}
                   <h3 className='font-medium text-gray-900'>{getCriterionName(criterionId)}</h3>
                 </div>
-
                 <div className='flex items-center gap-4'>
                   <div className='text-sm font-medium text-gray-600'>
                     {selfAnswer ? selfAnswer.score.toFixed(1) : '-'}
@@ -84,9 +86,7 @@ const EvaluationCriteriaList = ({
                         {[1, 2, 3, 4, 5].map(starValue => (
                           <Star
                             key={starValue}
-                            className={`w-5 h-5 ${
-                              starValue <= (selfAnswer?.score ?? 0) ? 'text-teal-500 fill-current' : 'text-gray-300'
-                            }`}
+                            className={`w-5 h-5 ${starValue <= (selfAnswer?.score ?? 0) ? 'text-teal-500 fill-current' : 'text-gray-300'}`}
                           />
                         ))}
                       </div>
@@ -97,7 +97,6 @@ const EvaluationCriteriaList = ({
                         </div>
                       </div>
                     </div>
-
                     <div className='space-y-3'>
                       <div className='text-sm font-medium text-gray-700'>
                         Sua avaliação de 1 a 5 com base no critério
@@ -108,17 +107,11 @@ const EvaluationCriteriaList = ({
                             key={starValue}
                             type='button'
                             onClick={() => onRatingChange(criterionId, starValue)}
-                            className={`transition-colors hover:scale-110 ${
-                              isAssessmentSubmitted ? 'cursor-not-allowed opacity-50' : ''
-                            }`}
+                            className={`transition-colors hover:scale-110 ${isAssessmentSubmitted ? 'cursor-not-allowed opacity-50' : ''}`}
                             disabled={isAssessmentSubmitted}
                           >
                             <Star
-                              className={`w-5 h-5 ${
-                                starValue <= managerScore
-                                  ? 'text-teal-600 fill-current'
-                                  : 'text-gray-300 hover:text-teal-400'
-                              }`}
+                              className={`w-5 h-5 ${starValue <= managerScore ? 'text-teal-600 fill-current' : 'text-gray-300 hover:text-teal-400'}`}
                             />
                           </button>
                         ))}
@@ -130,9 +123,7 @@ const EvaluationCriteriaList = ({
                           placeholder='Justifique sua nota...'
                           value={managerAssessments[criterionId]?.justification || ''}
                           onChange={e => onJustificationChange(criterionId, e.target.value)}
-                          className={`w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm resize-none placeholder-gray-400 ${
-                            isAssessmentSubmitted ? 'bg-gray-100 cursor-not-allowed' : ''
-                          }`}
+                          className={`w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm resize-none placeholder-gray-400 ${isAssessmentSubmitted ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                           disabled={isAssessmentSubmitted}
                         />
                       </div>

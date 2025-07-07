@@ -1,10 +1,22 @@
 import type { FC } from 'react';
 import { ROLES } from '../types/roles'; // Seu enum de papéis
 
-import { FaCog, FaHome, FaArrowAltCircleDown } from 'react-icons/fa';
+import { FaCog, FaArrowAltCircleDown } from 'react-icons/fa';
 import { IoBarChartOutline } from 'react-icons/io5';
-import { LuFilePenLine, LuLayoutDashboard, LuLayoutTemplate, LuUsers } from 'react-icons/lu';
-import { MdPeople } from 'react-icons/md';
+import { LuCaptions, LuChartSpline, LuFilePenLine, LuUsers } from 'react-icons/lu';
+import {
+  FileText,
+  Users,
+  Home,
+  BarChart3,
+  Settings,
+  Shield,
+  Building2,
+  UsersRound,
+  Target,
+  TrendingUp,
+} from 'lucide-react';
+import SchoolIcon from '@mui/icons-material/School';
 
 export interface IconProps {
   size?: number;
@@ -21,16 +33,11 @@ export interface MenuItemConfig {
 
 // todas as opções de menu possíveis na aplicação
 export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
+  // ===== COLABORADOR =====
   {
     path: '/',
     label: 'Minha Home',
-    icon: FaHome,
-    allowedRoles: [ROLES.COLLABORATOR, ROLES.MANAGER, ROLES.RH, ROLES.ADMIN],
-  },
-  {
-    path: '/dashboard',
-    label: 'Dashboard',
-    icon: LuLayoutDashboard,
+    icon: Home,
     allowedRoles: [ROLES.COLLABORATOR],
   },
   {
@@ -40,57 +47,125 @@ export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
     allowedRoles: [ROLES.COLLABORATOR],
   },
   {
-    path: '/evolucao',
+    path: '/evolution',
     label: 'Evolução',
-    icon: IoBarChartOutline,
+    icon: LuChartSpline,
     allowedRoles: [ROLES.COLLABORATOR],
   },
   {
+    path: '/okrs',
+    label: 'Meus OKRs',
+    icon: Target,
+    allowedRoles: [ROLES.COLLABORATOR],
+  },
+
+  // ===== GESTOR =====
+  {
     path: '/manager/dashboard',
     label: 'Dashboard Gestor',
-    icon: LuLayoutTemplate,
+    icon: BarChart3,
     allowedRoles: [ROLES.MANAGER],
   },
   {
     path: '/manager/collaborators',
-    label: 'Colaboradores',
-    icon: LuUsers,
+    label: 'Meus Colaboradores',
+    icon: Users,
     allowedRoles: [ROLES.MANAGER],
   },
   {
-    path: '/committee',
-    label: 'Painel do Comitê',
-    icon: LuLayoutDashboard,
-    allowedRoles: [ROLES.COMMITTEE, ROLES.ADMIN],
+    path: '/manager/brutal-facts',
+    label: 'Brutal Facts',
+    icon: LuCaptions,
+    allowedRoles: [ROLES.MANAGER],
   },
-  {
-    path: '/committee/equalizacoes',
-    label: 'Equalizações',
-    icon: LuFilePenLine,
-    allowedRoles: [ROLES.COMMITTEE, ROLES.ADMIN],
-  },
+
+  // ===== RH =====
   {
     path: '/rh',
     label: 'Dashboard RH',
-    icon: LuLayoutDashboard,
-    allowedRoles: [ROLES.RH, ROLES.ADMIN],
+    icon: Building2,
+    allowedRoles: [ROLES.RH],
   },
   {
     path: '/rh/colaboradores',
     label: 'Gestão de Colaboradores',
-    icon: MdPeople,
-    allowedRoles: [ROLES.RH, ROLES.ADMIN],
+    icon: UsersRound,
+    allowedRoles: [ROLES.RH],
+  },
+  {
+    path: '/rh/evolucao-historica',
+    label: 'Evolução Histórica',
+    icon: TrendingUp,
+    allowedRoles: [ROLES.RH],
   },
   {
     path: '/rh/criterios',
-    label: 'Critérios de Avaliação',
-    icon: FaCog,
-    allowedRoles: [ROLES.RH, ROLES.ADMIN],
+    label: 'Gestão de Critérios',
+    icon: Settings,
+    allowedRoles: [ROLES.RH],
+  },
+
+  // ===== COMITÊ =====
+  {
+    path: '/committee',
+    label: 'Comitê de Avaliação',
+    icon: Shield,
+    allowedRoles: [ROLES.COMMITTEE],
   },
   {
-    path:'/rh/importar-historicos',
+    path: '/committee/equalizacoes',
+    label: 'Equalizações',
+    icon: BarChart3,
+    allowedRoles: [ROLES.COMMITTEE],
+  },
+
+  // ===== ADMIN =====
+  {
+    path: '/admin',
+    label: 'Painel Admin',
+    icon: FaCog,
+    allowedRoles: [ROLES.ADMIN],
+  },
+  {
+    path: '/admin/users',
+    label: 'Gerenciar Usuários',
+    icon: LuUsers,
+    allowedRoles: [ROLES.ADMIN],
+  },
+  {
+    path: '/admin/cycles',
+    label: 'Gerenciar Ciclos',
+    icon: IoBarChartOutline,
+    allowedRoles: [ROLES.ADMIN],
+  },
+  {
+    path: '/admin/phase-control',
+    label: 'Controle de Fases',
+    icon: LuFilePenLine,
+    allowedRoles: [ROLES.ADMIN],
+  },
+  {
+    path: '/admin/reports',
+    label: 'Relatórios Admin',
+    icon: IoBarChartOutline,
+    allowedRoles: [ROLES.ADMIN],
+  },
+  {
+    path: '/admin/auditlog',
+    label: 'Audit Log',
+    icon: FileText,
+    allowedRoles: [ROLES.ADMIN],
+  },
+  {
+    path: '/pdis',
+    label: 'Meus PDIs',
+    icon: SchoolIcon,
+    allowedRoles: [ROLES.COLLABORATOR, ROLES.MANAGER, ROLES.RH],
+  },
+  {
+    path: '/rh/importar-historicos',
     label: 'Importar Histórico',
     icon: FaArrowAltCircleDown,
     allowedRoles: [ROLES.RH, ROLES.ADMIN],
-  }
+  },
 ];

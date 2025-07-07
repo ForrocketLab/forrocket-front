@@ -26,7 +26,7 @@ const SideMenu = ({ isExpanded, toggleSidebar }: SideMenuProps) => {
     // A largura do container principal agora transiciona suavemente
     <aside
       className={`fixed top-0 left-0 flex h-full flex-col justify-between border-r-2 border-gray-100 bg-white py-4 z-20 transition-all duration-300 ease-in-out ${
-        isExpanded ? 'w-64' : 'w-20' // 256px -> 80px
+        isExpanded ? 'w-64' : 'w-20'
       }`}
     >
       <div>
@@ -52,7 +52,13 @@ const SideMenu = ({ isExpanded, toggleSidebar }: SideMenuProps) => {
             <NavLink
               key={item.path}
               to={item.path}
-              end={item.path === '/'}
+              end={
+                item.path === '/' ||
+                item.path === '/admin' ||
+                item.path === '/rh' ||
+                item.path === '/committee' ||
+                item.path === '/manager/dashboard'
+              }
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-200 ${
                   isActive ? 'bg-teal-100 text-[#085F60] font-bold' : 'text-gray-700 hover:bg-gray-100'
@@ -65,7 +71,6 @@ const SideMenu = ({ isExpanded, toggleSidebar }: SideMenuProps) => {
                     size={20}
                     className={`flex-shrink-0 transition-colors ${isActive ? 'text-[#085F60]' : 'text-gray-600'}`}
                   />
-                  {/* ▼▼▼ CORREÇÃO PRINCIPAL AQUI ▼▼▼ */}
                   <span
                     className={`overflow-hidden transition-all whitespace-nowrap ${isExpanded ? 'w-full ml-1' : 'w-0'}`}
                   >
