@@ -158,18 +158,71 @@ class EvaluationService {
    */
   async updateSelfAssessment(updateData: Record<string, any>): Promise<void> {
     try {
-      await api.patch('/evaluations/collaborator/self-assessment', updateData, {
-        headers: {
-          Authorization: `Bearer ${this.getToken()}`,
-        },
-      });
-      console.log('📊 Autoavaliação atualizada incrementalmente:', updateData);
-    } catch (error) {
-      console.error('❌ Erro ao atualizar autoavaliação:', error);
-      if (error instanceof AxiosError && error.response) {
-        throw new Error(error.response.data.message || 'Falha ao atualizar autoavaliação.');
+      // Garantir que todos os campos necessários estejam presentes
+      const sanitizedData = Object.entries(updateData).reduce((acc, [key, value]) => {
+        // Se for um score, garantir que seja um número válido (>= 1)
+        if (key.endsWith('Score')) {
+          const score = Number(value);
+          if (!isNaN(score) && score >= 1) {
+            acc[key] = score;
+          }
+        }
+        // Se for uma justification, garantir que seja uma string não-vazia
+        else if (key.endsWith('Justification')) {
+          const justification = String(value || '').trim();
+          if (justification) {
+            acc[key] = justification;
+          }
+        }
+        // Outros campos mantém o valor original
+        else {
+          acc[key] = value;
+        }
+        return acc;
+      }, {} as Record<string, any>);
+
+      // Se não houver dados para atualizar, retornar
+      if (Object.keys(sanitizedData).length === 0) {
+        console.log('🤷‍♂️ Nenhum dado válido para atualizar');
+        return;
       }
-      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+
+      // Adicionar cycleId se não existir
+      if (!sanitizedData.cycleId) {
+        sanitizedData.cycleId = '2025.1';
+      }
+
+      console.log('🧹 Dados sanitizados para envio:', sanitizedData);
+
+      try {
+        // Tenta atualizar primeiro
+        await api.patch('/evaluations/collaborator/self-assessment', sanitizedData);
+        console.log('📊 Autoavaliação atualizada com sucesso');
+      } catch (err) {
+        const error = err as AxiosError;
+        if (error.response?.status === 404) {
+          // Se não existir, tenta criar
+          console.log('🆕 Autoavaliação não existe, criando...');
+          await api.post('/evaluations/collaborator/self-assessment', sanitizedData);
+          console.log('✨ Autoavaliação criada com sucesso');
+        } else {
+          throw error;
+        }
+      }
+    } catch (err) {
+      const error = err as AxiosError;
+      console.error('❌ Erro ao atualizar autoavaliação:', error);
+      if (error.response) {
+        console.error('Detalhes do erro:', {
+          status: error.response.status,
+          data: error.response.data,
+          headers: error.response.headers,
+        });
+      }
+      const errorMessage = error.response?.data && typeof error.response.data === 'object' && 'message' in error.response.data
+        ? String(error.response.data.message)
+        : 'Falha ao atualizar autoavaliação.';
+      throw new Error(errorMessage);
     }
   }
 

@@ -124,9 +124,20 @@ const mapSelfEvaluationToDto = (data: SelfEvaluationData): Record<string, any> =
       serTeamPlayer: 'teamPlayer',
     };
     
-    const mappedKey = keyMap[key] || key;
-    dto[`${mappedKey}Score`] = value.score;
-    dto[`${mappedKey}Justification`] = value.justification;
+    const mappedKey = keyMap[key];
+    if (!mappedKey) {
+      console.error(`❌ Chave não mapeada (posture): ${key}`);
+      return;
+    }
+
+    // Sempre incluir o score se não for nulo
+    if (value.score !== null) {
+      dto[`${mappedKey}Score`] = value.score;
+    }
+    // Sempre incluir a justification se não for vazia
+    if (value.justification?.trim()) {
+      dto[`${mappedKey}Justification`] = value.justification.trim();
+    }
   });
 
   // Mapear critérios de execução
@@ -138,9 +149,20 @@ const mapSelfEvaluationToDto = (data: SelfEvaluationData): Record<string, any> =
       pensarForaDaCaixa: 'pensarForaCaixa',
     };
     
-    const mappedKey = keyMap[key] || key;
-    dto[`${mappedKey}Score`] = value.score;
-    dto[`${mappedKey}Justification`] = value.justification;
+    const mappedKey = keyMap[key];
+    if (!mappedKey) {
+      console.error(`❌ Chave não mapeada (execution): ${key}`);
+      return;
+    }
+
+    // Sempre incluir o score se não for nulo
+    if (value.score !== null) {
+      dto[`${mappedKey}Score`] = value.score;
+    }
+    // Sempre incluir a justification se não for vazia
+    if (value.justification?.trim()) {
+      dto[`${mappedKey}Justification`] = value.justification.trim();
+    }
   });
 
   // Mapear critérios de gestão e liderança
@@ -151,11 +173,23 @@ const mapSelfEvaluationToDto = (data: SelfEvaluationData): Record<string, any> =
       evolucaoDaRocketCorp: 'evolucaoRocket',
     };
     
-    const mappedKey = keyMap[key] || key;
-    dto[`${mappedKey}Score`] = value.score;
-    dto[`${mappedKey}Justification`] = value.justification;
+    const mappedKey = keyMap[key];
+    if (!mappedKey) {
+      console.error(`❌ Chave não mapeada (management): ${key}`);
+      return;
+    }
+
+    // Sempre incluir o score se não for nulo
+    if (value.score !== null) {
+      dto[`${mappedKey}Score`] = value.score;
+    }
+    // Sempre incluir a justification se não for vazia
+    if (value.justification?.trim()) {
+      dto[`${mappedKey}Justification`] = value.justification.trim();
+    }
   });
 
+  console.log('📦 DTO mapeado:', dto);
   return dto;
 };
 
@@ -173,9 +207,24 @@ export const EvaluationProvider: FC<EvaluationProviderProps> = ({ children }) =>
   };
 
   const initialSelfEvaluationState = {
-    postureCriteria: { sentimentoDeDono: { score: null, justification: '' }, resilienciaNasAdversidades: { score: null, justification: '' }, organizacaoNoTrabalho: { score: null, justification: '' }, capacidadeDeAprender: { score: null, justification: '' }, serTeamPlayer: { score: null, justification: '' } },
-    executionCriteria: { entregarComQualidade: { score: null, justification: '' }, atenderAosPrazos: { score: null, justification: '' }, fazerMaisComMenos: { score: null, justification: '' }, pensarForaDaCaixa: { score: null, justification: '' } },
-    peopleAndManagementCriteria: { gente: { score: null, justification: '' }, resultados: { score: null, justification: '' }, evolucaoDaRocketCorp: { score: null, justification: '' } },
+    postureCriteria: { 
+      sentimentoDeDono: { score: null, justification: '' }, 
+      resilienciaNasAdversidades: { score: null, justification: '' }, 
+      organizacaoNoTrabalho: { score: null, justification: '' }, 
+      capacidadeDeAprender: { score: null, justification: '' }, 
+      serTeamPlayer: { score: null, justification: '' } 
+    },
+    executionCriteria: { 
+      entregarComQualidade: { score: null, justification: '' }, 
+      atenderAosPrazos: { score: null, justification: '' }, 
+      fazerMaisComMenos: { score: null, justification: '' }, 
+      pensarForaDaCaixa: { score: null, justification: '' } 
+    },
+    peopleAndManagementCriteria: { 
+      gente: { score: null, justification: '' }, 
+      resultados: { score: null, justification: '' }, 
+      evolucaoDaRocketCorp: { score: null, justification: '' } 
+    },
     isSubmitted: false,
     cardStates: { posture: false, execution: false, peopleAndManagement: false },
     expandedItems: {},
@@ -212,8 +261,43 @@ export const EvaluationProvider: FC<EvaluationProviderProps> = ({ children }) =>
       (newData[groupKey] as any)[criterionName][field] = value; 
       console.log(`💾 Value updated to ${value}`);
       
-      // Disparar auto-save imediatamente
+      // Preparar dados para auto-save
       const mappedData = mapSelfEvaluationToDto(newData);
+
+      // Garantir que o campo atual seja incluído
+      const keyMap: Record<string, string> = {
+        sentimentoDeDono: 'sentimentoDeDono',
+        resilienciaNasAdversidades: 'resilienciaAdversidades', 
+        organizacaoNoTrabalho: 'organizacaoTrabalho',
+        capacidadeDeAprender: 'capacidadeAprender',
+        serTeamPlayer: 'teamPlayer',
+        entregarComQualidade: 'entregarQualidade',
+        atenderAosPrazos: 'atenderPrazos',
+        fazerMaisComMenos: 'fazerMaisMenos',
+        pensarForaDaCaixa: 'pensarForaCaixa',
+        gente: 'gestaoGente',
+        resultados: 'gestaoResultados',
+        evolucaoDaRocketCorp: 'evolucaoRocket',
+      };
+
+      const mappedKey = keyMap[criterionName];
+      if (!mappedKey) {
+        console.error(`❌ Chave não mapeada: ${criterionName}`);
+        return prev;
+      }
+
+      // Forçar a inclusão do campo atual
+      if (field === 'score') {
+        mappedData[`${mappedKey}Score`] = value;
+      } else if (field === 'justification') {
+        mappedData[`${mappedKey}Justification`] = value;
+      }
+
+      // Garantir cycleId
+      if (!mappedData.cycleId) {
+        mappedData.cycleId = '2025.1';
+      }
+
       console.log('📤 Sending to auto-save:', mappedData);
       autoSaveSelfEvaluation(mappedData);
       
