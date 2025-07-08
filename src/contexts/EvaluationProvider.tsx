@@ -1,6 +1,8 @@
-import { createContext, useState, useContext, useEffect, type FC, type ReactNode } from 'react';
+import { createContext, useState, useContext, useEffect, useCallback, type FC, type ReactNode } from 'react';
 import type { EvaluableUser } from '../types/evaluations';
 import { useAuth } from '../hooks/useAuth';
+import { useAutoSave } from '../hooks/useAutoSave';
+import EvaluationService from '../services/EvaluationService';
 
 // --- INTERFACES DE DADOS ---
 interface Evaluation360Data {
@@ -108,6 +110,55 @@ const STORAGE_KEYS = {
   REFERENCE_FEEDBACK: 'reference_feedback_data',
 } as const;
 
+// Função para mapear dados de autoavaliação para o formato do backend
+const mapSelfEvaluationToDto = (data: SelfEvaluationData): Record<string, any> => {
+  const dto: Record<string, any> = {};
+  
+  // Mapear critérios de postura
+  Object.entries(data.postureCriteria).forEach(([key, value]) => {
+    const keyMap: Record<string, string> = {
+      sentimentoDeDono: 'sentimentoDeDono',
+      resilienciaNasAdversidades: 'resilienciaAdversidades', 
+      organizacaoNoTrabalho: 'organizacaoTrabalho',
+      capacidadeDeAprender: 'capacidadeAprender',
+      serTeamPlayer: 'teamPlayer',
+    };
+    
+    const mappedKey = keyMap[key] || key;
+    dto[`${mappedKey}Score`] = value.score;
+    dto[`${mappedKey}Justification`] = value.justification;
+  });
+
+  // Mapear critérios de execução
+  Object.entries(data.executionCriteria).forEach(([key, value]) => {
+    const keyMap: Record<string, string> = {
+      entregarComQualidade: 'entregarQualidade',
+      atenderAosPrazos: 'atenderPrazos',
+      fazerMaisComMenos: 'fazerMaisMenos',
+      pensarForaDaCaixa: 'pensarForaCaixa',
+    };
+    
+    const mappedKey = keyMap[key] || key;
+    dto[`${mappedKey}Score`] = value.score;
+    dto[`${mappedKey}Justification`] = value.justification;
+  });
+
+  // Mapear critérios de gestão e liderança
+  Object.entries(data.peopleAndManagementCriteria).forEach(([key, value]) => {
+    const keyMap: Record<string, string> = {
+      gente: 'gestaoGente',
+      resultados: 'gestaoResultados',
+      evolucaoDaRocketCorp: 'evolucaoRocket',
+    };
+    
+    const mappedKey = keyMap[key] || key;
+    dto[`${mappedKey}Score`] = value.score;
+    dto[`${mappedKey}Justification`] = value.justification;
+  });
+
+  return dto;
+};
+
 export const EvaluationProvider: FC<EvaluationProviderProps> = ({ children }) => {
   const { user } = useAuth();
 
@@ -130,50 +181,138 @@ export const EvaluationProvider: FC<EvaluationProviderProps> = ({ children }) =>
     expandedItems: {},
   };
 
+  // Todos os estados primeiro
   const [evaluations360, setEvaluations360] = useState<Evaluation360Data[]>(() => loadFromStorage(STORAGE_KEYS.EVALUATIONS_360, []));
   const [mentoringData, setMentoringData] = useState<MentoringData>(() => loadFromStorage(STORAGE_KEYS.MENTORING_DATA, { mentor: null, rating: 0, justification: '', isSubmitted: false, collapsed: false }));
   const [selfEvaluationData, setSelfEvaluationData] = useState<SelfEvaluationData>(() => loadFromStorage(STORAGE_KEYS.SELF_EVALUATION_DATA, initialSelfEvaluationState));
   const [referenceFeedbackData, setReferenceFeedbackData] = useState<ReferenceFeedbackData[]>(() => loadFromStorage(STORAGE_KEYS.REFERENCE_FEEDBACK, []));
 
+  // Callbacks para auto-save
+  const autoSaveFn = useCallback(
+    (changes: Record<string, any>) => EvaluationService.updateSelfAssessment(changes),
+    []
+  );
+
+  // Hook de auto-save
+  const { autoSave: autoSaveSelfEvaluation } = useAutoSave({
+    data: mapSelfEvaluationToDto(selfEvaluationData),
+    saveFn: autoSaveFn,
+    options: { debounceMs: 500, enabled: !!user }
+  });
+
+  // Callbacks para manipulação de dados
+  const updateSelfEvaluationCriterion = useCallback((group: 'posture' | 'execution' | 'peopleAndManagement', criterionName: string, field: 'score' | 'justification', value: any) => { 
+    console.log(`🔄 Updating ${group}.${criterionName}.${field} = ${value}`);
+    
+    setSelfEvaluationData(prev => { 
+      const newData = { ...prev }; 
+      const groupKey = `${group}Criteria` as const; 
+      
+      // Atualizar o valor imediatamente
+      (newData[groupKey] as any)[criterionName][field] = value; 
+      console.log(`💾 Value updated to ${value}`);
+      
+      // Disparar auto-save imediatamente
+      const mappedData = mapSelfEvaluationToDto(newData);
+      console.log('📤 Sending to auto-save:', mappedData);
+      autoSaveSelfEvaluation(mappedData);
+      
+      return newData; 
+    }); 
+  }, [autoSaveSelfEvaluation]);
+
+  // Effects para localStorage
   useEffect(() => { localStorage.setItem(STORAGE_KEYS.EVALUATIONS_360, JSON.stringify(evaluations360)); }, [evaluations360]);
   useEffect(() => { localStorage.setItem(STORAGE_KEYS.MENTORING_DATA, JSON.stringify(mentoringData)); }, [mentoringData]);
   useEffect(() => { localStorage.setItem(STORAGE_KEYS.SELF_EVALUATION_DATA, JSON.stringify(selfEvaluationData)); }, [selfEvaluationData]);
   useEffect(() => { localStorage.setItem(STORAGE_KEYS.REFERENCE_FEEDBACK, JSON.stringify(referenceFeedbackData)); }, [referenceFeedbackData]);
 
-  const addEvaluation360 = (collaborator: EvaluableUser) => { setEvaluations360(prev => [...prev, { collaborator, rating: 0, strengths: '', improvements: '', isSubmitted: false, collapsed: false }]); };
-  const updateEvaluation360 = (collaboratorId: string, data: Partial<Omit<Evaluation360Data, 'collaborator'>>) => { setEvaluations360(prev => prev.map(e => e.collaborator.id === collaboratorId ? { ...e, ...data } : e)); };
-  const removeEvaluation360 = (collaboratorId: string) => { setEvaluations360(prev => prev.filter(e => e.collaborator.id !== collaboratorId)); };
-  const submitEvaluation360 = (collaboratorId: string) => { updateEvaluation360(collaboratorId, { isSubmitted: true }); };
-  const toggleEvaluation360Collapsed = (collaboratorId: string) => { setEvaluations360(prev => prev.map(e => e.collaborator.id === collaboratorId ? { ...e, collapsed: !e.collapsed } : e)); };
-  const getEvaluation360ByCollaborator = (collaboratorId: string) => evaluations360.find(e => e.collaborator.id === collaboratorId);
-  const isEvaluation360Complete = (collaboratorId: string) => { const e = getEvaluation360ByCollaborator(collaboratorId); return e ? e.rating > 0 && e.strengths.trim() !== '' && e.improvements.trim() !== '' : false; };
+  // Funções de manipulação de dados
+  const addEvaluation360 = useCallback((collaborator: EvaluableUser) => { 
+    setEvaluations360(prev => [...prev, { collaborator, rating: 0, strengths: '', improvements: '', isSubmitted: false, collapsed: false }]); 
+  }, []);
 
-  const setMentor = (mentor: EvaluableUser) => { setMentoringData(prev => ({ ...prev, mentor })); };
-  const updateMentoringData = (data: Partial<Omit<MentoringData, 'mentor'>>) => { setMentoringData(prev => ({ ...prev, ...data })); };
-  const submitMentoring = () => { setMentoringData(prev => ({ ...prev, isSubmitted: true })); };
-  const toggleMentoringCollapsed = () => { setMentoringData(prev => ({ ...prev, collapsed: !prev.collapsed })); };
-  const isMentoringComplete = () => mentoringData.rating > 0 && mentoringData.justification.trim() !== '';
+  const updateEvaluation360 = useCallback((collaboratorId: string, data: Partial<Omit<Evaluation360Data, 'collaborator'>>) => { 
+    setEvaluations360(prev => prev.map(e => e.collaborator.id === collaboratorId ? { ...e, ...data } : e)); 
+  }, []);
 
-  const updateSelfEvaluationCriterion = (group: 'posture' | 'execution' | 'peopleAndManagement', criterionName: string, field: 'score' | 'justification', value: any) => { setSelfEvaluationData(prev => { const newData = { ...prev }; const groupKey = `${group}Criteria` as const; (newData[groupKey] as any)[criterionName][field] = value; return newData; }); };
-  const toggleSelfEvaluationCard = (card: 'posture' | 'execution' | 'peopleAndManagement') => { setSelfEvaluationData(prev => ({ ...prev, cardStates: { ...prev.cardStates, [card]: !prev.cardStates[card] } })); };
-  const toggleSelfEvaluationItem = (itemKey: string) => { setSelfEvaluationData(prev => ({ ...prev, expandedItems: { ...prev.expandedItems, [itemKey]: !prev.expandedItems[itemKey] } })); };
-  const submitSelfEvaluation = () => { setSelfEvaluationData(prev => ({ ...prev, isSubmitted: true })); };
-  const isSelfEvaluationComplete = () => [...Object.values(selfEvaluationData.postureCriteria), ...Object.values(selfEvaluationData.executionCriteria), ...Object.values(selfEvaluationData.peopleAndManagementCriteria)].every(c => c.score !== null && c.justification.trim() !== '');
+  const removeEvaluation360 = useCallback((collaboratorId: string) => { 
+    setEvaluations360(prev => prev.filter(e => e.collaborator.id !== collaboratorId)); 
+  }, []);
 
-  const addReferenceFeedback = (feedback: ReferenceFeedbackData) => { setReferenceFeedbackData(prev => prev.some(f => f.referencedUserId === feedback.referencedUserId) ? prev : [...prev, feedback]); };
-  const removeReferenceFeedback = (referencedUserId: string) => { setReferenceFeedbackData(prev => prev.filter(f => f.referencedUserId !== referencedUserId)); };
-  const isReferenceFeedbackComplete = () => {
+  const submitEvaluation360 = useCallback((collaboratorId: string) => { 
+    updateEvaluation360(collaboratorId, { isSubmitted: true }); 
+  }, [updateEvaluation360]);
+
+  const toggleEvaluation360Collapsed = useCallback((collaboratorId: string) => { 
+    setEvaluations360(prev => prev.map(e => e.collaborator.id === collaboratorId ? { ...e, collapsed: !e.collapsed } : e)); 
+  }, []);
+
+  const getEvaluation360ByCollaborator = useCallback((collaboratorId: string) => 
+    evaluations360.find(e => e.collaborator.id === collaboratorId), [evaluations360]);
+
+  const isEvaluation360Complete = useCallback((collaboratorId: string) => { 
+    const e = getEvaluation360ByCollaborator(collaboratorId); 
+    return e ? e.rating > 0 && e.strengths.trim() !== '' && e.improvements.trim() !== '' : false; 
+  }, [getEvaluation360ByCollaborator]);
+
+  const setMentor = useCallback((mentor: EvaluableUser) => { 
+    setMentoringData(prev => ({ ...prev, mentor })); 
+  }, []);
+
+  const updateMentoringData = useCallback((data: Partial<Omit<MentoringData, 'mentor'>>) => { 
+    setMentoringData(prev => ({ ...prev, ...data })); 
+  }, []);
+
+  const submitMentoring = useCallback(() => { 
+    setMentoringData(prev => ({ ...prev, isSubmitted: true })); 
+  }, []);
+
+  const toggleMentoringCollapsed = useCallback(() => { 
+    setMentoringData(prev => ({ ...prev, collapsed: !prev.collapsed })); 
+  }, []);
+
+  const isMentoringComplete = useCallback(() => 
+    mentoringData.rating > 0 && mentoringData.justification.trim() !== '', [mentoringData]);
+
+  const toggleSelfEvaluationCard = useCallback((card: 'posture' | 'execution' | 'peopleAndManagement') => { 
+    setSelfEvaluationData(prev => ({ ...prev, cardStates: { ...prev.cardStates, [card]: !prev.cardStates[card] } })); 
+  }, []);
+
+  const toggleSelfEvaluationItem = useCallback((itemKey: string) => { 
+    setSelfEvaluationData(prev => ({ ...prev, expandedItems: { ...prev.expandedItems, [itemKey]: !prev.expandedItems[itemKey] } })); 
+  }, []);
+
+  const submitSelfEvaluation = useCallback(() => { 
+    setSelfEvaluationData(prev => ({ ...prev, isSubmitted: true })); 
+  }, []);
+
+  const isSelfEvaluationComplete = useCallback(() => 
+    [...Object.values(selfEvaluationData.postureCriteria), 
+     ...Object.values(selfEvaluationData.executionCriteria), 
+     ...Object.values(selfEvaluationData.peopleAndManagementCriteria)]
+      .every(c => c.score !== null && c.justification.trim() !== ''), [selfEvaluationData]);
+
+  const addReferenceFeedback = useCallback((feedback: ReferenceFeedbackData) => { 
+    setReferenceFeedbackData(prev => 
+      prev.some(f => f.referencedUserId === feedback.referencedUserId) ? prev : [...prev, feedback]); 
+  }, []);
+
+  const removeReferenceFeedback = useCallback((referencedUserId: string) => { 
+    setReferenceFeedbackData(prev => prev.filter(f => f.referencedUserId !== referencedUserId)); 
+  }, []);
+
+  const isReferenceFeedbackComplete = useCallback(() => {
     const TOTAL_REFERENCES_REQUIRED = 1;
     return referenceFeedbackData.length >= TOTAL_REFERENCES_REQUIRED;
-  };
+  }, [referenceFeedbackData]);
 
-  const clearAllData = () => {
+  const clearAllData = useCallback(() => {
     setEvaluations360([]);
     setMentoringData({ mentor: null, rating: 0, justification: '', isSubmitted: false, collapsed: false });
     setSelfEvaluationData(initialSelfEvaluationState);
     setReferenceFeedbackData([]);
-    Object.values(STORAGE_KEYS).forEach(key => localStorage.removeItem(key));
-  };
+  }, []);
 
   useEffect(() => { if (!user) clearAllData(); }, [user]);
 

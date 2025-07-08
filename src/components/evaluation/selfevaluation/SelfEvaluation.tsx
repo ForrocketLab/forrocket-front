@@ -76,35 +76,46 @@ const SelfEvaluation: React.FC<SelfEvaluationProps> = ({
 
   useEffect(() => {
     if (initialSelfAssessmentData) {
-      // Only update context with initial data if there's no existing data
-      const hasExistingData = Object.values(postureCriteria).some(c => c.score !== null) ||
-                             Object.values(executionCriteria).some(c => c.score !== null) ||
-                             Object.values(peopleAndManagementCriteria).some(c => c.score !== null);
+      console.log('📥 Carregando dados da autoavaliação salva no servidor (modo silencioso):', initialSelfAssessmentData);
       
-      if (!hasExistingData) {
-        console.log('📥 Carregando dados iniciais da API para autoavaliação');
-        // Update context with initial data if available
-        Object.entries(initialSelfAssessmentData.postureCriteria).forEach(([key, value]) => {
-          updateSelfEvaluationCriterion('posture', key, 'score', value.score);
-          updateSelfEvaluationCriterion('posture', key, 'justification', value.justification);
+      // Usar uma flag temporária para indicar que estamos carregando dados iniciais
+      (window as any).isLoadingInitialData = true;
+      
+      // Carregar critérios de postura
+      console.log('🔄 Atualizando critérios de postura...');
+      Object.entries(initialSelfAssessmentData.postureCriteria).forEach(([key, value]) => {
+        console.log(`  - ${key}:`, value);
+        updateSelfEvaluationCriterion('posture', key, 'score', value.score);
+        updateSelfEvaluationCriterion('posture', key, 'justification', value.justification);
+      });
+      
+      // Carregar critérios de execução
+      console.log('🔄 Atualizando critérios de execução...');
+      Object.entries(initialSelfAssessmentData.executionCriteria).forEach(([key, value]) => {
+        console.log(`  - ${key}:`, value);
+        updateSelfEvaluationCriterion('execution', key, 'score', value.score);
+        updateSelfEvaluationCriterion('execution', key, 'justification', value.justification);
+      });
+      
+      // Carregar critérios de gestão e liderança
+      if (initialSelfAssessmentData.peopleAndManagementCriteria) {
+        console.log('🔄 Atualizando critérios de gestão e liderança...');
+        Object.entries(initialSelfAssessmentData.peopleAndManagementCriteria).forEach(([key, value]) => {
+          console.log(`  - ${key}:`, value);
+          updateSelfEvaluationCriterion('peopleAndManagement', key, 'score', value.score);
+          updateSelfEvaluationCriterion('peopleAndManagement', key, 'justification', value.justification);
         });
-        
-        Object.entries(initialSelfAssessmentData.executionCriteria).forEach(([key, value]) => {
-          updateSelfEvaluationCriterion('execution', key, 'score', value.score);
-          updateSelfEvaluationCriterion('execution', key, 'justification', value.justification);
-        });
-        
-        if (initialSelfAssessmentData.peopleAndManagementCriteria) {
-          Object.entries(initialSelfAssessmentData.peopleAndManagementCriteria).forEach(([key, value]) => {
-            updateSelfEvaluationCriterion('peopleAndManagement', key, 'score', value.score);
-            updateSelfEvaluationCriterion('peopleAndManagement', key, 'justification', value.justification);
-          });
-        }
-      } else {
-        console.log('📋 Dados existentes encontrados no contexto, mantendo dados salvos');
       }
+      
+      // Limpar a flag após o carregamento
+      setTimeout(() => {
+        (window as any).isLoadingInitialData = false;
+        console.log('✅ Dados da autoavaliação carregados com sucesso! Auto-save reativado.');
+      }, 500);
+    } else {
+      console.log('📋 Nenhuma autoavaliação encontrada no servidor, usando dados em branco');
     }
-  }, [initialSelfAssessmentData, updateSelfEvaluationCriterion, postureCriteria, executionCriteria, peopleAndManagementCriteria]);
+  }, [initialSelfAssessmentData, updateSelfEvaluationCriterion]);
 
   const countFilledCriteria = (criteriaGroup: typeof postureCriteria | typeof executionCriteria | typeof peopleAndManagementCriteria) => {
     return Object.values(criteriaGroup).filter(

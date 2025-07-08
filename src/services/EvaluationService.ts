@@ -132,7 +132,7 @@ class EvaluationService {
   async createSelfAssessment(assessmentData: CreateSelfAssessmentDto): Promise<SelfAssessmentResponse> {
     try {
       const response = await api.post<SelfAssessmentResponse>(
-        '/api/evaluations/collaborator/self-assessment',
+        '/evaluations/collaborator/self-assessment',
         assessmentData,
         {
           headers: {
@@ -146,6 +146,28 @@ class EvaluationService {
       console.error('Erro ao criar/enviar autoavaliação:', error);
       if (error instanceof AxiosError && error.response) {
         throw new Error(error.response.data.message || 'Falha ao enviar autoavaliação.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  /**
+   * Atualiza incrementalmente uma autoavaliação existente
+   * @param updateData Dados parciais para atualizar na autoavaliação
+   * @returns Promise que resolve quando a atualização é bem-sucedida
+   */
+  async updateSelfAssessment(updateData: Record<string, any>): Promise<void> {
+    try {
+      await api.patch('/evaluations/collaborator/self-assessment', updateData, {
+        headers: {
+          Authorization: `Bearer ${this.getToken()}`,
+        },
+      });
+      console.log('📊 Autoavaliação atualizada incrementalmente:', updateData);
+    } catch (error) {
+      console.error('❌ Erro ao atualizar autoavaliação:', error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao atualizar autoavaliação.');
       }
       throw new Error('Ocorreu um erro de rede. Tente novamente.');
     }
