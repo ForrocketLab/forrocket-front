@@ -424,6 +424,65 @@ class EvaluationService {
     }
   }
 
+  async getMentoringAssessment(mentorId: string): Promise<any> {
+    try {
+      const response = await api.get(`/evaluations/collaborator/mentoring-assessment?mentorId=${mentorId}`, {
+        headers: {
+          Authorization: `Bearer ${this.getToken()}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar avaliação de mentoring:', error);
+      if (error instanceof AxiosError && error.response?.status === 401) {
+        AuthService.logout();
+        throw new Error('Sua sessão expirou. Por favor, faça login novamente.');
+      }
+      throw new Error('Falha ao buscar avaliação de mentoring.');
+    }
+  }
+
+  async updateMentoringAssessment(mentorId: string, cycleId: string, updateData: Record<string, any>): Promise<any> {
+    try {
+      const payload = {
+        mentorId,
+        cycleId,
+        ...updateData,
+      };
+
+      const response = await api.patch('/evaluations/collaborator/mentoring-assessment', payload, {
+        headers: {
+          Authorization: `Bearer ${this.getToken()}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao atualizar avaliação de mentoring:', error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao atualizar avaliação de mentoring.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  async getActiveCycle(): Promise<{ name: string }> {
+    try {
+      const response = await api.get('/evaluation-cycles/active', {
+        headers: {
+          Authorization: `Bearer ${this.getToken()}`,
+        },
+      });
+      return { name: response.data.name };
+    } catch (error) {
+      console.error('Erro ao buscar ciclo ativo:', error);
+      if (error instanceof AxiosError && error.response?.status === 401) {
+        AuthService.logout();
+        throw new Error('Sua sessão expirou. Por favor, faça login novamente.');
+      }
+      throw new Error('Falha ao buscar ciclo ativo.');
+    }
+  }
+
   async getPerformanceHistory(): Promise<PerformanceHistoryDto> {
     try {
       const response = await api.get<PerformanceHistoryDto>('/evaluations/collaborator/performance/history', {

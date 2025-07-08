@@ -2,10 +2,12 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { FaStar, FaRegStar } from 'react-icons/fa';
 import { useEvaluation } from '../../../contexts/EvaluationProvider';
 import EvaluationService from '../../../services/EvaluationService';
+import { useAutoSave } from '../../../hooks/useAutoSave';
 
 const Mentoring: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentCycle, setCurrentCycle] = useState<string>('');
 
   const {
     mentoringData,
@@ -17,30 +19,79 @@ const Mentoring: React.FC = () => {
 
   const { mentor, rating, justification, collapsed } = mentoringData;
 
+  // Buscar ciclo ativo
+  useEffect(() => {
+    const fetchActiveCycle = async () => {
+      try {
+        const response = await EvaluationService.getActiveCycle();
+        setCurrentCycle(response.name);
+      } catch (err) {
+        console.error('Erro ao buscar ciclo ativo:', err);
+      }
+    };
+    fetchActiveCycle();
+  }, []);
+
+  // Configurar autosave
+  const { autoSave } = useAutoSave({
+    data: { score: rating, justification },
+    saveFn: async (data) => {
+      if (mentor && currentCycle) {
+        await EvaluationService.updateMentoringAssessment(mentor.id, currentCycle, data);
+      }
+    },
+  });
+
+  // Atualizar quando os dados mudam
+  useEffect(() => {
+    if (mentor && currentCycle) {
+      autoSave({ score: rating, justification });
+    }
+  }, [rating, justification, mentor, currentCycle, autoSave]);
+
   // flag to verify if it's all done
   const isComplete = useMemo(() => {
     return isMentoringComplete();
   }, [isMentoringComplete]);
 
   useEffect(() => {
-    const fetchMentor = async () => {
+    const fetchMentorAndAssessment = async () => {
       try {
         const { mentors } = await EvaluationService.getEvaluableUsers();
-        // Only set mentor if there's no existing mentor and no existing data
-        if (mentors.length > 0 && !mentor && rating === 0 && justification === '') {
-          console.log('👥 Definindo mentor inicial para mentoring');
-          setMentor(mentors[0]);
-        } else if (mentor) {
-          console.log('📋 Mentor já definido, mantendo dados salvos');
+        
+        // Se temos mentores disponíveis
+        if (mentors.length > 0) {
+          const selectedMentor = mentor || mentors[0];
+          
+          // Buscar avaliação existente
+          try {
+            const existingAssessment = await EvaluationService.getMentoringAssessment(selectedMentor.id);
+            if (existingAssessment) {
+              console.log('📋 Avaliação de mentoring encontrada:', existingAssessment);
+              setMentor(selectedMentor);
+              updateMentoringData({
+                rating: existingAssessment.score || 0,
+                justification: existingAssessment.justification || '',
+              });
+            } else {
+              console.log('👥 Definindo mentor inicial para mentoring');
+              setMentor(selectedMentor);
+            }
+          } catch (err) {
+            console.error('Erro ao buscar avaliação:', err);
+            setMentor(selectedMentor);
+          }
         }
+        
         setIsLoading(false);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Ocorreu um erro desconhecido.');
         setIsLoading(false);
       }
     };
-    fetchMentor();
-  }, [mentor, setMentor, rating, justification]);
+    
+    fetchMentorAndAssessment();
+  }, []);
 
   const handleCardClick = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('textarea')) {
@@ -85,7 +136,7 @@ const Mentoring: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center gap-2">
-        <div className="rounded-md w-8 h-8 text-lg flex items-center justify-center font-bold bg-gray-200 text-[#08605F]">
+          <div className="rounded-md w-8 h-8 text-lg flex items-center justify-center font-bold bg-gray-200 text-[#08605F]">
             {rating || '-'}
           </div>
         </div>
