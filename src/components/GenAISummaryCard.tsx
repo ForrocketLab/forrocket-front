@@ -1,8 +1,9 @@
 import { type FC, useEffect } from 'react';
-import { Brain, Sparkles, Copy, RefreshCw, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { Brain, Sparkles, Copy, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import { useGenAISummary } from '../hooks/useCommittee';
 import { type GenAISummaryRequest } from '../services/CommitteeService';
 import { useGlobalToast } from '../hooks/useGlobalToast';
+import MarkdownRenderer from './MarkdownRenderer';
 
 interface GenAISummaryCardProps {
   collaboratorId: string;
@@ -13,7 +14,6 @@ interface GenAISummaryCardProps {
 
 const GenAISummaryCard: FC<GenAISummaryCardProps> = ({ 
   collaboratorId, 
-  collaboratorName, 
   cycle,
   onSummaryGenerated 
 }) => {
@@ -216,9 +216,7 @@ ${summary.summary}
             
             <div className="prose prose-sm max-w-none">
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border-l-4 border-blue-400">
-                <p className="text-gray-800 leading-relaxed whitespace-pre-line">
-                  {summary.summary}
-                </p>
+                <MarkdownRenderer content={summary.summary} />
               </div>
             </div>
           </div>

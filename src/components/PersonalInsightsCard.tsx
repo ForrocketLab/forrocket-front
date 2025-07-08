@@ -1,8 +1,9 @@
 import { type FC, useEffect } from 'react';
-import { Brain, Sparkles, Copy, AlertCircle, CheckCircle, Clock, Target, TrendingUp, Lightbulb } from 'lucide-react';
+import { Brain, Copy, AlertCircle, CheckCircle, Clock, Target, TrendingUp, Lightbulb } from 'lucide-react';
 import { usePersonalInsights } from '../hooks/usePersonalInsights';
 import { type PersonalInsightsRequest } from '../services/PersonalInsightsService';
 import { useGlobalToast } from '../hooks/useGlobalToast';
+import MarkdownRenderer from './MarkdownRenderer';
 
 interface PersonalInsightsCardProps {
   collaboratorId: string;
@@ -13,7 +14,6 @@ interface PersonalInsightsCardProps {
 
 const PersonalInsightsCard: FC<PersonalInsightsCardProps> = ({ 
   collaboratorId, 
-  collaboratorName, 
   cycle,
   onInsightsGenerated 
 }) => {
@@ -215,12 +215,11 @@ ${insights.insights}
               </div>
             </div>
             
-            <div className="prose prose-sm max-w-none">
-              <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-4 border-l-4 border-purple-400">
-                <p className="text-gray-800 leading-relaxed whitespace-pre-line">
-                  {insights.insights}
-                </p>
-              </div>
+            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-4 border-l-4 border-purple-400">
+              <MarkdownRenderer 
+                content={insights.insights} 
+                className="text-gray-800"
+              />
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, TrendingUp, TrendingDown, BarChart3, Calendar, Award, Target } from 'lucide-react';
 import LoadingSpinner from '../LoadingSpinner';
 import ProgressBar from '../ProgressBar';
+import MarkdownRenderer from '../MarkdownRenderer';
 import useHistoricalEvolution from '../../hooks/useHistoricalEvolution';
 import type { 
   CollaboratorDetailedEvolution,
@@ -299,7 +300,12 @@ const CollaboratorEvolutionModal: React.FC<CollaboratorEvolutionModalProps> = ({
                         <div className="flex items-start">
                           <div className={`w-2 h-2 bg-${insight.type === 'strength' ? 'green' : 'red'}-600 rounded-full mt-2 mr-3 flex-shrink-0`}></div>
                           <div>
-                            <p className={`text-sm text-${insight.type === 'strength' ? 'green' : 'red'}-700 mt-1`}>{insight.description}</p>
+                            <div className={`text-sm text-${insight.type === 'strength' ? 'green' : 'red'}-700 mt-1`}>
+                              <MarkdownRenderer 
+                                content={insight.description} 
+                                className="text-sm"
+                              />
+                            </div>
                             {insight.supportingData && insight.supportingData.length > 0 && (
                               <ul className={`text-xs text-${insight.type === 'strength' ? 'green' : 'red'}-600 mt-2 list-disc list-inside`}>
                                 {insight.supportingData.map((data: string, i: number) => (
