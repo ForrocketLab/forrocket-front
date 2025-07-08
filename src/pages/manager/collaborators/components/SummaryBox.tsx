@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react';
 import { Sparkles } from 'lucide-react'; // Um ícone de "insights" ou "brilho", similar ao da imagem
+import MarkdownRenderer from '../../../../components/MarkdownRenderer';
 
 // Props para o nosso novo componente
 interface SummaryBoxProps {
@@ -25,10 +26,13 @@ const SummaryBox = ({
       </div>
 
       {/* Corpo: Texto do Resumo */}
-      <p className='mt-2 text-sm text-gray-600 pl-7'>
+      <div className='mt-2 text-sm text-gray-600 pl-7'>
         {/* Adiciona um padding à esquerda para alinhar com o título */}
-        {summaryText}
-      </p>
+        <MarkdownRenderer 
+          content={summaryText} 
+          className="text-sm"
+        />
+      </div>
     </div>
   );
 };
