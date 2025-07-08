@@ -54,7 +54,18 @@ export interface SelfAssessmentResponse {
 export interface UserEvaluationsByCycleResponse {
   cycle: string;
   selfAssessment: SelfAssessmentResponse | null;
-  assessments360: any[];
+  assessments360: Array<{
+    evaluatedUserId: string;
+    evaluatedUserName: string;
+    evaluatedUserEmail: string;
+    evaluatedUserJobTitle: string;
+    evaluatedUserSeniority: string;
+    evaluatedUserRoles: string[];
+    overallScore: number;
+    strengths: string;
+    improvements: string;
+    status: string;
+  }>;
   mentoringAssessments: any[];
   referenceFeedbacks: any[];
   summary: {
@@ -227,6 +238,129 @@ class EvaluationService {
   }
 
   /**
+   * Atualiza incrementalmente uma avaliação 360 existente
+   * @param updateData Dados parciais para atualizar na avaliação 360
+   * @returns Promise que resolve quando a atualização é bem-sucedida
+   */
+  async updateEvaluation360(updateData: Record<string, any>): Promise<void> {
+    try {
+      // Garantir que todos os campos necessários estejam presentes
+      const sanitizedData = Object.entries(updateData).reduce((acc, [key, value]) => {
+        // Se for um score, garantir que seja um número válido (entre 1 e 5)
+        if (key === 'overallScore') {
+          const score = Number(value);
+          if (!isNaN(score) && score >= 1 && score <= 5) {
+            acc[key] = score;
+          } else {
+            console.warn(`⚠️ Score inválido (${value}), deve ser entre 1 e 5`);
+          }
+        }
+        // Se for uma string, garantir que seja não-vazia
+        else if (typeof value === 'string') {
+          const trimmed = value.trim();
+          if (trimmed) {
+            acc[key] = trimmed;
+          } else {
+            console.warn(`⚠️ Campo ${key} vazio ou inválido`);
+          }
+        }
+        // Outros campos mantém o valor original
+        else {
+          acc[key] = value;
+        }
+        return acc;
+      }, {} as Record<string, any>);
+
+      // Validar campos obrigatórios
+      const requiredFields = ['evaluatedUserId', 'cycleId'];
+      const missingFields = requiredFields.filter(field => !sanitizedData[field]);
+      
+      if (missingFields.length > 0) {
+        console.warn('⚠️ Campos obrigatórios faltando:', missingFields);
+        return;
+      }
+
+      // Se não houver dados para atualizar, retornar
+      if (Object.keys(sanitizedData).length === 0) {
+        console.log('🤷‍♂️ Nenhum dado válido para atualizar');
+        return;
+      }
+
+      // Adicionar cycleId se não existir
+      if (!sanitizedData.cycleId) {
+        sanitizedData.cycleId = '2025.1';
+      }
+
+      // Validar campos opcionais
+      if ('overallScore' in updateData && !('overallScore' in sanitizedData)) {
+        console.warn('⚠️ Score inválido, pulando atualização');
+        return;
+      }
+
+      if ('strengths' in updateData && !sanitizedData.strengths) {
+        console.warn('⚠️ Campo strengths vazio, pulando atualização');
+        return;
+      }
+
+      if ('improvements' in updateData && !sanitizedData.improvements) {
+        console.warn('⚠️ Campo improvements vazio, pulando atualização');
+        return;
+      }
+
+      console.log('🧹 Dados sanitizados para envio:', sanitizedData);
+
+      // Primeiro, verificar se a avaliação já existe
+      try {
+        const existingEvaluation = await this.getEvaluation360(sanitizedData.evaluatedUserId);
+        
+        if (existingEvaluation) {
+          // Se existe, atualizar
+          await api.patch('/evaluations/collaborator/360-assessment', sanitizedData);
+          console.log('📊 Avaliação 360 atualizada com sucesso');
+        } else {
+          // Se não existe, criar
+          await api.post('/evaluations/collaborator/360-assessment', sanitizedData);
+          console.log('✨ Avaliação 360 criada com sucesso');
+        }
+      } catch (err) {
+        const error = err as AxiosError;
+        console.error('❌ Erro ao processar avaliação 360:', error);
+        
+        if (error.response) {
+          console.error('Detalhes do erro:', {
+            status: error.response.status,
+            data: error.response.data,
+            headers: error.response.headers,
+          });
+        }
+        
+        // Se for erro de validação (400), mostrar mensagem mais amigável
+        if (error.response?.status === 400) {
+          const data = error.response.data as any;
+          const message = data?.message || 'Dados inválidos';
+          throw new Error(Array.isArray(message) ? message.join(', ') : message);
+        }
+        
+        throw error;
+      }
+    } catch (err) {
+      const error = err as AxiosError;
+      console.error('❌ Erro ao processar avaliação 360:', error);
+      if (error.response) {
+        console.error('Detalhes do erro:', {
+          status: error.response.status,
+          data: error.response.data,
+          headers: error.response.headers,
+        });
+      }
+      const errorMessage = error.response?.data && typeof error.response.data === 'object' && 'message' in error.response.data
+        ? String(error.response.data.message)
+        : 'Falha ao processar avaliação 360.';
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
    * Busca todas as avaliações (incluindo autoavaliação) do usuário logado para um ciclo específico.
    * @param cycleId O ID do ciclo de avaliação (ex: "2025.1").
    * @returns Objeto contendo todas as avaliações do usuário para o ciclo.
@@ -250,6 +384,43 @@ class EvaluationService {
         throw new Error(error.response.data.message || 'Falha ao buscar avaliações.');
       }
       throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  /**
+   * Busca uma avaliação 360 existente para um colaborador específico
+   * @param evaluatedUserId ID do usuário avaliado
+   * @returns Dados da avaliação 360 ou null se não existir
+   */
+  async getEvaluation360(evaluatedUserId: string): Promise<any> {
+    try {
+      const response = await api.get(`/evaluations/collaborator/360-assessment/${evaluatedUserId}`, {
+        headers: {
+          Authorization: `Bearer ${this.getToken()}`,
+        },
+      });
+
+      // Mapear os dados do backend para o formato do frontend
+      if (response.data) {
+        return {
+          evaluatedUserId: response.data.evaluatedUserId,
+          evaluatedUserName: response.data.evaluatedUserName,
+          evaluatedUserEmail: response.data.evaluatedUserEmail,
+          evaluatedUserJobTitle: response.data.evaluatedUserJobTitle,
+          evaluatedUserSeniority: response.data.evaluatedUserSeniority,
+          evaluatedUserRoles: response.data.evaluatedUserRoles || [],
+          overallScore: response.data.overallScore || null,
+          strengths: response.data.strengths || '',
+          improvements: response.data.improvements || '',
+          status: response.data.status || 'PENDING'
+        };
+      }
+      return null;
+    } catch (error) {
+      if ((error as AxiosError).response?.status === 404) {
+        return null;
+      }
+      throw error;
     }
   }
 

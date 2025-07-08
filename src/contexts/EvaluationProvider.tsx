@@ -7,7 +7,7 @@ import EvaluationService from '../services/EvaluationService';
 // --- INTERFACES DE DADOS ---
 interface Evaluation360Data {
   collaborator: EvaluableUser;
-  rating: number;
+  rating: number | null;
   strengths: string;
   improvements: string;
   isSubmitted: boolean;
@@ -206,6 +206,42 @@ export const EvaluationProvider: FC<EvaluationProviderProps> = ({ children }) =>
     return defaultValue;
   };
 
+  // Carregar dados iniciais do backend
+  useEffect(() => {
+    const loadInitialData = async () => {
+      if (!user) return;
+
+      try {
+        const cycleData = await EvaluationService.getUserEvaluationsByCycle('2025.1');
+        
+        // Carregar avaliações 360
+        if (cycleData.assessments360?.length > 0) {
+          const evaluations = cycleData.assessments360.map(assessment => ({
+            collaborator: {
+              id: assessment.evaluatedUserId,
+              name: assessment.evaluatedUserName,
+              email: assessment.evaluatedUserEmail || '',
+              jobTitle: assessment.evaluatedUserJobTitle || '',
+              seniority: assessment.evaluatedUserSeniority || '',
+              roles: assessment.evaluatedUserRoles || [],
+            },
+            rating: assessment.overallScore || 0,
+            strengths: assessment.strengths || '',
+            improvements: assessment.improvements || '',
+            isSubmitted: assessment.status === 'SUBMITTED',
+            collapsed: false,
+          })) as Evaluation360Data[];
+          
+          setEvaluations360(evaluations);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados iniciais:', error);
+      }
+    };
+
+    loadInitialData();
+  }, [user]);
+
   const initialSelfEvaluationState = {
     postureCriteria: { 
       sentimentoDeDono: { score: null, justification: '' }, 
@@ -248,6 +284,60 @@ export const EvaluationProvider: FC<EvaluationProviderProps> = ({ children }) =>
     saveFn: autoSaveFn,
     options: { debounceMs: 500, enabled: !!user }
   });
+
+  // Hook de autosave para avaliação 360
+  const { autoSave: autoSave360 } = useAutoSave({
+    data: evaluations360,
+    saveFn: async (data) => {
+      if (!data || !Array.isArray(data)) return;
+      
+      // Para cada avaliação que foi modificada
+      for (const evaluation of data) {
+        if (!evaluation?.collaborator?.id) continue;
+        
+        // Não enviar se os dados estiverem vazios/inválidos
+        if (!evaluation.rating || evaluation.rating < 1 || evaluation.rating > 5) {
+          console.log('⏭️ Pulando avaliação - score inválido:', evaluation.rating);
+          continue;
+        }
+
+        if (!evaluation.strengths?.trim() || !evaluation.improvements?.trim()) {
+          console.log('⏭️ Pulando avaliação - campos de texto vazios');
+          continue;
+        }
+        
+        try {
+          await EvaluationService.updateEvaluation360({
+            evaluatedUserId: evaluation.collaborator.id,
+            overallScore: evaluation.rating,
+            strengths: evaluation.strengths.trim(),
+            improvements: evaluation.improvements.trim(),
+            cycleId: '2025.1', // TODO: Pegar do ciclo ativo
+          });
+        } catch (error) {
+          // Se for um erro conhecido, apenas log
+          if (error instanceof Error && 
+              (error.message.includes('já existe') || 
+               error.message.includes('não encontrada'))) {
+            console.warn('⚠️ Erro conhecido:', error.message);
+            continue;
+          }
+          
+          // Se for outro tipo de erro, propagar
+          console.error('Erro ao salvar avaliação 360:', error);
+          throw error;
+        }
+      }
+    },
+    options: { debounceMs: 500, enabled: !!user }
+  });
+
+  // Observar mudanças nas avaliações 360 e acionar o autosave
+  useEffect(() => {
+    if (evaluations360.length > 0) {
+      autoSave360(evaluations360);
+    }
+  }, [evaluations360, autoSave360]);
 
   // Callbacks para manipulação de dados
   const updateSelfEvaluationCriterion = useCallback((group: 'posture' | 'execution' | 'peopleAndManagement', criterionName: string, field: 'score' | 'justification', value: any) => { 
@@ -312,12 +402,60 @@ export const EvaluationProvider: FC<EvaluationProviderProps> = ({ children }) =>
   useEffect(() => { localStorage.setItem(STORAGE_KEYS.REFERENCE_FEEDBACK, JSON.stringify(referenceFeedbackData)); }, [referenceFeedbackData]);
 
   // Funções de manipulação de dados
-  const addEvaluation360 = useCallback((collaborator: EvaluableUser) => { 
-    setEvaluations360(prev => [...prev, { collaborator, rating: 0, strengths: '', improvements: '', isSubmitted: false, collapsed: false }]); 
+  const addEvaluation360 = useCallback((collaborator: EvaluableUser) => {
+    setEvaluations360((prevEvaluations) => {
+      // Verificar se já existe uma avaliação para este colaborador
+      const existingEvaluation = prevEvaluations.find(
+        (e) => e.collaborator.id === collaborator.id
+      );
+
+      if (existingEvaluation) {
+        console.warn('⚠️ Avaliação 360 já existe para:', collaborator.id);
+        return prevEvaluations;
+      }
+
+      // Garantir que todos os campos do colaborador estão presentes
+      const newCollaborator: EvaluableUser = {
+        id: collaborator.id,
+        name: collaborator.name || '',
+        email: collaborator.email || '',
+        jobTitle: collaborator.jobTitle || '',
+        seniority: collaborator.seniority || '',
+        roles: collaborator.roles || []
+      };
+
+      // Criar nova avaliação com os dados do colaborador
+      const newEvaluation: Evaluation360Data = {
+        collaborator: newCollaborator,
+        rating: null,
+        strengths: '',
+        improvements: '',
+        isSubmitted: false,
+        collapsed: false,
+      };
+
+      console.log('✨ Adicionando nova avaliação 360:', newEvaluation);
+      return [...prevEvaluations, newEvaluation];
+    });
   }, []);
 
-  const updateEvaluation360 = useCallback((collaboratorId: string, data: Partial<Omit<Evaluation360Data, 'collaborator'>>) => { 
-    setEvaluations360(prev => prev.map(e => e.collaborator.id === collaboratorId ? { ...e, ...data } : e)); 
+  const updateEvaluation360 = useCallback((collaboratorId: string, data: Partial<Evaluation360Data>) => {
+    setEvaluations360(prev => {
+      const evaluation = prev.find(e => e.collaborator.id === collaboratorId);
+      if (!evaluation) {
+        console.warn('⚠️ Tentativa de atualizar avaliação 360 inexistente:', collaboratorId);
+        return prev;
+      }
+
+      // Preservar os dados do colaborador e mesclar com os novos dados
+      const updatedEvaluation = {
+        ...evaluation,
+        ...data,
+        collaborator: evaluation.collaborator // Manter o colaborador original
+      };
+
+      return prev.map(e => e.collaborator.id === collaboratorId ? updatedEvaluation : e);
+    });
   }, []);
 
   const removeEvaluation360 = useCallback((collaboratorId: string) => { 
@@ -337,7 +475,7 @@ export const EvaluationProvider: FC<EvaluationProviderProps> = ({ children }) =>
 
   const isEvaluation360Complete = useCallback((collaboratorId: string) => { 
     const e = getEvaluation360ByCollaborator(collaboratorId); 
-    return e ? e.rating > 0 && e.strengths.trim() !== '' && e.improvements.trim() !== '' : false; 
+    return e ? e.rating !== null && e.strengths.trim() !== '' && e.improvements.trim() !== '' : false; 
   }, [getEvaluation360ByCollaborator]);
 
   const setMentor = useCallback((mentor: EvaluableUser) => { 

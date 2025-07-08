@@ -11,7 +11,7 @@ const HRHomePage = () => {
   const [cycleDetails, setCycleDetails] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<string>('all');
-  const { success: showSuccessToast, error: showErrorToast } = useGlobalToast();
+  const { error: showErrorToast } = useGlobalToast();
 
   useEffect(() => {
     loadDashboardData();
@@ -415,8 +415,7 @@ const HRHomePage = () => {
           
           <div className="p-6">
             <div className="space-y-6">
-              {getFilteredBusinessUnits().map((unit, index) => {
-                const totalHeight = 40; // altura total da barra em pixels
+              {getFilteredBusinessUnits().map((unit) => {
                 const completedWidth = (unit.completedEvaluations / unit.totalCollaborators) * 100;
                 const pendingWidth = 100 - completedWidth;
                 
