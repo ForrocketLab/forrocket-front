@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { FaStar, FaRegStar } from 'react-icons/fa';
 import { IoCheckmarkCircle } from 'react-icons/io5';
 
@@ -25,11 +25,39 @@ const SelfEvaluationCard: React.FC<SelfEvaluationCardProps> = ({
   onToggleExpand,
   isFilled
 }) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const lastValueRef = useRef(justification);
+
+  useEffect(() => {
+    if (textareaRef.current && justification !== lastValueRef.current) {
+      const textarea = textareaRef.current;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      
+      // Atualizar o valor
+      textarea.value = justification;
+      lastValueRef.current = justification;
+      
+      // Restaurar a posição do cursor
+      textarea.setSelectionRange(start, end);
+    }
+  }, [justification]);
+
   const handleCardClick = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('textarea')) {
       return;
     }
     onToggleExpand();
+  };
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    e.stopPropagation();
+    const newValue = e.target.value;
+    if (newValue !== lastValueRef.current) {
+      lastValueRef.current = newValue;
+      console.log(`📝 Text changed for ${title}:`, newValue);
+      onJustificationChange(newValue);
+    }
   };
 
   return (
@@ -63,7 +91,10 @@ const SelfEvaluationCard: React.FC<SelfEvaluationCardProps> = ({
       
       {isExpanded && (
         <>
-          <div className="mt-2 text-sm text-gray-500">Dê uma avaliação de 1 a 5 com base no critério</div>
+          <div className="mt-2 text-sm text-gray-500">
+            Dê uma avaliação de 1 a 5 com base no critério
+            <span className="ml-2 text-xs text-green-600">• Salvamento automático ativo</span>
+          </div>
           <div className="flex gap-8">
             {[1, 2, 3, 4, 5].map((star) => {
               const StarIcon = star <= (score || 0) ? FaStar : FaRegStar;
@@ -73,6 +104,7 @@ const SelfEvaluationCard: React.FC<SelfEvaluationCardProps> = ({
                   className="cursor-pointer w-7 h-7 text-[#08605F]"
                   onClick={(e) => {
                     e.stopPropagation();
+                    console.log(`⭐ Star clicked: ${star} for ${title}`);
                     onScoreChange(star);
                   }}
                 />
@@ -83,13 +115,11 @@ const SelfEvaluationCard: React.FC<SelfEvaluationCardProps> = ({
             <div className="flex-1">
               <div className="text-sm text-gray-500 mb-1">Justifique sua nota</div>
               <textarea
+                ref={textareaRef}
                 placeholder="Justifique sua nota"
                 className="w-full min-h-[60px] border border-[#CBD5E1] rounded-md p-2 text-sm resize-vertical"
-                value={justification}
-                onChange={(e) => {
-                  e.stopPropagation();
-                  onJustificationChange(e.target.value);
-                }}
+                defaultValue={justification}
+                onChange={handleTextChange}
                 onClick={(e) => e.stopPropagation()}
               />
             </div>

@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { FaStar, FaRegStar } from 'react-icons/fa';
 import { FiTrash2 } from 'react-icons/fi';
 import { useEvaluation } from '../../../contexts/EvaluationProvider';
 import type { EvaluableUser } from '../../../types/evaluations';
+import EvaluationService from '../../../services/EvaluationService';
 
 interface EvaluationCardProps {
   collaborator: EvaluableUser;
@@ -18,18 +19,97 @@ const EvaluationCard: React.FC<EvaluationCardProps> = ({ collaborator, onRemove 
     toggleEvaluation360Collapsed,
   } = useEvaluation();
 
-  const evaluation = getEvaluation360ByCollaborator(collaborator.id);
-  
-  if (!evaluation) {
-    return null;
-  }
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const { rating, strengths, improvements, collapsed } = evaluation;
-
-  // flag to verify if it's all done
+  // Mover o useMemo para o topo, antes de qualquer condição
   const isComplete = useMemo(() => {
     return isEvaluation360Complete(collaborator.id);
   }, [collaborator.id, isEvaluation360Complete]);
+
+  const evaluation = getEvaluation360ByCollaborator(collaborator.id);
+  
+  // Garantir que temos os dados básicos do colaborador
+  const collaboratorName = collaborator.name || 'Nome não disponível';
+  const collaboratorJobTitle = collaborator.jobTitle || 'Cargo não disponível';
+  const collaboratorInitial = collaboratorName.charAt(0).toUpperCase() || 'N';
+
+  // Log dos dados do colaborador para debug
+  console.log('📊 Dados do colaborador:', {
+    id: collaborator.id,
+    name: collaboratorName,
+    jobTitle: collaboratorJobTitle,
+    email: collaborator.email || '',
+    seniority: collaborator.seniority || '',
+    roles: collaborator.roles || []
+  });
+  
+  // Carregar dados existentes ao montar o componente
+  useEffect(() => {
+    const loadExistingEvaluation = async () => {
+      try {
+        setIsLoading(true);
+        setLoadError(null);
+        console.log('🔄 Carregando avaliação 360 para:', collaborator.id);
+        const existingData = await EvaluationService.getEvaluation360(collaborator.id);
+        if (existingData) {
+          console.log('✅ Avaliação 360 carregada:', existingData);
+          updateEvaluation360(collaborator.id, {
+            rating: existingData.overallScore,
+            strengths: existingData.strengths,
+            improvements: existingData.improvements,
+            isSubmitted: existingData.status === 'SUBMITTED',
+          });
+
+          // Atualizar dados do colaborador se necessário
+          if (existingData.evaluatedUserName && !collaborator.name) {
+            collaborator.name = existingData.evaluatedUserName;
+          }
+          if (existingData.evaluatedUserJobTitle && !collaborator.jobTitle) {
+            collaborator.jobTitle = existingData.evaluatedUserJobTitle;
+          }
+          if (existingData.evaluatedUserEmail && !collaborator.email) {
+            collaborator.email = existingData.evaluatedUserEmail;
+          }
+        } else {
+          console.log('ℹ️ Nenhuma avaliação 360 existente para:', collaborator.id);
+          // Inicializar com dados vazios
+          updateEvaluation360(collaborator.id, {
+            rating: null,
+            strengths: '',
+            improvements: '',
+            isSubmitted: false,
+          });
+        }
+      } catch (error) {
+        console.error('❌ Erro ao carregar avaliação 360:', error);
+        setLoadError('Erro ao carregar dados da avaliação');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadExistingEvaluation();
+  }, [collaborator.id, updateEvaluation360]);
+
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-xl p-6 mb-6 shadow-sm flex items-center justify-center">
+        <div className="text-gray-500">Carregando...</div>
+      </div>
+    );
+  }
+
+  if (!evaluation) {
+    console.warn('⚠️ Avaliação não encontrada para:', collaborator.id);
+    return (
+      <div className="bg-white rounded-xl p-6 mb-6 shadow-sm flex items-center justify-center">
+        <div className="text-gray-500">Erro ao carregar avaliação</div>
+      </div>
+    );
+  }
+
+  const { rating, strengths, improvements, collapsed } = evaluation;
 
   const handleCardClick = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('textarea')) {
@@ -38,16 +118,16 @@ const EvaluationCard: React.FC<EvaluationCardProps> = ({ collaborator, onRemove 
     toggleEvaluation360Collapsed(collaborator.id);
   };
 
-  const handleRatingChange = (newRating: number) => {
-    updateEvaluation360(collaborator.id, { rating: newRating });
+  const handleRatingChange = (value: number) => {
+    updateEvaluation360(collaborator.id, { rating: value });
   };
 
-  const handleStrengthsChange = (newStrengths: string) => {
-    updateEvaluation360(collaborator.id, { strengths: newStrengths });
+  const handleStrengthsChange = (value: string) => {
+    updateEvaluation360(collaborator.id, { strengths: value });
   };
 
-  const handleImprovementsChange = (newImprovements: string) => {
-    updateEvaluation360(collaborator.id, { improvements: newImprovements });
+  const handleImprovementsChange = (value: string) => {
+    updateEvaluation360(collaborator.id, { improvements: value });
   };
 
   return (
@@ -57,17 +137,22 @@ const EvaluationCard: React.FC<EvaluationCardProps> = ({ collaborator, onRemove 
       }`}
       onClick={handleCardClick}
     >
+      {loadError && (
+        <div className="text-red-500 text-sm mb-2">{loadError}</div>
+      )}
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-medium text-lg text-gray-500">{collaborator.name.charAt(0)}</div>
+          <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-medium text-lg text-gray-500">
+            {collaboratorInitial}
+          </div>
           <div>
-            <div className="font-bold text-base">{collaborator.name}</div>
-            <div className="text-sm text-gray-500">{collaborator.jobTitle}</div>
+            <div className="font-bold text-base">{collaboratorName}</div>
+            <div className="text-sm text-gray-500">{collaboratorJobTitle}</div>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <div className="rounded-md w-8 h-8 text-lg flex items-center justify-center font-bold bg-gray-200 text-[#08605F]">
-            {rating || '-'}
+            {rating === null ? '-' : rating}
           </div>
           <button 
             onClick={(e) => {
