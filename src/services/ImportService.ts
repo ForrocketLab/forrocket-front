@@ -8,31 +8,31 @@ const HISTORY_ENDPOINT = '/import/history';
  * Envia os arquivos para o back-end para serem processados.
  */
 const importHistoricalData = async (files: File[]): Promise<ImportHistory> => {
-    const formData = new FormData();
-    files.forEach(file => {
-      formData.append('files', file);
-    });
+  const formData = new FormData();
+  files.forEach(file => {
+    formData.append('files', file);
+  });
 
-    try {
-      const response = await api.post<ImportHistory>(UPLOAD_ENDPOINT, formData);
-      return response.data;
-    } catch (err) {
-      const error = err as AxiosError<{ message: string }>;
-      throw new Error(error.response?.data?.message || 'Erro no servidor durante a importação.');
-    }
+  try {
+    const response = await api.post<ImportHistory>(UPLOAD_ENDPOINT, formData);
+    return response.data;
+  } catch (err) {
+    const error = err as AxiosError<{ message: string }>;
+    throw new Error(error.response?.data?.message || 'Erro no servidor durante a importação.');
+  }
 };
 
 /**
  * Busca o histórico de todas as importações.
  */
 const getImportHistory = async (): Promise<ImportHistory[]> => {
-    try {
-        const response = await api.get<ImportHistory[]>(HISTORY_ENDPOINT);
-        return response.data;
-      } catch (err) {
-        const error = err as AxiosError<{ message: string }>;
-        throw new Error(error.response?.data?.message || 'Falha ao carregar o histórico.');
-      }
+  try {
+    const response = await api.get<ImportHistory[]>(HISTORY_ENDPOINT);
+    return response.data;
+  } catch (err) {
+    const error = err as AxiosError<{ message: string }>;
+    throw new Error(error.response?.data?.message || 'Falha ao carregar o histórico.');
+  }
 };
 
 /**
@@ -65,7 +65,6 @@ const deleteImportHistory = async (historyId: string): Promise<void> => {
     }
   }
 };
-
 
 const ImportService = {
   importHistoricalData,

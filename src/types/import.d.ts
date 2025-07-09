@@ -56,10 +56,10 @@ interface ImportCounts {
 interface ImportBatch {
   id: string;
   fileName: string;
-  status: 'COMPLETED' | 'PROCESSING' | 'ERROR';
+  status: 'SUCCESS' | 'PROCESSING' | 'ERROR' | 'COMPLETED'; // Suporte para ambos os formatos
   importedAt: string;
-  notes: string | null;
-  uploadedUserId: string;
+  notes?: string | null; // Campo opcional
+  uploadedUserId?: string; // Campo opcional
   uploadedUser: UploadedUser;
   _count: ImportCounts;
 }
@@ -69,4 +69,34 @@ interface ImportBatch {
  */
 interface DeleteBatchResponse {
   message: string;
+}
+
+/**
+ * Interface para parâmetros de paginação
+ */
+interface PaginationParams {
+  page?: number;
+  limit?: number;
+  sortBy?: 'importedAt' | 'fileName' | 'status';
+  sortOrder?: 'asc' | 'desc';
+}
+
+/**
+ * Interface para metadados de paginação
+ */
+interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
+/**
+ * Interface para resposta paginada de lotes
+ */
+interface PaginatedImportBatchesResponse {
+  data: ImportBatch[];
+  meta: PaginationMeta;
 }
