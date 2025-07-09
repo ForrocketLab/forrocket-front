@@ -13,7 +13,7 @@ export interface CreateUserData {
   businessUnit: string;
   projectAssignments?: Array<{
     projectId: string;
-    roleInProject: 'colaborador' | 'gestor';
+    roleInProject: 'colaborador' | 'gestor' | 'lider';
   }>;
   mentorId?: string;
 }
@@ -106,7 +106,10 @@ export interface UserData {
   createdAt: string;
   updatedAt: string;
   managerName: string | null;
+  mentorName: string | null;
+  leaderName: string | null;
   directReportsCount: number;
+  directLeadershipCount: number;
 }
 
 // DTOs do backend para a rota /api/projects/overview
@@ -137,7 +140,9 @@ export interface ProjectWithManagementDto {
   updatedAt: string;
   userRoles: string[];
   managedSubordinates: ManagedSubordinateDto[];
+  ledSubordinates: ManagedSubordinateDto[];
   isManagerInProject: boolean;
+  isLeaderInProject: boolean;
 }
 
 export interface UserOverviewDto {
@@ -152,8 +157,13 @@ export interface UserDetailsData extends UserData {
   projects: Array<{
     id: string;
     name: string;
-    roleInProject: 'colaborador' | 'gestor';
+    roleInProject: 'colaborador' | 'gestor' | 'lider';
     managedCollaborators?: Array<{
+      id: string;
+      name: string;
+      jobTitle: string;
+    }>;
+    ledCollaborators?: Array<{
       id: string;
       name: string;
       jobTitle: string;
@@ -343,20 +353,34 @@ class AdminService {
       // Transformar os dados do DTO para o formato esperado
       const projects = (overview.projects || []).map(project => {
         // Determinar o papel principal no projeto baseado nas roles
-        let roleInProject: 'colaborador' | 'gestor' = 'colaborador';
-        if (project.userRoles && project.userRoles.includes('MANAGER')) {
+        // PRIORIDADE: LEADER > MANAGER > COLLABORATOR
+        let roleInProject: 'colaborador' | 'gestor' | 'lider' = 'colaborador';
+        
+        if (project.userRoles && project.userRoles.includes('LEADER')) {
+          roleInProject = 'lider';
+        } else if (project.userRoles && project.userRoles.includes('MANAGER')) {
           roleInProject = 'gestor';
         }
+        
+        // Verificar se tem roles múltiplas para mostrar dados apropriados
+        const isManager = project.userRoles && project.userRoles.includes('MANAGER');
+        const isLeader = project.userRoles && project.userRoles.includes('LEADER');
         
         return {
           id: project.id,
           name: project.name,
           roleInProject,
-          managedCollaborators: roleInProject === 'gestor' ? 
+          managedCollaborators: isManager ? 
             (project.managedSubordinates || []).map(sub => ({
               id: sub.id,
               name: sub.name,
               jobTitle: sub.jobTitle
+            })) : undefined,
+          ledCollaborators: isLeader ? 
+            (project.ledSubordinates || []).map(led => ({
+              id: led.id,
+              name: led.name,
+              jobTitle: led.jobTitle
             })) : undefined
         };
       });

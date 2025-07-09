@@ -41,7 +41,7 @@ interface UserFilters {
 interface ProjectAssignment {
   projectId: string;
   projectName: string;
-  roleInProject: 'colaborador' | 'gestor';
+  roleInProject: 'colaborador' | 'gestor' | 'lider';
   validationResult?: HierarchyValidationResult;
   suggestedManagerId?: string;
   suggestedManagerName?: string;
@@ -335,6 +335,7 @@ const UserManagement: React.FC = () => {
       case 'rh': return <Building2 className="h-4 w-4 text-blue-600" />;
       case 'comite': return <Shield className="h-4 w-4 text-green-600" />;
       case 'gestor': return <Users className="h-4 w-4 text-orange-600" />;
+      case 'lider': return <Crown className="h-4 w-4 text-purple-500" />;
       case 'colaborador': return <User className="h-4 w-4 text-gray-600" />;
       default: return <User className="h-4 w-4 text-gray-600" />;
     }
@@ -346,6 +347,7 @@ const UserManagement: React.FC = () => {
       'rh': 'RH',
       'comite': 'Comitê',
       'gestor': 'Gestor',
+      'lider': 'Líder',
       'colaborador': 'Colaborador'
     };
     return roleMap[role] || role;
@@ -586,12 +588,27 @@ const UserManagement: React.FC = () => {
                     <div className="text-sm text-gray-500">{user.seniority} • {user.careerTrack}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{user.businessUnit}</div>
-                    {user.managerName && (
-                      <div className="text-sm text-gray-500">
-                        Gestor: {user.managerName}
-                      </div>
-                    )}
+                    <div className="text-sm text-gray-900 mb-1">{user.businessUnit}</div>
+                    <div className="space-y-1">
+                      {user.managerName && (
+                        <div className="text-xs text-gray-500 flex items-center gap-1">
+                          <span className="inline-block w-1.5 h-1.5 bg-blue-400 rounded-full"></span>
+                          Gestor: {user.managerName}
+                        </div>
+                      )}
+                      {user.mentorName && (
+                        <div className="text-xs text-gray-500 flex items-center gap-1">
+                          <span className="inline-block w-1.5 h-1.5 bg-orange-400 rounded-full"></span>
+                          Mentor: {user.mentorName}
+                        </div>
+                      )}
+                      {user.leaderName && (
+                        <div className="text-xs text-gray-500 flex items-center gap-1">
+                          <span className="inline-block w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
+                          Líder: {user.leaderName}
+                        </div>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {user.isActive ? (
@@ -719,6 +736,18 @@ const UserManagement: React.FC = () => {
                         <span className="ml-2 font-medium">{selectedUser.managerName}</span>
                       </div>
                     )}
+                    {selectedUser.mentorName && (
+                      <div>
+                        <span className="text-gray-600">Mentor:</span>
+                        <span className="ml-2 font-medium">{selectedUser.mentorName}</span>
+                      </div>
+                    )}
+                    {selectedUser.leaderName && (
+                      <div>
+                        <span className="text-gray-600">Líder de Projeto:</span>
+                        <span className="ml-2 font-medium">{selectedUser.leaderName}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -761,21 +790,48 @@ const UserManagement: React.FC = () => {
                           <div key={index} className="bg-white rounded border border-green-200 p-3">
                             <div className="flex justify-between items-start mb-2">
                               <div className="font-medium text-gray-900">{project.name}</div>
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                project.roleInProject === 'gestor' 
-                                  ? 'bg-blue-100 text-blue-800' 
-                                  : 'bg-gray-100 text-gray-800'
-                              }`}>
-                                {project.roleInProject === 'gestor' ? '👨‍💼 Gestor' : '👤 Colaborador'}
-                              </span>
+                              <div className="flex gap-1">
+                                {/* Mostrar badge de LÍDER se aplicável */}
+                                {project.ledCollaborators !== undefined && (
+                                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                    👑 Líder
+                                  </span>
+                                )}
+                                {/* Mostrar badge de GESTOR se aplicável */}
+                                {project.managedCollaborators !== undefined && (
+                                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    👨‍💼 Gestor
+                                  </span>
+                                )}
+                                {/* Mostrar badge de COLABORADOR apenas se não tiver outras roles */}
+                                {project.managedCollaborators === undefined && project.ledCollaborators === undefined && (
+                                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    👤 Colaborador
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                            {project.roleInProject === 'gestor' && project.managedCollaborators && project.managedCollaborators.length > 0 && (
-                              <div className="text-sm text-gray-600">
-                                <div className="font-medium mb-1">Gerencia:</div>
+                            {/* Mostrar pessoas gerenciadas se for gestor */}
+                            {project.managedCollaborators && project.managedCollaborators.length > 0 && (
+                              <div className="text-sm text-gray-600 mb-2">
+                                <div className="font-medium mb-1">👨‍💼 Gerencia:</div>
                                 <div className="space-y-1">
                                   {project.managedCollaborators.map((collab, idx) => (
                                     <div key={idx} className="text-xs bg-blue-50 px-2 py-1 rounded">
                                       {collab.name} ({collab.jobTitle})
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            {/* Mostrar pessoas lideradas se for líder */}
+                            {project.ledCollaborators && project.ledCollaborators.length > 0 && (
+                              <div className="text-sm text-gray-600">
+                                <div className="font-medium mb-1">👑 Lidera:</div>
+                                <div className="space-y-1">
+                                  {project.ledCollaborators.map((led, idx) => (
+                                    <div key={idx} className="text-xs bg-purple-50 px-2 py-1 rounded">
+                                      {led.name} ({led.jobTitle})
                                     </div>
                                   ))}
                                 </div>
@@ -1132,12 +1188,13 @@ const UserManagement: React.FC = () => {
                                 </label>
                                 <select
                                   value={assignment.roleInProject}
-                                  onChange={(e) => updateProjectAssignment(index, 'roleInProject', e.target.value as 'colaborador' | 'gestor')}
+                                  onChange={(e) => updateProjectAssignment(index, 'roleInProject', e.target.value as 'colaborador' | 'gestor' | 'lider')}
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                   required
                                 >
                                   <option value="colaborador">Colaborador</option>
                                   <option value="gestor">Gestor</option>
+                                  <option value="lider">Líder</option>
                                 </select>
                               </div>
 
