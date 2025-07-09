@@ -1,21 +1,17 @@
 // src/pages/manager/CollaboratorEvaluationDetails.tsx
 
 // SEUS IMPORTS - MANTIDOS EXATAMENTE COMO ESTAVAM
-import { type FC, useEffect, useState, useMemo, useRef } from 'react';
+import { type FC, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { AlertCircle } from 'lucide-react';
 import ManagerService from '../../../services/ManagerService';
 import { useGlobalToast } from '../../../hooks/useGlobalToast';
 import type { TabItem } from '../collaboratorEvaluations/components/TabNavigation';
 import EvaluationHeader from './components/CollaboratorEvaluationHeader';
 import EvaluationCriteriaList from './components/EvaluationCriteriaList';
-import Manager360Evaluations from './Manager360Evaluations';
 import ManagerEvaluationsHistory from './ManagerEvaluationsHistory';
 import ClientEvaluation from '../collaborators/components/ClientEvaluation';
 import type { ManagerCriterionState } from '../../../types/evaluations';
-import { type SelfEvaluationReviewRef } from '../collaboratorEvaluations/SelfEvaluationReview';
 import type { DetailedSelfAssessment } from '../../../types/detailedEvaluations';
-
 
 interface DashboardSubordinate {
   id: string;
@@ -41,15 +37,15 @@ export const ALLOWED_CRITERIA_IDS = [
 
 const TABS: TabItem[] = [
   { id: 'evaluation', label: 'Avaliação' },
-  { id: 'history', label: 'Histórico' }, 
-  { id: 'customer', label: 'Avaliação do Cliente' }
+  { id: 'history', label: 'Histórico' },
+  { id: 'customer', label: 'Avaliação do Cliente' },
 ];
 
 const CollaboratorEvaluationDetails: FC = () => {
   const { id: collaboratorIdFromUrl } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const toast = useGlobalToast();
-  
+
   const [detailedSelfAssessment, setDetailedSelfAssessment] = useState<DetailedSelfAssessment | null>(null);
   const [performanceHistory, setPerformanceHistory] = useState<PerformanceHistoryDto | null>(null);
   const [collaboratorName, setCollaboratorName] = useState('');
@@ -77,7 +73,8 @@ const CollaboratorEvaluationDetails: FC = () => {
         ]);
         setDetailedSelfAssessment(selfAssessment);
         setPerformanceHistory(historyData);
-        const subordinates = dashboardData?.collaboratorsInfo?.flatMap((group: CollaboratorGroup) => group.subordinates) ?? [];
+        const subordinates =
+          dashboardData?.collaboratorsInfo?.flatMap((group: CollaboratorGroup) => group.subordinates) ?? [];
         const foundCollaborator = subordinates.find((sub: DashboardSubordinate) => sub.id === collaboratorIdFromUrl);
         if (foundCollaborator) {
           setCollaboratorName(foundCollaborator.name);
@@ -93,10 +90,16 @@ const CollaboratorEvaluationDetails: FC = () => {
   }, [collaboratorIdFromUrl]);
 
   const handleManagerRatingChange = (criterionId: string, score: number) => {
-    setManagerAssessments(prev => ({ ...prev, [criterionId]: { ...prev[criterionId], score, justification: prev[criterionId]?.justification ?? '' } }));
+    setManagerAssessments(prev => ({
+      ...prev,
+      [criterionId]: { ...prev[criterionId], score, justification: prev[criterionId]?.justification ?? '' },
+    }));
   };
   const handleManagerJustificationChange = (criterionId: string, justification: string) => {
-    setManagerAssessments(prev => ({ ...prev, [criterionId]: { ...prev[criterionId], justification, score: prev[criterionId]?.score ?? 0 } }));
+    setManagerAssessments(prev => ({
+      ...prev,
+      [criterionId]: { ...prev[criterionId], justification, score: prev[criterionId]?.score ?? 0 },
+    }));
   };
 
   // --- LÓGICA DE SUBMISSÃO FINAL IMPLEMENTADA AQUI ---
@@ -129,13 +132,15 @@ const CollaboratorEvaluationDetails: FC = () => {
       setTimeout(() => {
         navigate('/manager/collaborators');
       }, 1500);
-
     } catch (submitError) {
-      toast.error('Falha na Submissão', submitError instanceof Error ? submitError.message : 'Ocorreu um erro desconhecido.');
+      toast.error(
+        'Falha na Submissão',
+        submitError instanceof Error ? submitError.message : 'Ocorreu um erro desconhecido.',
+      );
       setIsAssessmentSubmitted(false); // Permite tentar novamente em caso de erro
     }
   };
-  
+
   const getCriterionName = (id: string) => {
     const names: Record<string, string> = {
       'sentimento-de-dono': 'Sentimento de Dono',
@@ -152,10 +157,12 @@ const CollaboratorEvaluationDetails: FC = () => {
   };
 
   const getManagerCompletionCount = () => {
-    const completed = ALLOWED_CRITERIA_IDS.filter(id => (managerAssessments[id]?.score ?? 0) > 0 && (managerAssessments[id]?.justification ?? '').trim() !== '').length;
+    const completed = ALLOWED_CRITERIA_IDS.filter(
+      id => (managerAssessments[id]?.score ?? 0) > 0 && (managerAssessments[id]?.justification ?? '').trim() !== '',
+    ).length;
     return { completed, total: ALLOWED_CRITERIA_IDS.length };
   };
-  
+
   const [expandedCriterion, setExpandedCriterion] = useState<Set<string>>(new Set());
   const toggleCriterionExpansion = (id: string) => {
     const newSet = new Set(expandedCriterion);
@@ -163,16 +170,26 @@ const CollaboratorEvaluationDetails: FC = () => {
     setExpandedCriterion(newSet);
   };
 
-  if (isLoading) { return <div className='p-8 text-center'>Carregando...</div>; }
-  if (error) { return <div className='p-8 text-center text-red-500'>Erro: {error}</div>; }
-  if (!detailedSelfAssessment) { return <div className='p-8 text-center'>Autoavaliação não encontrada.</div>; }
-  
+  if (isLoading) {
+    return <div className='p-8 text-center'>Carregando...</div>;
+  }
+  if (error) {
+    return <div className='p-8 text-center text-red-500'>Erro: {error}</div>;
+  }
+  if (!detailedSelfAssessment) {
+    return <div className='p-8 text-center'>Autoavaliação não encontrada.</div>;
+  }
+
   return (
     <div className='bg-gray-50 min-h-screen'>
       <EvaluationHeader
         isAssessmentSubmitted={isAssessmentSubmitted}
         collaboratorName={collaboratorName}
-        collaboratorInitials={collaboratorName.split(' ').map(n=>n[0]).join('').slice(0,2)}
+        collaboratorInitials={collaboratorName
+          .split(' ')
+          .map(n => n[0])
+          .join('')
+          .slice(0, 2)}
         collaboratorJobTitle={collaboratorJobTitle}
         onSubmit={handleSubmitManagerAssessment}
         tabs={TABS}
@@ -193,8 +210,12 @@ const CollaboratorEvaluationDetails: FC = () => {
             onJustificationChange={handleManagerJustificationChange}
           />
         )}
-        {activeTab === 'history' && performanceHistory && <ManagerEvaluationsHistory performanceHistory={performanceHistory} />}
-        {activeTab === 'customer' && collaboratorIdFromUrl && performanceHistory && <ClientEvaluation collaboratorId={collaboratorIdFromUrl} performanceHistory={performanceHistory} />}
+        {activeTab === 'history' && performanceHistory && (
+          <ManagerEvaluationsHistory performanceHistory={performanceHistory} />
+        )}
+        {activeTab === 'customer' && collaboratorIdFromUrl && performanceHistory && (
+          <ClientEvaluation collaboratorId={collaboratorIdFromUrl} performanceHistory={performanceHistory} />
+        )}
       </main>
     </div>
   );

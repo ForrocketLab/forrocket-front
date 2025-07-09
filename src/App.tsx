@@ -18,6 +18,7 @@ import CollaboratorManagement from './pages/hr/CollaboratorManagement';
 import CriteriaManagement from './pages/hr/CriteriaManagement';
 import EvaluationPage from './pages/evaluation/EvaluationCycle';
 import { EvaluationProvider } from './contexts/EvaluationProvider';
+import RHImport from './pages/hr/HRImport';
 import AdminHomePage from './pages/admin/AdminHome';
 import UserManagement from './pages/admin/UserManagement';
 import CycleManagement from './pages/admin/CycleManagement';
@@ -75,6 +76,7 @@ function App() {
                 <Route path='/rh/colaboradores' element={<CollaboratorManagement />} />
                 <Route path='/rh/evolucao-historica' element={<HistoricalEvolution />} />
                 <Route path='/rh/criterios' element={<CriteriaManagement />} />
+                <Route path='/rh/importar-historicos' element={<RHImport />} />
                 <Route path='/rh/matriz-talento' element={<TalentMatrixPage />} />
                 <Route path='/rh/matriz-talento/metodologia' element={<TalentMatrixMethodology />} />
               </Route>
