@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { FaStar, FaRegStar } from 'react-icons/fa';
 import { FiTrash2 } from 'react-icons/fi';
 import { useEvaluation } from '../../../contexts/EvaluationProvider';

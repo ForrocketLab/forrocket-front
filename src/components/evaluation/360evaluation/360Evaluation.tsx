@@ -42,15 +42,18 @@ const Evaluation360 = () => {
         );
         
         // Carregar avaliações existentes no contexto
-        evaluationsData.assessments360.forEach(evaluation => {
-          addEvaluation360({
+        evaluationsData.assessments360.forEach((evaluation: any) => {
+          const evaluatedUser = {
             id: evaluation.evaluatedUserId,
-            name: evaluation.evaluatedUserName,
-            email: evaluation.evaluatedUserEmail,
-            jobTitle: evaluation.evaluatedUserJobTitle,
-            seniority: evaluation.evaluatedUserSeniority,
-            roles: evaluation.evaluatedUserRoles,
-          });
+            name: evaluation.evaluatedUser?.name || evaluation.evaluatedUserName || 'Nome não disponível',
+            email: evaluation.evaluatedUser?.email || evaluation.evaluatedUserEmail || '',
+            jobTitle: evaluation.evaluatedUser?.jobTitle || evaluation.evaluatedUserJobTitle || 'Cargo não disponível',
+            seniority: evaluation.evaluatedUser?.seniority || evaluation.evaluatedUserSeniority || '',
+            roles: evaluation.evaluatedUser?.roles ? JSON.parse(evaluation.evaluatedUser.roles) : (evaluation.evaluatedUserRoles || []),
+          };
+          
+          console.log('📊 Carregando avaliação para:', evaluatedUser);
+          addEvaluation360(evaluatedUser);
         });
         
         setAvailableCollaborators(availableUsers);
