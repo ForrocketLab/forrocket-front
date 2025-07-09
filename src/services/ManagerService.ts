@@ -10,7 +10,15 @@ export interface Project {
   projectName: string;
 }
 
-export type ClientScores = Record<string, number>;
+/**
+ * Representa a avaliação completa de um cliente para um ciclo de projeto,
+ * incluindo a nota e o feedback (reason).
+ */
+export interface ClientEvaluation {
+  cycle: string;
+  score: number;
+  justification: string;
+}
 
 class ManagerService {
   static async getManagerDashboard(cycle: string): Promise<ManagerDashboardResponse> {
@@ -228,21 +236,25 @@ class ManagerService {
     }
   }
 
-  static async getClientProjectScores(projectId: string): Promise<ClientScores> {
+  /**
+   * Busca as avaliações completas do cliente (nota e feedback) para um projeto específico.
+   * @param projectId O ID do projeto.
+   * @returns Uma promessa que resolve para um array de avaliações de cliente.
+   */
+  static async getClientProjectEvaluations(projectId: string): Promise<ClientEvaluation[]> {
     try {
-      // 🎯 IMPORTANTE: Altere a URL base para o endereço e porta corretos do seu backend!
-      const backendUrl = `http://localhost:3000/api/projects/${projectId}/scores`;
-      const response = await api.get<ClientScores>(backendUrl, {
+      // Endpoint atualizado conforme a especificação do backend
+      const response = await api.get<ClientEvaluation[]>(`/evaluations/collaborator/projects/${projectId}/details`, {
         headers: {
           Authorization: `Bearer ${AuthService.getToken()}`,
         },
       });
       return response.data;
     } catch (error) {
-      console.error(`Erro ao buscar notas do cliente para o projeto ${projectId}:`, error);
+      console.error(`Erro ao buscar avaliações do cliente para o projeto ${projectId}:`, error);
       if (error instanceof AxiosError && error.response) {
-        if (error.response.status === 404) return {}; // Retorna objeto vazio se não houver notas
-        throw new Error(error.response.data.message || 'Falha ao buscar as notas do cliente.');
+        if (error.response.status === 404) return []; // Retorna array vazio se não houver avaliações
+        throw new Error(error.response.data.message || 'Falha ao buscar as avaliações do cliente.');
       }
       throw new Error('Ocorreu um erro de rede. Tente novamente.');
     }

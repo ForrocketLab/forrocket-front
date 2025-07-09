@@ -10,40 +10,16 @@ import {
   ResponsiveContainer,
   LabelList,
 } from 'recharts';
-import ManagerService, { type ClientScores } from '../../../../services/ManagerService';
+import type { ClientEvaluation } from '../../../../services/ManagerService';
 
 interface ChartProps {
   performanceHistory: PerformanceDataDto[];
-  selectedProjectId: string;
+  clientEvaluations: ClientEvaluation[];
 }
 
-const ClientProjectComparisonChart = ({ performanceHistory, selectedProjectId }: ChartProps) => {
-  const [clientScores, setClientScores] = useState<ClientScores | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!selectedProjectId) return;
-
-    const fetchClientScores = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const scores = await ManagerService.getClientProjectScores(selectedProjectId);
-        setClientScores(scores);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Falha ao carregar notas do cliente.');
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchClientScores();
-  }, [selectedProjectId]);
-
+const ClientProjectComparisonChart = ({ performanceHistory, clientEvaluations }: ChartProps) => {
   const chartData = useMemo(() => {
-    if (!clientScores) return [];
+    if (!clientEvaluations) return [];
 
     return performanceHistory
       .map(item => {
@@ -59,8 +35,9 @@ const ClientProjectComparisonChart = ({ performanceHistory, selectedProjectId }:
         const internalScores = [selfScoreAvg, managerScoreAvg].filter(s => s !== null) as number[];
         const internalScore = internalScores.length > 0 ? internalScores.reduce((a, b) => a + b, 0) / internalScores.length : null;
 
-        // Busca a NOTA DO CLIENTE dos dados recebidos da API
-        const clientScore = clientScores[item.cycle] ?? null;
+        // Busca a NOTA DO CLIENTE da prop
+        const clientEval = clientEvaluations.find(ce => ce.cycle === item.cycle);
+        const clientScore = clientEval ? clientEval.score : null;
 
         return {
           cycle: item.cycle,
@@ -70,17 +47,9 @@ const ClientProjectComparisonChart = ({ performanceHistory, selectedProjectId }:
       })
       .filter(item => item.internalScore !== null || item.clientScore !== null) // Mostra o ciclo se tiver pelo menos uma das notas
       .reverse();
-  }, [performanceHistory, clientScores]);
+  }, [performanceHistory, clientEvaluations]);
 
-  if (isLoading) {
-    return <p className='text-center text-gray-500 mt-8'>Carregando notas do cliente...</p>;
-  }
-
-  if (error) {
-    return <p className='text-center text-red-500 mt-8'>Erro ao carregar dados do cliente: {error}</p>;
-  }
-
-  if (chartData.length === 0 && !isLoading) {
+  if (chartData.length === 0) {
     return <p className='text-center text-gray-500 mt-8'>Não há dados históricos de notas para este projeto.</p>;
   }
 

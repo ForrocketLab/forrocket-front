@@ -1,5 +1,6 @@
 import { type FC, useEffect, useState, useMemo, useRef } from 'react';
 import DashboardService from '../../../services/ManagerService';
+import api from '../../../api';
 import { useAuth } from '../../../hooks/useAuth';
 import { AlertCircle, Search, Filter } from 'lucide-react';
 import FilterStatusPopup from '../dashboard/components/FilterStatusPopup';
@@ -32,7 +33,10 @@ useEffect(() => {
           setIsLoading(false);
           return;
         }
-        const dashboardData = await DashboardService.getManagerDashboard(activeCycle.name);
+        // Substituído para usar o endpoint GET /api/evaluations/manager/dashboard
+        const response = await api.get(`/evaluations/manager/dashboard?cycle=${activeCycle.name}`);
+        const dashboardData = response.data;
+
         const allSubordinates: DashboardSubordinate[] = dashboardData.collaboratorsInfo.flatMap(
           group => group.subordinates,
         );

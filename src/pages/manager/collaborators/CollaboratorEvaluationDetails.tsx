@@ -1,6 +1,6 @@
 // src/pages/manager/CollaboratorEvaluationDetails.tsx
 
-// SEUS IMPORTS - MANTIDOS EXATAMENTE COMO ESTAVAM
+
 import { type FC, useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';

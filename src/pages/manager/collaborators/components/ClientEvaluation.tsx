@@ -1,6 +1,6 @@
 import { type FC, useState, useEffect } from 'react';
 import LoadingSpinner from '../../../../components/LoadingSpinner';
-import ManagerService, { type Project } from '../../../../services/ManagerService';
+import ManagerService, { type Project, type ClientEvaluation as ClientEvaluationData } from '../../../../services/ManagerService';
 import ClientProjectComparisonChart from './ClientProjectComparisonChart';
 
 interface ClientEvaluationProps {
@@ -11,6 +11,9 @@ interface ClientEvaluationProps {
 const ClientEvaluation: FC<ClientEvaluationProps> = ({ collaboratorId, performanceHistory }) => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<string>('');
+  const [clientEvaluations, setClientEvaluations] = useState<ClientEvaluationData[]>([]);
+  const [isLoadingEvaluations, setIsLoadingEvaluations] = useState(false);
+  const [evaluationError, setEvaluationError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,9 +47,31 @@ const ClientEvaluation: FC<ClientEvaluationProps> = ({ collaboratorId, performan
     fetchProjects();
   }, [collaboratorId]);
 
+  useEffect(() => {
+    if (!selectedProject) {
+      setClientEvaluations([]); // Limpa as avaliações se nenhum projeto for selecionado
+      return;
+    }
+
+    const fetchClientEvaluations = async () => {
+      setIsLoadingEvaluations(true);
+      setEvaluationError(null);
+      try {
+        const evaluations = await ManagerService.getClientProjectEvaluations(selectedProject);
+        setClientEvaluations(evaluations);
+      } catch (err) {
+        setEvaluationError(err instanceof Error ? err.message : 'Falha ao carregar avaliações do cliente.');
+        console.error(err);
+      } finally {
+        setIsLoadingEvaluations(false);
+      }
+    };
+
+    fetchClientEvaluations();
+  }, [selectedProject]);
+
   const handleProjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedProject(event.target.value);
-    // Futuramente, aqui você pode adicionar a lógica para buscar a avaliação do cliente para o projeto selecionado.
   };
 
   if (isLoading) {
@@ -71,12 +96,43 @@ const ClientEvaluation: FC<ClientEvaluationProps> = ({ collaboratorId, performan
         )}
       </div>
 
-      {projects.length === 0 ? (
+      {projects.length === 0 && !isLoading ? (
         <p className='text-gray-600'>Este colaborador não está associado a nenhum projeto com avaliação de cliente.</p>
       ) : (
-        selectedProject && performanceHistory && (
-          <ClientProjectComparisonChart performanceHistory={performanceHistory.performanceData} selectedProjectId={selectedProject} />
-        )
+        <>
+          {isLoadingEvaluations ? (
+            <div className='flex justify-center items-center h-64'><LoadingSpinner /></div>
+          ) : evaluationError ? (
+            <div className='p-8 text-center text-red-500'>Erro: {evaluationError}</div>
+          ) : (
+            <>
+              <ClientProjectComparisonChart 
+                performanceHistory={performanceHistory.performanceData} 
+                clientEvaluations={clientEvaluations} 
+              />
+
+              {/* Seção de Feedback do Cliente */}
+              <div className='mt-8 pt-6 border-t border-gray-200'>
+                <h3 className='text-lg font-semibold text-gray-800 mb-4'>Feedback do Cliente</h3>
+                {clientEvaluations.length > 0 ? (
+                  <div className='space-y-4'>
+                    {clientEvaluations.map((evaluation, index) => (
+                      <div key={index} className='bg-gray-50 p-4 rounded-lg border border-gray-200'>
+                        <div className='flex justify-between items-center mb-2'>
+                          <span className='font-semibold text-gray-700'>Ciclo: {evaluation.cycle}</span>
+                          <span className='text-sm font-bold text-blue-600'>Nota: {evaluation.score}</span>
+                        </div>
+                        <p className='text-gray-600 italic'>"{evaluation.justification}"</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className='text-gray-500'>Nenhum feedback de cliente encontrado para este projeto.</p>
+                )}
+              </div>
+            </>
+          )}
+        </>
       )}
     </div>
   );
