@@ -1,42 +1,59 @@
-import { type FC, useState, useCallback, useEffect } from 'react';
+import { type FC, useState, useCallback, useEffect, useRef } from 'react';
 import { useDropzone, type FileRejection } from 'react-dropzone';
-import {
-  UploadCloud,
-  FileText,
-  CheckCircle,
-  XCircle,
-  Loader,
-  Trash2,
-  AlertCircle as AlertCircleIcon,
-} from 'lucide-react';
+import { UploadCloud, FileText, Loader, AlertCircle as AlertCircleIcon } from 'lucide-react';
 import { useGlobalToast } from '../../hooks/useGlobalToast';
+import { usePagination } from '../../hooks/usePagination';
 import ImportFileService from '../../services/ImportFileService';
+import { ImportHistoryDataGrid } from './components';
 
 const HRImport: FC = () => {
   const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
   const [importBatches, setImportBatches] = useState<ImportBatch[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [paginationMeta, setPaginationMeta] = useState<PaginationMeta | null>(null);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isFirstLoad = useRef(true);
 
   const [isUploading, setIsUploading] = useState(false);
   const { success: showSuccessToast, error: showErrorToast } = useGlobalToast();
 
+  // Hook personalizado para gerenciar paginação
+  const { currentPage, itemsPerPage, sortBy, sortOrder, handleSort, handlePageChange } = usePagination({
+    initialSortBy: 'importedAt',
+    initialSortOrder: 'desc',
+    initialLimit: 10,
+  });
+
   useEffect(() => {
     const fetchBatches = async () => {
-      setIsLoading(true);
+      // Loading inicial apenas na primeira carga
+      if (isFirstLoad.current) {
+        setIsInitialLoading(true);
+      } else {
+        setIsLoading(true);
+      }
       setError(null);
       try {
-        const batchData = await ImportFileService.getImportBatches();
-        setImportBatches(batchData);
+        const response = await ImportFileService.getImportBatches({
+          page: currentPage,
+          limit: itemsPerPage,
+          sortBy,
+          sortOrder,
+        });
+        setImportBatches(response.data);
+        setPaginationMeta(response.meta);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Falha ao carregar o histórico de importações.');
       } finally {
+        setIsInitialLoading(false);
         setIsLoading(false);
+        isFirstLoad.current = false;
       }
     };
 
     fetchBatches();
-  }, []);
+  }, [currentPage, itemsPerPage, sortBy, sortOrder]);
 
   const onDrop = useCallback(
     (acceptedFiles: File[], fileRejections: FileRejection[]) => {
@@ -86,8 +103,14 @@ const HRImport: FC = () => {
       setFilesToUpload([]);
 
       // Recarregar o histórico para mostrar a nova importação
-      const batchData = await ImportFileService.getImportBatches();
-      setImportBatches(batchData);
+      const response = await ImportFileService.getImportBatches({
+        page: currentPage,
+        limit: itemsPerPage,
+        sortBy,
+        sortOrder,
+      });
+      setImportBatches(response.data);
+      setPaginationMeta(response.meta);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Ocorreu um erro no servidor.';
       showErrorToast('Erro na Importação', errorMessage);
@@ -109,16 +132,7 @@ const HRImport: FC = () => {
     }
   };
 
-  const StatusIcon = ({ status }: { status: ImportBatch['status'] }) => {
-    const iconMap = {
-      COMPLETED: <CheckCircle className='w-5 h-5 text-green-500' />,
-      PROCESSING: <Loader className='w-5 h-5 text-blue-500 animate-spin' />,
-      ERROR: <XCircle className='w-5 h-5 text-red-500' />,
-    };
-    return iconMap[status] || null;
-  };
-
-  if (isLoading) {
+  if (isInitialLoading) {
     return (
       <div className='flex items-center justify-center h-64'>
         <Loader className='w-8 h-8 animate-spin text-teal-600' />
@@ -126,7 +140,7 @@ const HRImport: FC = () => {
     );
   }
 
-  if (error) {
+  if (error && importBatches.length === 0) {
     return (
       <div className='flex flex-col items-center justify-center h-64 text-center'>
         <AlertCircleIcon className='w-12 h-12 text-red-500 mb-4' />
@@ -198,112 +212,17 @@ const HRImport: FC = () => {
 
           <div className='mt-8'>
             <h2 className='text-xl font-bold text-gray-800 mb-4'>Histórico de Importações</h2>
-            <div className='bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden'>
-              {importBatches.length === 0 ? (
-                <div className='p-8 text-center text-gray-500'>
-                  <FileText className='w-12 h-12 mx-auto mb-4 text-gray-300' />
-                  <p>Nenhuma importação encontrada.</p>
-                </div>
-              ) : (
-                <div className='overflow-x-auto'>
-                  <table className='min-w-full divide-y divide-gray-200'>
-                    <thead className='bg-gray-50'>
-                      <tr>
-                        <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                          Arquivo
-                        </th>
-                        <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                          Data de Importação
-                        </th>
-                        <th className='px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                          Usuário
-                        </th>
-                        <th className='px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                          Status
-                        </th>
-                        <th className='px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                          Registros Criados
-                        </th>
-                        <th className='px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                          Ações
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className='bg-white divide-y divide-gray-200'>
-                      {importBatches.map(batch => (
-                        <tr key={batch.id} className='hover:bg-gray-50 hover:cursor-pointer'>
-                          <td className='px-6 py-4 whitespace-nowrap'>
-                            <div className='flex items-center'>
-                              <FileText className='w-5 h-5 text-gray-400 mr-3 flex-shrink-0' />
-                              <div>
-                                <div className='text-sm font-medium text-gray-900'>{batch.fileName}</div>
-                                {batch.notes && <div className='text-xs text-gray-500'>{batch.notes}</div>}
-                              </div>
-                            </div>
-                          </td>
-                          <td className='px-6 py-4 whitespace-nowrap'>
-                            <div className='text-sm text-gray-900'>
-                              {new Date(batch.importedAt).toLocaleString('pt-BR')}
-                            </div>
-                          </td>
-                          <td className='px-6 py-4 whitespace-nowrap'>
-                            <div className='text-sm text-gray-900'>{batch.uploadedUser.name}</div>
-                            <div className='text-xs text-gray-500'>{batch.uploadedUser.email}</div>
-                          </td>
-                          <td className='px-6 py-4 whitespace-nowrap text-center'>
-                            <div className='flex items-center justify-center gap-2'>
-                              <StatusIcon status={batch.status} />
-                              <span className='text-sm'>
-                                {batch.status === 'COMPLETED' && 'Concluído'}
-                                {batch.status === 'PROCESSING' && 'Processando'}
-                                {batch.status === 'ERROR' && 'Erro'}
-                              </span>
-                            </div>
-                          </td>
-                          <td className='px-6 py-4 whitespace-nowrap text-center'>
-                            <div className='text-sm text-gray-900'>
-                              <div className='flex flex-col items-center space-y-1'>
-                                <div className='flex items-center space-x-2 text-xs'>
-                                  <span className='bg-blue-100 text-blue-800 px-2 py-1 rounded'>
-                                    {batch._count.createdUsers} usuários
-                                  </span>
-                                </div>
-                                <div className='flex items-center space-x-2 text-xs'>
-                                  <span className='bg-green-100 text-green-800 px-2 py-1 rounded'>
-                                    {batch._count.createdSelfAssessments} autoavaliações
-                                  </span>
-                                </div>
-                                <div className='flex items-center space-x-2 text-xs'>
-                                  <span className='bg-purple-100 text-purple-800 px-2 py-1 rounded'>
-                                    {batch._count.createdAssessments360} avaliações 360
-                                  </span>
-                                </div>
-                                <div className='flex items-center space-x-2 text-xs'>
-                                  <span className='bg-orange-100 text-orange-800 px-2 py-1 rounded'>
-                                    {batch._count.createdReferenceFeedbacks} feedbacks
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className='px-6 py-4 whitespace-nowrap text-center'>
-                            <div className='flex justify-center items-center gap-2'>
-                              <button
-                                onClick={() => handleDeleteBatch(batch.id, batch.fileName)}
-                                className='p-2 text-red-600 hover:bg-red-100 hover:cursor-pointer rounded-lg'
-                                title='Deletar lote'
-                              >
-                                <Trash2 className='w-5 h-5' />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
+            <ImportHistoryDataGrid
+              batches={importBatches}
+              paginationMeta={paginationMeta}
+              currentPage={currentPage}
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              isLoading={isLoading}
+              onSort={handleSort}
+              onPageChange={handlePageChange}
+              onDeleteBatch={handleDeleteBatch}
+            />
           </div>
         </div>
       </div>
