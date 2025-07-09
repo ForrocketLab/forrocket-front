@@ -20,16 +20,41 @@ const Evaluation360 = () => {
   } = useEvaluation();
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const loadData = async () => {
       try {
+        setIsLoading(true);
+        setError(null);
+
+        // Carregar ciclo ativo
+        const { name: cycleId } = await EvaluationService.getActiveCycle();
+        
+        // Carregar avaliações existentes
+        const evaluationsData = await EvaluationService.getUserEvaluationsByCycle(cycleId);
+        
+        // Carregar colaboradores disponíveis
         const { colleagues, managers } = await EvaluationService.getEvaluableUsers();
         const allEvaluableUsers = [...colleagues, ...managers];
         
         // Filtrar colaboradores que já estão sendo avaliados
-        const evaluatedCollaboratorIds = evaluations360.map(evaluation => evaluation.collaborator.id);
+        const evaluatedCollaboratorIds = evaluationsData.assessments360.map(evaluation => evaluation.evaluatedUserId);
         const availableUsers = allEvaluableUsers.filter(
           user => !evaluatedCollaboratorIds.includes(user.id)
         );
+        
+        // Carregar avaliações existentes no contexto
+        evaluationsData.assessments360.forEach((evaluation: any) => {
+          const evaluatedUser = {
+            id: evaluation.evaluatedUserId,
+            name: evaluation.evaluatedUser?.name || evaluation.evaluatedUserName || 'Nome não disponível',
+            email: evaluation.evaluatedUser?.email || evaluation.evaluatedUserEmail || '',
+            jobTitle: evaluation.evaluatedUser?.jobTitle || evaluation.evaluatedUserJobTitle || 'Cargo não disponível',
+            seniority: evaluation.evaluatedUser?.seniority || evaluation.evaluatedUserSeniority || '',
+            roles: evaluation.evaluatedUser?.roles ? JSON.parse(evaluation.evaluatedUser.roles) : (evaluation.evaluatedUserRoles || []),
+          };
+          
+          console.log('📊 Carregando avaliação para:', evaluatedUser);
+          addEvaluation360(evaluatedUser);
+        });
         
         setAvailableCollaborators(availableUsers);
         setIsLoading(false);
@@ -39,8 +64,8 @@ const Evaluation360 = () => {
       }
     };
 
-    fetchUsers();
-  }, [evaluations360]);
+    loadData();
+  }, [addEvaluation360]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
