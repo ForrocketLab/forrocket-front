@@ -1,41 +1,72 @@
 /**
- * Interface para descrever a estrutura do resultado de upload/processamento de cada arquivo.
+ * Interface para a resposta do upload de arquivo único.
  */
-interface UploadResult {
-  fileName: string;
-  status: 'success' | 'error' | 'skipped';
-  message?: string;
-  data?: {
-    created: number;
-    updated: number;
-    errors?: Array<{ record: any; message: string }>;
-  };
+interface ImportFileResponse {
+  message: string;
+  userId: string;
+  userName: string;
+  batchId: string;
 }
 
 /**
- * Interface para representar um arquivo já importado (listado do backend).
- * Reflete o modelo `ImportHistory` do Prisma.
+ * Interface para arquivo individual na resposta bulk
  */
-interface ImportHistory {
+interface FileResult {
+  fileName: string;
+  batchId: string;
+  status: 'SUCCESS' | 'ERROR';
+  message: string;
+  userId: string;
+  userName: string;
+}
+
+/**
+ * Interface para a resposta do upload de múltiplos arquivos.
+ */
+interface ImportBulkResponse {
+  message: string;
+  totalFiles: number;
+  successfulFiles: number;
+  failedFiles: number;
+  fileResults: FileResult[];
+}
+
+/**
+ * Interface para usuário que fez upload
+ */
+interface UploadedUser {
+  id: string;
+  name: string;
+  email: string;
+}
+
+/**
+ * Interface para contadores de registros criados
+ */
+interface ImportCounts {
+  createdUsers: number;
+  createdSelfAssessments: number;
+  createdAssessments360: number;
+  createdReferenceFeedbacks: number;
+}
+
+/**
+ * Interface para lote de importação (nova API)
+ */
+interface ImportBatch {
   id: string;
   fileName: string;
-  fileSize: number | null;
-  uploadDate: string;
-  uploadedByEmail: string | null;
-  overallStatus: 'IN_PROGRESS' | 'SUCCESS' | 'PARTIAL_SUCCESS' | 'ERROR';
-  totalSheetsProcessed: number;
-  totalRecordsCreated: number;
-  totalRecordsUpdated: number;
-  totalErrors: number;
-  details: any;
+  status: 'COMPLETED' | 'PROCESSING' | 'ERROR';
+  importedAt: string;
+  notes: string | null;
+  uploadedUserId: string;
+  uploadedUser: UploadedUser;
+  _count: ImportCounts;
 }
 
 /**
- * Representa os dados detalhados de uma importação específica, incluindo os registros.
+ * Interface para resposta de deleção de lote
  */
-interface ImportHistoryDetails extends ImportHistory {
-  perfisImportados: any[];
-  autoAvaliacoesImportadas: any[];
-  avaliacoes360Importadas: any[];
-  pesquisasReferenciaImportadas: any[];
+interface DeleteBatchResponse {
+  message: string;
 }
