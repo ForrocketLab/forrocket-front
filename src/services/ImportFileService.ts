@@ -1,6 +1,14 @@
 import { AxiosError } from 'axios';
 import api from '../api';
 import AuthService from './AuthService';
+import type { 
+  ImportFileResponse, 
+  ImportBulkResponse, 
+  ImportBatch, 
+  PaginationParams, 
+  PaginatedImportBatchesResponse,
+  DeleteBatchResponse 
+} from '../types/import';
 
 class ImportFileService {
   /**

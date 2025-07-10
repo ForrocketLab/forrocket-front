@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 import { useGlobalToast } from '../../hooks/useGlobalToast';
+import { formatDate, debugFormatDate } from '../../utils/dateUtils';
 import AdminService, { 
   type UserData, 
   type CreateUserData,
@@ -364,9 +365,7 @@ const UserManagement: React.FC = () => {
     });
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
+
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -626,7 +625,7 @@ const UserManagement: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {formatDate(user.createdAt)}
+                      {debugFormatDate(user.createdAt)}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

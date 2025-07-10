@@ -5,6 +5,7 @@ import { useGlobalToast } from '../../hooks/useGlobalToast';
 import { usePagination } from '../../hooks/usePagination';
 import ImportFileService from '../../services/ImportFileService';
 import { ImportHistoryDataGrid } from './components';
+import type { ImportBatch, PaginationMeta } from '../../types/import';
 
 const HRImport: FC = () => {
   const [filesToUpload, setFilesToUpload] = useState<File[]>([]);

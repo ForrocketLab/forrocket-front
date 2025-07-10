@@ -81,7 +81,7 @@ const ManagerDashboardPage = () => {
         <DetailedScoreCard
           title='Sua Nota Atual'
           description={`Nota final do ciclo realizado em ${activeCycle.name}.`}
-          score={dashboardData.summary.overallScore ?? '-'}
+          score={typeof dashboardData.summary.overallScore === 'number' ? dashboardData.summary.overallScore : null}
           ratingText={dashboardData.summary.overallScore ? 'Great' : 'N/A'}
           color='#419958'
           icon={<FaStar size={32} />}

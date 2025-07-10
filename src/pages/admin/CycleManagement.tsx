@@ -6,6 +6,7 @@ import AdminService, {
   type ActivateCycleData,
   type UpdateCycleStatusData
 } from '../../services/AdminService';
+import { formatDate, formatDateTime, formatDateTimeDetailed, debugFormatDate } from '../../utils/dateUtils';
 import { 
   Calendar, 
   Plus, 
@@ -192,15 +193,7 @@ const CycleManagement: React.FC = () => {
     }
   };
 
-  const formatDateTime = (dateString: string | null) => {
-    if (!dateString) return 'Não definido';
-    return new Date(dateString).toLocaleString('pt-BR');
-  };
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Não definido';
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
 
   const openActivateModal = (cycle: CycleData) => {
     setSelectedCycleForActivation(cycle);
@@ -243,18 +236,7 @@ const CycleManagement: React.FC = () => {
     }
   };
 
-  const formatDateTimeDetailed = (dateString: string | null) => {
-    if (!dateString) return 'Não definido';
-    const date = new Date(dateString);
-    return date.toLocaleString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
-  };
+
 
   if (loading) {
     return (
@@ -307,8 +289,8 @@ const CycleManagement: React.FC = () => {
               <div className="flex gap-4 text-sm">
                 <span>Status: {getStatusLabel(activeCycle.status)}</span>
                 <span>Fase: {getPhaseLabel(activeCycle.phase)}</span>
-                <span>Data de Início: {formatDate(activeCycle.startDate)}</span>
-                <span>Data de Término: {formatDate(activeCycle.endDate)}</span>
+                <span>Data de Início: {debugFormatDate(activeCycle.startDate)}</span>
+                <span>Data de Término: {debugFormatDate(activeCycle.endDate)}</span>
               </div>
             </div>
             <div className="flex gap-2">
@@ -379,13 +361,13 @@ const CycleManagement: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
-                    <div>Início: {formatDate(cycle.startDate)}</div>
-                    <div>Fim: {formatDate(cycle.endDate)}</div>
+                    <div>Início: {debugFormatDate(cycle.startDate)}</div>
+                    <div>Fim: {debugFormatDate(cycle.endDate)}</div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
-                    <div>Avaliações: {formatDate(cycle.assessmentDeadline)}</div>
-                    <div>Gestores: {formatDate(cycle.managerDeadline)}</div>
-                    <div>Equalização: {formatDate(cycle.equalizationDeadline)}</div>
+                    <div>Avaliações: {debugFormatDate(cycle.assessmentDeadline)}</div>
+                    <div>Gestores: {debugFormatDate(cycle.managerDeadline)}</div>
+                    <div>Equalização: {debugFormatDate(cycle.equalizationDeadline)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end gap-2">

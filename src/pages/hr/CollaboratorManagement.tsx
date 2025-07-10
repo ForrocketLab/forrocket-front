@@ -9,6 +9,7 @@ import HRService, {
 } from '../../services/HRService';
 import CommitteeService, { type CollaboratorEvaluationSummary } from '../../services/CommitteeService';
 import { Eye, X, RefreshCw, Filter, ChevronDown, ChevronUp } from 'lucide-react';
+import { formatDate } from '../../utils/dateUtils';
 
 const CollaboratorManagement: React.FC = () => {
   const [collaborators, setCollaborators] = useState<CollaboratorWithProjectsAndProgress[]>([]);
@@ -293,9 +294,7 @@ const CollaboratorManagement: React.FC = () => {
     );
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
+
 
   const clearFilters = () => {
     setSearchTerm('');

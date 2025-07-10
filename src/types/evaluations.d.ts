@@ -80,3 +80,55 @@ export interface Create360AssessmentPayload {
   strengths: string;
   improvements: string;
 }
+
+/**
+ * Representa a evolução detalhada de um colaborador
+ */
+export interface CollaboratorDetailedEvolution {
+  id: string;
+  name: string;
+  email: string;
+  jobTitle: string;
+  seniority: string;
+  businessUnit: string;
+  pillarEvolution: any[];
+  criteriaEvolution: any[];
+  cycleDetails: any[];
+  insights: any[];
+  summary: {
+    totalCycles: number;
+    historicalAverage?: number;
+    bestScore?: number;
+    consistencyScore?: number;
+    overallTrend: string;
+  };
+  collaborator: {
+    name: string;
+  };
+}
+
+/**
+ * Representa a evolução de um critério
+ */
+export interface CriterionEvolution {
+  id: string;
+  name: string;
+  pillar: string;
+  scores: number[];
+  cycles: string[];
+  description: string;
+  selfAverage: number;
+  managerAverage: number;
+  committeeAverage: number;
+}
+
+/**
+ * Representa um highlight na evolução
+ */
+export interface Highlight {
+  type: 'improvement' | 'decline' | 'stable';
+  message: string;
+  value: number;
+  title: string;
+  description: string;
+}
