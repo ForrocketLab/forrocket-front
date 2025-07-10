@@ -1,5 +1,6 @@
 import api from '../api';
 import { type AxiosError } from 'axios';
+import type { ImportHistory, ImportHistoryDetails } from '../types/import';
 
 const UPLOAD_ENDPOINT = '/import/historical-data';
 const HISTORY_ENDPOINT = '/import/history';

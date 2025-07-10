@@ -11,6 +11,7 @@ import {
   ArrowUp,
   ArrowDown,
 } from 'lucide-react';
+import type { ImportBatch, PaginationMeta } from '../../../types/import';
 
 interface ImportHistoryDataGridProps {
   batches: ImportBatch[];

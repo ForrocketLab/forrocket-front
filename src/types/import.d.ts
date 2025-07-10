@@ -1,7 +1,7 @@
 /**
  * Interface para a resposta do upload de arquivo único.
  */
-interface ImportFileResponse {
+export interface ImportFileResponse {
   message: string;
   userId: string;
   userName: string;
@@ -11,7 +11,7 @@ interface ImportFileResponse {
 /**
  * Interface para arquivo individual na resposta bulk
  */
-interface FileResult {
+export interface FileResult {
   fileName: string;
   batchId: string;
   status: 'SUCCESS' | 'ERROR';
@@ -23,7 +23,7 @@ interface FileResult {
 /**
  * Interface para a resposta do upload de múltiplos arquivos.
  */
-interface ImportBulkResponse {
+export interface ImportBulkResponse {
   message: string;
   totalFiles: number;
   successfulFiles: number;
@@ -34,7 +34,7 @@ interface ImportBulkResponse {
 /**
  * Interface para usuário que fez upload
  */
-interface UploadedUser {
+export interface UploadedUser {
   id: string;
   name: string;
   email: string;
@@ -43,7 +43,7 @@ interface UploadedUser {
 /**
  * Interface para contadores de registros criados
  */
-interface ImportCounts {
+export interface ImportCounts {
   createdUsers: number;
   createdSelfAssessments: number;
   createdAssessments360: number;
@@ -53,7 +53,7 @@ interface ImportCounts {
 /**
  * Interface para lote de importação (nova API)
  */
-interface ImportBatch {
+export interface ImportBatch {
   id: string;
   fileName: string;
   status: 'SUCCESS' | 'PROCESSING' | 'ERROR' | 'COMPLETED'; // Suporte para ambos os formatos
@@ -67,14 +67,14 @@ interface ImportBatch {
 /**
  * Interface para resposta de deleção de lote
  */
-interface DeleteBatchResponse {
+export interface DeleteBatchResponse {
   message: string;
 }
 
 /**
  * Interface para parâmetros de paginação
  */
-interface PaginationParams {
+export interface PaginationParams {
   page?: number;
   limit?: number;
   sortBy?: 'importedAt' | 'fileName' | 'status';
@@ -84,7 +84,7 @@ interface PaginationParams {
 /**
  * Interface para metadados de paginação
  */
-interface PaginationMeta {
+export interface PaginationMeta {
   page: number;
   limit: number;
   total: number;
@@ -96,7 +96,41 @@ interface PaginationMeta {
 /**
  * Interface para resposta paginada de lotes
  */
-interface PaginatedImportBatchesResponse {
+export interface PaginatedImportBatchesResponse {
   data: ImportBatch[];
   meta: PaginationMeta;
+}
+
+/**
+ * Interface para histórico de importação
+ */
+export interface ImportHistory {
+  id: string;
+  fileName: string;
+  status: 'SUCCESS' | 'PROCESSING' | 'ERROR' | 'COMPLETED';
+  importedAt: string;
+  notes?: string | null;
+  uploadedUserId?: string;
+  uploadedUser: UploadedUser;
+  _count: ImportCounts;
+}
+
+/**
+ * Interface para detalhes do histórico de importação
+ */
+export interface ImportHistoryDetails {
+  id: string;
+  fileName: string;
+  status: 'SUCCESS' | 'PROCESSING' | 'ERROR' | 'COMPLETED';
+  importedAt: string;
+  notes?: string | null;
+  uploadedUserId?: string;
+  uploadedUser: UploadedUser;
+  _count: ImportCounts;
+  detailedCounts: {
+    usersCreated: number;
+    selfAssessmentsCreated: number;
+    assessments360Created: number;
+    referenceFeedbacksCreated: number;
+  };
 }

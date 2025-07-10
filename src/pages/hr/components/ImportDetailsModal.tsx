@@ -1,8 +1,7 @@
 import { type FC, useState } from 'react';
 import { X, FileText, Loader, ChevronDown } from 'lucide-react';
-
 interface ImportDetailsModalProps {
-  details: ImportHistoryDetails | null;
+  details: any | null;
   onClose: () => void;
   isLoading: boolean;
 }

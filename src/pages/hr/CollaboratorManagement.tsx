@@ -9,6 +9,7 @@ import HRService, {
 } from '../../services/HRService';
 import CommitteeService, { type CollaboratorEvaluationSummary } from '../../services/CommitteeService';
 import { Eye, X, RefreshCw, Filter, ChevronDown, ChevronUp } from 'lucide-react';
+import { formatDate } from '../../utils/dateUtils';
 
 const CollaboratorManagement: React.FC = () => {
   const [collaborators, setCollaborators] = useState<CollaboratorWithProjectsAndProgress[]>([]);
@@ -34,7 +35,7 @@ const CollaboratorManagement: React.FC = () => {
   // Estados para o modal de notas detalhadas
   const [showScoresModal, setShowScoresModal] = useState(false);
   const [selectedCollaboratorId, setSelectedCollaboratorId] = useState<string | null>(null);
-  const [evaluationDetails, setEvaluationDetails] = useState<CollaboratorEvaluationSummary | null>(null);
+  const [evaluationDetails, setEvaluationDetails] = useState<any>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
 
   // Estado para fase do ciclo
@@ -293,9 +294,7 @@ const CollaboratorManagement: React.FC = () => {
     );
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
+
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -402,7 +401,7 @@ const CollaboratorManagement: React.FC = () => {
       // Prevenir scroll da página principal quando modal estiver aberto
       document.body.style.overflow = 'hidden';
 
-      const details = await CommitteeService.getCollaboratorEvaluationSummary(collaboratorId);
+      const details = await HRService.getCollaboratorEvaluationDetails(collaboratorId);
       setEvaluationDetails(details);
     } catch (error) {
       console.error('Erro ao buscar detalhes da avaliação:', error);
@@ -802,9 +801,15 @@ const CollaboratorManagement: React.FC = () => {
                                     <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
                                       project.roleInProject === 'MANAGER' 
                                         ? 'bg-blue-100 text-blue-800' 
+                                        : project.roleInProject === 'LEADER'
+                                        ? 'bg-purple-100 text-purple-800'
                                         : 'bg-gray-100 text-gray-800'
                                     }`}>
-                                      {project.roleInProject === 'MANAGER' ? 'Gestor' : 'Membro'}
+                                      {project.roleInProject === 'MANAGER' 
+                                        ? 'Gestor' 
+                                        : project.roleInProject === 'LEADER' 
+                                        ? 'Líder' 
+                                        : 'Membro'}
                                     </span>
                                   </div>
                                 ))

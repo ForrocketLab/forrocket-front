@@ -16,6 +16,7 @@ import AuditService, {
   type TopApiEndpoint,
 } from '../../services/AuditService';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { formatDateTime } from '../../utils/dateUtils';
 
 import {
   BarChart,
@@ -107,9 +108,7 @@ const AuditLogPage: React.FC = () => {
     loadDashboardData();
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('pt-BR');
-  };
+
 
   const topEndpointsChartData = topApiEndpoints.map((item) => ({
     endpoint: item.endpoint,
@@ -287,7 +286,7 @@ const AuditLogPage: React.FC = () => {
                 logEntries.map((entry) => (
                   <tr key={entry.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatDate(entry.timestamp)}
+                      {formatDateTime(entry.timestamp)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">

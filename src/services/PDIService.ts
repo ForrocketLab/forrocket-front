@@ -4,7 +4,8 @@ import type {
   UpdatePDIDto,
   PDIResponse,
   PDISummary,
-  PDIActionResponse
+  PDIActionResponse,
+  PDIActionStatus
 } from '../types/pdis';
 
 /**
@@ -196,7 +197,7 @@ class PDIService {
    * Atualiza apenas o status de uma ação
    */
   async updateActionStatus(actionId: string, status: string): Promise<PDIActionResponse> {
-    return this.updateAction(actionId, { status });
+    return this.updateAction(actionId, { status: status as PDIActionStatus });
   }
 }
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CriteriaService, { type Criterion, type CreateCriterionDto, type UpdateCriterionDto } from '../../services/CriteriaService';
 import { useGlobalToast } from '../../hooks/useGlobalToast';
+import { formatDate } from '../../utils/dateUtils';
 
 const CriteriaManagement: React.FC = () => {
   const [criteria, setCriteria] = useState<Criterion[]>([]);

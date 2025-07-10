@@ -10,7 +10,6 @@ import EvaluationHeader from './components/CollaboratorEvaluationHeader';
 import EvaluationCriteriaList from './components/EvaluationCriteriaList';
 import ManagerEvaluationsHistory from './ManagerEvaluationsHistory';
 import ClientEvaluation from '../collaborators/components/ClientEvaluation';
-import type { ManagerCriterionState } from '../../../types/evaluations';
 import type { DetailedSelfAssessment } from '../../../types/detailedEvaluations';
 
 interface DashboardSubordinate {
@@ -23,12 +22,24 @@ interface CollaboratorGroup {
   subordinates: DashboardSubordinate[];
 }
 
+export interface ManagerCriterionState {
+  score: number;
+  justification: string;
+}
+
 export const ALLOWED_CRITERIA_IDS = [
   'sentimento-de-dono',
   'resiliencia-nas-adversidades',
   'organizacao-no-trabalho',
   'capacidade-de-aprender',
   'ser-team-player',
+  'entregar-com-qualidade',
+  'atender-aos-prazos',
+  'fazer-mais-com-menos',
+  'pensar-fora-da-caixa',
+];
+
+export const ALLOWED_EXECUTION_CRITERIA_IDS = [
   'entregar-com-qualidade',
   'atender-aos-prazos',
   'fazer-mais-com-menos',
@@ -115,6 +126,8 @@ const CollaboratorEvaluationDetails: FC = () => {
 
     const payloadToSend: Record<string, any> = {
       evaluatedUserId: collaboratorIdFromUrl,
+      cycle: '2025.1',
+      assessments: []
     };
 
     ALLOWED_CRITERIA_IDS.forEach(criterionId => {
@@ -125,7 +138,7 @@ const CollaboratorEvaluationDetails: FC = () => {
     });
 
     try {
-      await ManagerService.submitManagerSubordinateAssessment(payloadToSend);
+      await ManagerService.submitManagerSubordinateAssessment(payloadToSend as any);
       toast.success('Sucesso', 'Avaliação enviada e salva com sucesso!');
 
       // Após o sucesso, navega de volta para a lista após um breve atraso

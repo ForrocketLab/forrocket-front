@@ -1,6 +1,7 @@
 // src/components/EvaluationCriteriaList.tsx
 import { Star, CheckCircle, ChevronUp, ChevronDown } from 'lucide-react';
 import { ALLOWED_EXECUTION_CRITERIA_IDS, type ManagerCriterionState } from '../CollaboratorEvaluationDetails';
+import type { SelfAssessmentAnswer } from '../../../../types/evaluations';
 
 interface EvaluationCriteriaListProps {
   isAssessmentSubmitted: boolean;
