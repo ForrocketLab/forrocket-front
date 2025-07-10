@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FaSortAmountUp } from 'react-icons/fa';
-import { LuFilePenLine } from 'react-icons/lu';
 import CollaboratorHistoryChart from './components/CollaboratorHistoryChart';
 import CollaboratorCycleHistory from './components/CollaboratorCycleHistory';
 import EvaluationService from '../../../services/EvaluationService';
 import ManagerService from '../../../services/ManagerService';
 import DetailedScoreCard from '../../../components/cards/DetailedScoreCard';
-import BaseCard from '../../../components/cards/BaseCard';
+import ImprovePercentageCard from '../../../components/cards/ImprovePercentageCard';
+import EvaluationsFinishedCard from '../../../components/cards/EvaluationsFinishedCard';
 
 const CollaboratorEvolution = () => {
   const [performanceHistory, setPerformanceHistory] = useState<PerformanceHistoryDto>();
@@ -72,7 +71,7 @@ const CollaboratorEvolution = () => {
     }
 
     // numero total de avaliações
-    const totalEvaluations = performanceHistory?.assessmentsSubmittedCount;
+    const totalEvaluations = performanceHistory?.assessmentsSubmittedCount ?? 0;
 
     return {
       recentScore,
@@ -120,43 +119,15 @@ const CollaboratorEvolution = () => {
           description={`Nota final do ciclo realizado em ${cardData.recentCycleName}.`}
           score={cardData.recentScore}
         />
-        <BaseCard
-          title={'Crescimento'}
-          leftContent={
-            <div className='flex items-start'>
-              <div className='w-1 self-stretch rounded-full mr-3' style={{ backgroundColor: '#F5AA30' }}></div>
-              <p className='text-sm text-gray-600 font-normal'>{`Em comparação ao ciclo ${cardData.comparisonCycleName}`}</p>
-            </div>
-          }
-          rightContent={
-            <div className='flex items-center justify-end gap-3'>
-              <div style={{ color: '#F5AA30' }}>{<FaSortAmountUp size={44} />}</div>
-              <div className='flex flex-col text-right'>
-                <span className='text-2xl font-bold' style={{ color: '#F5AA30' }}>
-                  {cardData.growth !== null ? cardData.growth.toFixed(1) : '-'}
-                </span>
-              </div>
-            </div>
-          }
+        <ImprovePercentageCard
+          title='Crescimento'
+          description={`Em comparação ao ciclo ${cardData.comparisonCycleName}`}
+          percentage={cardData.growth}
         />
-        <BaseCard
-          title={'Avaliações realizadas'}
-          leftContent={
-            <div className='flex items-start'>
-              <div className='w-1 self-stretch rounded-full mr-3' style={{ backgroundColor: '#08605F' }}></div>
-              <p className='text-sm text-gray-600 font-normal'>{'Total de avaliações'}</p>
-            </div>
-          }
-          rightContent={
-            <div className='flex items-center justify-end gap-3'>
-              <div style={{ color: '#08605F' }}>{<LuFilePenLine size={44} />}</div>
-              <div className='flex flex-col text-right'>
-                <span className='text-2xl font-bold' style={{ color: '#08605F' }}>
-                  {cardData.totalEvaluations}
-                </span>
-              </div>
-            </div>
-          }
+        <EvaluationsFinishedCard
+          title='Avaliações realizadas'
+          description='Total de avaliações'
+          count={cardData.totalEvaluations}
         />
       </div>
 
