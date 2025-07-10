@@ -50,6 +50,23 @@ class ManagerService {
     }
   }
 
+  static async getAllCycles(): Promise<ActiveCycle[]> {
+    try {
+      const response = await api.get<ActiveCycle[]>('/evaluation-cycles', {
+        headers: {
+          Authorization: `Bearer ${AuthService.getToken()}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar todos os ciclos:', error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar ciclos.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
   static async getDetailedSelfAssessment(subordinateId: string): Promise<DetailedSelfAssessment> {
     try {
       const response = await api.get<DetailedSelfAssessment>(
