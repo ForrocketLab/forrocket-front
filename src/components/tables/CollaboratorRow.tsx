@@ -53,44 +53,52 @@ const CollaboratorRow: FC<CollaboratorRowProps> = ({
   };
 
   return (
-    <div className='flex flex-col md:flex-row md:items-center w-full p-4 border border-gray-200 rounded-xl mb-3 gap-4 md:gap-0'>
-      {/* Parte Esquerda: Iniciais, Nome/Cargo e Status */}
-      <div className='flex items-center flex-1'>
-        <span className='bg-gray-200 rounded-full w-10 h-10 flex-shrink-0 flex items-center justify-center font-bold text-gray-700 text-sm uppercase mr-4'>
-          {initials}
-        </span>
-        <div className='flex flex-col mr-6'>
-          <span className='font-bold text-gray-800'>{name}</span>
-          <span className='text-sm text-gray-500'>{jobTitle}</span>
+    <div className='px-6 py-4 border-b border-gray-200 hover:bg-gray-50 transition-colors'>
+      <div className='grid grid-cols-12 gap-4 items-center'>
+        {/* Colaborador - col-span-4 */}
+        <div className='col-span-4 flex items-center'>
+          <span className='bg-gray-200 rounded-full w-10 h-10 flex-shrink-0 flex items-center justify-center font-bold text-gray-700 text-sm uppercase mr-4'>
+            {initials}
+          </span>
+          <div className='flex flex-col'>
+            <span className='font-bold text-gray-800'>{name}</span>
+            <span className='text-sm text-gray-500'>{jobTitle}</span>
+          </div>
         </div>
-        <span className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${statusStyles}`}>
-          {getStatus(assessmentStatus)}
-        </span>
-      </div>
 
-      {/* Parte Direita: Notas e Ícone */}
-      <div className='flex items-center justify-between md:justify-end gap-4 md:gap-6 w-full md:w-auto'>
-        <div className='flex items-center gap-2'>
-          <span className='text-sm text-gray-600'>Autoavaliação</span>
+        {/* Status - col-span-2 */}
+        <div className='col-span-2'>
+          <span className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${statusStyles}`}>
+            {getStatus(assessmentStatus)}
+          </span>
+        </div>
+
+        {/* Autoavaliação - col-span-2 */}
+        <div className='col-span-2 flex justify-center'>
           <div className='flex items-center justify-center w-12 h-7 bg-[#E6E6E6] text-black font-bold text-sm rounded-md'>
             {selfAssessmentScore ?? '-'}
           </div>
         </div>
-        <div className='flex items-center gap-2'>
-          <span className='text-sm text-gray-600'>Nota gestor</span>
+
+        {/* Nota Gestor - col-span-2 */}
+        <div className='col-span-2 flex justify-center'>
           <div
             className={`flex items-center justify-center w-12 h-7 font-bold text-sm rounded-md ${managerScoreStyles}`}
           >
             {managerScore ?? '-'}
           </div>
         </div>
-        <button
-          onClick={handleNavigateToDetails} // <-- Adicione o onClick aqui
-          className='flex-shrink-0 p-1 rounded-full hover:bg-gray-100 transition-colors hover:cursor-pointer' // Estilo para o botão
-          title={`Ver detalhes da avaliação de ${name}`} // Acessibilidade
-        >
-          <ChevronRight size={24} className='text-[#08605F]' />
-        </button>
+
+        {/* Ações - col-span-2 */}
+        <div className='col-span-2 flex justify-center'>
+          <button
+            onClick={handleNavigateToDetails}
+            className='flex-shrink-0 p-1 rounded-full hover:bg-gray-100 transition-colors hover:cursor-pointer'
+            title={`Ver detalhes da avaliação de ${name}`}
+          >
+            <ChevronRight size={24} className='text-[#08605F]' />
+          </button>
+        </div>
       </div>
     </div>
   );

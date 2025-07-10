@@ -1,11 +1,7 @@
-import { LuFilePenLine } from 'react-icons/lu';
-import BaseCard from '../dashboard/components/BaseCard';
-import DetailedScoreCard from '../dashboard/components/DetailedScoreCard';
 import BrutalFactsHeader from './components/BrutalFactsHeader';
 import BrutalFactsSummary from './components/BrutalFactsSummary';
 import PerformanceChartContainer from './components/PerformanceChartContainer';
 import EqualizationTableContainer from './components/EqualizationTableContainer';
-import { FaSortAmountUp, FaStar } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import { useGlobalToast } from '../../../hooks/useGlobalToast';
@@ -22,6 +18,9 @@ import type {
   TeamHistoricalPerformanceDto,
 } from '../../../types/brutalFacts';
 import ManagerService from '../../../services/ManagerService';
+import DetailedScoreCard from '../../../components/cards/DetailedScoreCard';
+import ImprovePercentageCard from '../../../components/cards/ImprovePercentageCard';
+import EvaluationsFinishedCard from '../../../components/cards/EvaluationsFinishedCard';
 
 const ManagerBrutalFacts = () => {
   const [selectedMetric, setSelectedMetric] = useState('finalScore');
@@ -157,13 +156,6 @@ const ManagerBrutalFacts = () => {
     ? teamAnalysisData.feedbackAnalysisSummary
     : 'Análise detalhada não disponível. Exibindo dados de exemplo.';
 
-  function getScoreText(score: number | null): string {
-    if (score === null) return 'N/A';
-    if (score >= 4.5) return 'Excelente';
-    if (score >= 3.5) return 'Bom';
-    return 'Precisa Melhorar';
-  }
-
   return (
     <div className='h-screen flex flex-col'>
       {/* Header */}
@@ -194,71 +186,40 @@ const ManagerBrutalFacts = () => {
       )}
 
       {/* Cards de resumo */}
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 pt-8'>
+      <div className='grid grid-cols-1 p-4 md:p-8 lg:grid-cols-3 gap-6 pt-8'>
         <DetailedScoreCard
           title='Nota média geral'
           description={`Em comparação ao ciclo anterior.`}
           score={metricsToUse.overallScoreAverage}
-          ratingText={getScoreText(metricsToUse.overallScoreAverage)}
-          color='#419958'
-          icon={<FaStar size={32} />}
         />
-        <BaseCard
-          title={'Desempenho de liderados'}
-          leftContent={
-            <div className='flex items-start'>
-              <div className='w-1 self-stretch rounded-full mr-3' style={{ backgroundColor: '#F5AA30' }}></div>
-              <p className='text-sm text-gray-600 font-normal'>{}</p>
-            </div>
-          }
-          rightContent={
-            <div className='flex items-center justify-end gap-3'>
-              <div style={{ color: '#F5AA30' }}>{<FaSortAmountUp size={44} />}</div>
-              <div className='flex flex-col text-right'>
-                <span className='text-2xl font-bold' style={{ color: '#F5AA30' }}>
-                  {metricsToUse.performanceImprovement?.toFixed(1) || 'N/A'}
-                </span>
-              </div>
-            </div>
-          }
+        <ImprovePercentageCard
+          title='Desempenho de liderados'
+          description='Em comparação ao ciclo anterior.'
+          percentage={metricsToUse.performanceImprovement}
         />
-        <BaseCard
-          title={'Colaboradores avaliados'}
-          leftContent={
-            <div className='flex items-start'>
-              <div className='w-1 self-stretch rounded-full mr-3' style={{ backgroundColor: '#08605F' }}></div>
-              <p className='text-sm text-gray-600 font-normal'>
-                {`Foram avaliados ${metricsToUse.collaboratorsEvaluatedCount} colaborador${metricsToUse.collaboratorsEvaluatedCount > 1 ? 'es' : ''} liderado${metricsToUse.collaboratorsEvaluatedCount > 1 ? 's' : ''} por você`}
-              </p>
-            </div>
-          }
-          rightContent={
-            <div className='flex items-center justify-end gap-3'>
-              <div style={{ color: '#08605F' }}>{<LuFilePenLine size={44} />}</div>
-              <div className='flex flex-col text-right'>
-                <span className='text-2xl font-bold' style={{ color: '#08605F' }}>
-                  {metricsToUse.collaboratorsEvaluatedCount}
-                </span>
-              </div>
-            </div>
-          }
+        <EvaluationsFinishedCard
+          title='Colaboradores avaliados'
+          description={`Foram avaliados ${metricsToUse.collaboratorsEvaluatedCount} colaborador${metricsToUse.collaboratorsEvaluatedCount > 1 ? 'es' : ''} liderado${metricsToUse.collaboratorsEvaluatedCount > 1 ? 's' : ''} por você`}
+          count={metricsToUse.collaboratorsEvaluatedCount}
         />
       </div>
 
-      {/* Container de Resumo */}
-      <BrutalFactsSummary title='Resumo' summaryText={summaryText} />
+      <div className='px-4 pb-4 md:px-8 md:pb-4'>
+        {/* Container de Resumo */}
+        <BrutalFactsSummary title='Resumo' summaryText={summaryText} />
 
-      {/* Container de Desempenho com Gráfico */}
-      <PerformanceChartContainer
-        selectedMetric={selectedMetric}
-        onMetricChange={setSelectedMetric}
-        performanceData={performanceDataToUse}
-        metricOptions={metricOptions}
-        insightText={insightsText}
-      />
+        {/* Container de Desempenho com Gráfico */}
+        <PerformanceChartContainer
+          selectedMetric={selectedMetric}
+          onMetricChange={setSelectedMetric}
+          performanceData={performanceDataToUse}
+          metricOptions={metricOptions}
+          insightText={insightsText}
+        />
 
-      {/* Container da Tabela de Equalizações */}
-      <EqualizationTableContainer collaboratorsData={collaboratorsToUse} />
+        {/* Container da Tabela de Equalizações */}
+        <EqualizationTableContainer collaboratorsData={collaboratorsToUse} />
+      </div>
     </div>
   );
 };

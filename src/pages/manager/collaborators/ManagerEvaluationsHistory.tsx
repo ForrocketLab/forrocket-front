@@ -1,21 +1,20 @@
-import DetailedScoreCard from '../dashboard/components/DetailedScoreCard';
-import { FaSortAmountUp, FaStar } from 'react-icons/fa';
-import BaseCard from '../dashboard/components/BaseCard';
-import { LuFilePenLine } from 'react-icons/lu';
 import CollaboratorHistoryChart from './components/CollaboratorHistoryChart';
 import CollaboratorCycleHistory from './components/CollaboratorCycleHistory';
 import { useMemo } from 'react';
+import DetailedScoreCard from '../../../components/cards/DetailedScoreCard';
+import ImprovePercentageCard from '../../../components/cards/ImprovePercentageCard';
+import EvaluationsFinishedCard from '../../../components/cards/EvaluationsFinishedCard';
 
 interface ManagerEvaluationsHistoryProps {
   performanceHistory: PerformanceHistoryDto;
 }
 
-const ManagerEvaluationsHistory: React.FC<ManagerEvaluationsHistoryProps> = ({ performanceHistory }) => {
+const ManagerEvaluationsHistory = ({ performanceHistory }: ManagerEvaluationsHistoryProps) => {
   const cardData = useMemo(() => {
-    const completedCycles = performanceHistory?.performanceData.filter(p => typeof p.finalScore === 'number');
+    const completedCycles = performanceHistory.performanceData.filter(p => typeof p.finalScore === 'number');
 
     // dados do ciclo mais recente
-    const mostRecentCycle = performanceHistory?.performanceData[0];
+    const mostRecentCycle = performanceHistory.performanceData[0];
     const recentScore = mostRecentCycle?.finalScore;
     const recentCycleName = mostRecentCycle?.cycle;
 
@@ -47,48 +46,18 @@ const ManagerEvaluationsHistory: React.FC<ManagerEvaluationsHistoryProps> = ({ p
         <DetailedScoreCard
           title='Sua Nota Atual'
           description={`Nota final do ciclo realizado em ${cardData.recentCycleName}.`}
-          score={cardData.recentScore ?? null}
-          ratingText={cardData.recentScore ? 'Great' : 'N/A'}
-          color='#419958'
-          icon={<FaStar size={32} />}
+          score={cardData.recentScore}
         />
-        <BaseCard
-          title={'Crescimento'}
-          leftContent={
-            <div className='flex items-start'>
-              <div className='w-1 self-stretch rounded-full mr-3' style={{ backgroundColor: '#F5AA30' }}></div>
-              <p className='text-sm text-gray-600 font-normal'>{`Em comparação ao ciclo ${cardData.comparisonCycleName}`}</p>
-            </div>
-          }
-          rightContent={
-            <div className='flex items-center justify-end gap-3'>
-              <div style={{ color: '#F5AA30' }}>{<FaSortAmountUp size={44} />}</div>
-              <div className='flex flex-col text-right'>
-                <span className='text-2xl font-bold' style={{ color: '#F5AA30' }}>
-                  {cardData.growth !== null ? cardData.growth.toFixed(1) : '-'}
-                </span>
-              </div>
-            </div>
-          }
+
+        <ImprovePercentageCard
+          title='Crescimento'
+          description={`Em comparação ao ciclo ${cardData.comparisonCycleName}`}
+          percentage={cardData.growth}
         />
-        <BaseCard
-          title={'Avaliações realizadas'}
-          leftContent={
-            <div className='flex items-start'>
-              <div className='w-1 self-stretch rounded-full mr-3' style={{ backgroundColor: '#08605F' }}></div>
-              <p className='text-sm text-gray-600 font-normal'>{'Total de avaliações'}</p>
-            </div>
-          }
-          rightContent={
-            <div className='flex items-center justify-end gap-3'>
-              <div style={{ color: '#08605F' }}>{<LuFilePenLine size={44} />}</div>
-              <div className='flex flex-col text-right'>
-                <span className='text-2xl font-bold' style={{ color: '#08605F' }}>
-                  {cardData.totalEvaluations}
-                </span>
-              </div>
-            </div>
-          }
+        <EvaluationsFinishedCard
+          title='Avaliações realizadas'
+          description='Total de avaliações'
+          count={cardData.totalEvaluations}
         />
       </div>
 

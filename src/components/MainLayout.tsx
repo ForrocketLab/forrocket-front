@@ -34,7 +34,7 @@ const MainLayout = () => {
 
       {/* A margem do conteúdo principal agora é dinâmica */}
       <main
-        className={`h-screen overflow-y-auto p-8 transition-all duration-300 ease-in-out ${
+        className={`h-screen overflow-y-auto transition-all duration-300 ease-in-out ${
           isExpanded ? 'ml-64' : 'ml-20' // 256px -> w-64, 80px -> w-20
         }`}
       >

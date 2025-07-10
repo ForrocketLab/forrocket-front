@@ -5,7 +5,7 @@ import { type FC, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ManagerService from '../../../services/ManagerService';
 import { useGlobalToast } from '../../../hooks/useGlobalToast';
-import type { TabItem } from '../collaboratorEvaluations/components/TabNavigation';
+import type { TabItem } from './components/TabNavigation';
 import EvaluationHeader from './components/CollaboratorEvaluationHeader';
 import EvaluationCriteriaList from './components/EvaluationCriteriaList';
 import ManagerEvaluationsHistory from './ManagerEvaluationsHistory';
@@ -127,7 +127,7 @@ const CollaboratorEvaluationDetails: FC = () => {
     const payloadToSend: Record<string, any> = {
       evaluatedUserId: collaboratorIdFromUrl,
       cycle: '2025.1',
-      assessments: []
+      assessments: [],
     };
 
     ALLOWED_CRITERIA_IDS.forEach(criterionId => {
@@ -209,7 +209,7 @@ const CollaboratorEvaluationDetails: FC = () => {
         activeTab={activeTab}
         onTabChange={setActiveTab}
       />
-      <main className='px-6 pb-8'>
+      <main className='px-6 p-4 md:p-8'>
         {activeTab === 'evaluation' && (
           <EvaluationCriteriaList
             isAssessmentSubmitted={isAssessmentSubmitted}
