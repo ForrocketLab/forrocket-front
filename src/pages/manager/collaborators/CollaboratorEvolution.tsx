@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FaSortAmountUp } from 'react-icons/fa';
-import BaseCard from '../dashboard/components/BaseCard';
 import { LuFilePenLine } from 'react-icons/lu';
 import CollaboratorHistoryChart from './components/CollaboratorHistoryChart';
 import CollaboratorCycleHistory from './components/CollaboratorCycleHistory';
 import EvaluationService from '../../../services/EvaluationService';
 import ManagerService from '../../../services/ManagerService';
 import DetailedScoreCard from '../../../components/DetailedScoreCard';
+import BaseCard from '../../../components/BaseCard';
 
 const CollaboratorEvolution = () => {
   const [performanceHistory, setPerformanceHistory] = useState<PerformanceHistoryDto>();

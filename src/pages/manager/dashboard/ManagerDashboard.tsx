@@ -1,9 +1,8 @@
 import CycleStatus from './components/CycleStatus';
-import CollaboratorsTableWithPagination from './components/CollaboratorsTableWithPagination';
-import { useEffect, useState, useRef } from 'react';
+import CollaboratorsTableWithPagination from '../../../components/CollaboratorsTableWithPagination';
+import { useEffect, useState } from 'react';
 import DashboardService from '../../../services/ManagerService';
 import { useAuth } from '../../../hooks/useAuth';
-import { useCollaboratorsPagination } from '../../../hooks/useCollaboratorsPagination';
 import DetailedScoreCard from '../../../components/DetailedScoreCard';
 import DetailedEvaluationsCard from '../../../components/DetailedEvaluationsCard';
 import PendingReviewsCard from '../../../components/PendingReviewsCard';
@@ -14,37 +13,7 @@ const ManagerDashboardPage = () => {
   const [activeCycle, setActiveCycle] = useState<ActiveCycle | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Pagination states for collaborators
   const [collaboratorsList, setCollaboratorsList] = useState<DashboardSubordinate[]>([]);
-  const [paginatedCollaborators, setPaginatedCollaborators] = useState<DashboardSubordinate[]>([]);
-  const [paginationMeta, setPaginationMeta] = useState<{
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrevious: boolean;
-  } | null>(null);
-  const [isCollaboratorsLoading, setIsCollaboratorsLoading] = useState(false);
-  const isFirstLoad = useRef(true);
-
-  // Hook for pagination state management
-  const {
-    currentPage,
-    itemsPerPage,
-    sortBy,
-    sortOrder,
-    searchTerm,
-    handleSort,
-    handlePageChange,
-    handleSearch,
-    clearSearch,
-  } = useCollaboratorsPagination({
-    initialSortBy: 'name',
-    initialSortOrder: 'asc',
-    initialLimit: 10,
-  });
 
   const userInitials = user?.name
     .split(' ')
@@ -82,86 +51,6 @@ const ManagerDashboardPage = () => {
       console.log(`Usuário tem o papel: ${role}`);
     });
   }, [user?.roles]);
-
-  // Effect to handle collaborators pagination and search
-  useEffect(() => {
-    if (collaboratorsList.length === 0) return;
-
-    const handleCollaboratorsPagination = () => {
-      // Set loading state - avoid scroll jump
-      if (!isFirstLoad.current) {
-        setIsCollaboratorsLoading(true);
-      }
-
-      // Filter collaborators based on search term
-      let filteredCollaborators = collaboratorsList;
-      if (searchTerm) {
-        filteredCollaborators = collaboratorsList.filter(
-          collaborator =>
-            collaborator.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            collaborator.jobTitle?.toLowerCase().includes(searchTerm.toLowerCase()),
-        );
-      }
-
-      // Sort collaborators
-      const sortedCollaborators = [...filteredCollaborators].sort((a, b) => {
-        let aValue = '';
-        let bValue = '';
-
-        switch (sortBy) {
-          case 'name':
-            aValue = a.name.toLowerCase();
-            bValue = b.name.toLowerCase();
-            break;
-          case 'status':
-            aValue = a.assessmentStatus?.toLowerCase() || '';
-            bValue = b.assessmentStatus?.toLowerCase() || '';
-            break;
-          case 'position':
-            aValue = a.jobTitle?.toLowerCase() || '';
-            bValue = b.jobTitle?.toLowerCase() || '';
-            break;
-          case 'department':
-            // Since department is not available, we'll use jobTitle as fallback
-            aValue = a.jobTitle?.toLowerCase() || '';
-            bValue = b.jobTitle?.toLowerCase() || '';
-            break;
-          default:
-            aValue = a.name.toLowerCase();
-            bValue = b.name.toLowerCase();
-        }
-
-        if (sortOrder === 'asc') {
-          return aValue.localeCompare(bValue);
-        } else {
-          return bValue.localeCompare(aValue);
-        }
-      });
-
-      // Calculate pagination
-      const startIndex = (currentPage - 1) * itemsPerPage;
-      const endIndex = startIndex + itemsPerPage;
-      const paginatedData = sortedCollaborators.slice(startIndex, endIndex);
-
-      // Set paginated data and meta
-      setPaginatedCollaborators(paginatedData);
-      setPaginationMeta({
-        page: currentPage,
-        limit: itemsPerPage,
-        total: sortedCollaborators.length,
-        totalPages: Math.ceil(sortedCollaborators.length / itemsPerPage),
-        hasNext: endIndex < sortedCollaborators.length,
-        hasPrevious: currentPage > 1,
-      });
-
-      setIsCollaboratorsLoading(false);
-      isFirstLoad.current = false;
-    };
-
-    // Small delay to show loading state
-    const timer = setTimeout(handleCollaboratorsPagination, isFirstLoad.current ? 0 : 100);
-    return () => clearTimeout(timer);
-  }, [collaboratorsList, currentPage, itemsPerPage, sortBy, sortOrder, searchTerm]);
 
   // 3. Renderização condicional
   if (isLoading) {
@@ -204,20 +93,7 @@ const ManagerDashboardPage = () => {
         <PendingReviewsCard title='Revisões Pendentes' pendingCount={dashboardData.summary.incompleteReviews} />
       </div>
 
-      <CollaboratorsTableWithPagination
-        collaborators={paginatedCollaborators}
-        paginationMeta={paginationMeta}
-        currentPage={currentPage}
-        sortBy={sortBy}
-        sortOrder={sortOrder}
-        searchTerm={searchTerm}
-        isLoading={isCollaboratorsLoading}
-        onSort={handleSort}
-        onPageChange={handlePageChange}
-        onSearch={handleSearch}
-        onClearSearch={clearSearch}
-        viewMoreLink='/manager/collaborators'
-      />
+      <CollaboratorsTableWithPagination collaborators={collaboratorsList} viewMoreLink='/manager/collaborators' />
     </div>
   );
 };

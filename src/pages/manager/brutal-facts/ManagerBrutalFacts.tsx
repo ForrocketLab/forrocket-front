@@ -1,10 +1,7 @@
-import { LuFilePenLine } from 'react-icons/lu';
-import BaseCard from '../dashboard/components/BaseCard';
 import BrutalFactsHeader from './components/BrutalFactsHeader';
 import BrutalFactsSummary from './components/BrutalFactsSummary';
 import PerformanceChartContainer from './components/PerformanceChartContainer';
 import EqualizationTableContainer from './components/EqualizationTableContainer';
-import { FaSortAmountUp } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import { useGlobalToast } from '../../../hooks/useGlobalToast';
@@ -22,6 +19,8 @@ import type {
 } from '../../../types/brutalFacts';
 import ManagerService from '../../../services/ManagerService';
 import DetailedScoreCard from '../../../components/DetailedScoreCard';
+import ImprovePercentageCard from '../../../components/ImprovePercentageCard';
+import EvaluationsFinishedCard from '../../../components/EvaluationsFinishedCard';
 
 const ManagerBrutalFacts = () => {
   const [selectedMetric, setSelectedMetric] = useState('finalScore');
@@ -193,45 +192,15 @@ const ManagerBrutalFacts = () => {
           description={`Em comparação ao ciclo anterior.`}
           score={metricsToUse.overallScoreAverage}
         />
-        <BaseCard
-          title={'Desempenho de liderados'}
-          leftContent={
-            <div className='flex items-start'>
-              <div className='w-1 self-stretch rounded-full mr-3' style={{ backgroundColor: '#F5AA30' }}></div>
-              <p className='text-sm text-gray-600 font-normal'>{}</p>
-            </div>
-          }
-          rightContent={
-            <div className='flex items-center justify-end gap-3'>
-              <div style={{ color: '#F5AA30' }}>{<FaSortAmountUp size={44} />}</div>
-              <div className='flex flex-col text-right'>
-                <span className='text-2xl font-bold' style={{ color: '#F5AA30' }}>
-                  {metricsToUse.performanceImprovement?.toFixed(1) || 'N/A'}
-                </span>
-              </div>
-            </div>
-          }
+        <ImprovePercentageCard
+          title='Desempenho de liderados'
+          description='Em comparação ao ciclo anterior.'
+          percentage={metricsToUse.performanceImprovement}
         />
-        <BaseCard
-          title={'Colaboradores avaliados'}
-          leftContent={
-            <div className='flex items-start'>
-              <div className='w-1 self-stretch rounded-full mr-3' style={{ backgroundColor: '#08605F' }}></div>
-              <p className='text-sm text-gray-600 font-normal'>
-                {`Foram avaliados ${metricsToUse.collaboratorsEvaluatedCount} colaborador${metricsToUse.collaboratorsEvaluatedCount > 1 ? 'es' : ''} liderado${metricsToUse.collaboratorsEvaluatedCount > 1 ? 's' : ''} por você`}
-              </p>
-            </div>
-          }
-          rightContent={
-            <div className='flex items-center justify-end gap-3'>
-              <div style={{ color: '#08605F' }}>{<LuFilePenLine size={44} />}</div>
-              <div className='flex flex-col text-right'>
-                <span className='text-2xl font-bold' style={{ color: '#08605F' }}>
-                  {metricsToUse.collaboratorsEvaluatedCount}
-                </span>
-              </div>
-            </div>
-          }
+        <EvaluationsFinishedCard
+          title='Colaboradores avaliados'
+          description={`Foram avaliados ${metricsToUse.collaboratorsEvaluatedCount} colaborador${metricsToUse.collaboratorsEvaluatedCount > 1 ? 'es' : ''} liderado${metricsToUse.collaboratorsEvaluatedCount > 1 ? 's' : ''} por você`}
+          count={metricsToUse.collaboratorsEvaluatedCount}
         />
       </div>
 
