@@ -1,10 +1,21 @@
 import type { FC } from 'react';
 import { ROLES } from '../types/roles'; // Seu enum de papéis
 
-import { FaCog } from 'react-icons/fa';
+import { FaCog, FaArrowAltCircleDown } from 'react-icons/fa';
 import { IoBarChartOutline } from 'react-icons/io5';
 import { LuCaptions, LuChartSpline, LuFilePenLine, LuUsers } from 'react-icons/lu';
-import { FileText, Users, Home, BarChart3, Settings, Shield, Building2, UsersRound, Target, TrendingUp } from 'lucide-react';
+import {
+  FileText,
+  Users,
+  Home,
+  BarChart3,
+  Settings,
+  Shield,
+  Building2,
+  UsersRound,
+  Target,
+  TrendingUp,
+} from 'lucide-react';
 import SchoolIcon from '@mui/icons-material/School';
 
 export interface IconProps {
@@ -150,5 +161,11 @@ export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
     label: 'Meus PDIs',
     icon: SchoolIcon,
     allowedRoles: [ROLES.COLLABORATOR, ROLES.MANAGER, ROLES.RH],
+  },
+  {
+    path: '/rh/importar-historicos',
+    label: 'Importar Histórico',
+    icon: FaArrowAltCircleDown,
+    allowedRoles: [ROLES.RH, ROLES.ADMIN],
   },
 ];

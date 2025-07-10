@@ -1,9 +1,8 @@
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import { FaStar, FaRegStar } from 'react-icons/fa';
 import { FiTrash2 } from 'react-icons/fi';
 import { useEvaluation } from '../../../contexts/EvaluationProvider';
 import type { EvaluableUser } from '../../../types/evaluations';
-import EvaluationService from '../../../services/EvaluationService';
 
 interface EvaluationCardProps {
   collaborator: EvaluableUser;
@@ -18,9 +17,6 @@ const EvaluationCard: React.FC<EvaluationCardProps> = ({ collaborator, onRemove 
     isEvaluation360Complete,
     toggleEvaluation360Collapsed,
   } = useEvaluation();
-
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Mover o useMemo para o topo, antes de qualquer condição
   const isComplete = useMemo(() => {
@@ -43,62 +39,6 @@ const EvaluationCard: React.FC<EvaluationCardProps> = ({ collaborator, onRemove 
     seniority: collaborator.seniority || '',
     roles: collaborator.roles || []
   });
-  
-  // Carregar dados existentes ao montar o componente
-  useEffect(() => {
-    const loadExistingEvaluation = async () => {
-      try {
-        setIsLoading(true);
-        setLoadError(null);
-        console.log('🔄 Carregando avaliação 360 para:', collaborator.id);
-        const existingData = await EvaluationService.getEvaluation360(collaborator.id);
-        if (existingData) {
-          console.log('✅ Avaliação 360 carregada:', existingData);
-          updateEvaluation360(collaborator.id, {
-            rating: existingData.overallScore,
-            strengths: existingData.strengths,
-            improvements: existingData.improvements,
-            isSubmitted: existingData.status === 'SUBMITTED',
-          });
-
-          // Atualizar dados do colaborador se necessário
-          if (existingData.evaluatedUserName && !collaborator.name) {
-            collaborator.name = existingData.evaluatedUserName;
-          }
-          if (existingData.evaluatedUserJobTitle && !collaborator.jobTitle) {
-            collaborator.jobTitle = existingData.evaluatedUserJobTitle;
-          }
-          if (existingData.evaluatedUserEmail && !collaborator.email) {
-            collaborator.email = existingData.evaluatedUserEmail;
-          }
-        } else {
-          console.log('ℹ️ Nenhuma avaliação 360 existente para:', collaborator.id);
-          // Inicializar com dados vazios
-          updateEvaluation360(collaborator.id, {
-            rating: null,
-            strengths: '',
-            improvements: '',
-            isSubmitted: false,
-          });
-        }
-      } catch (error) {
-        console.error('❌ Erro ao carregar avaliação 360:', error);
-        setLoadError('Erro ao carregar dados da avaliação');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadExistingEvaluation();
-  }, [collaborator.id, updateEvaluation360]);
-
-  if (isLoading) {
-    return (
-      <div className="bg-white rounded-xl p-6 mb-6 shadow-sm flex items-center justify-center">
-        <div className="text-gray-500">Carregando...</div>
-      </div>
-    );
-  }
 
   if (!evaluation) {
     console.warn('⚠️ Avaliação não encontrada para:', collaborator.id);
@@ -137,9 +77,6 @@ const EvaluationCard: React.FC<EvaluationCardProps> = ({ collaborator, onRemove 
       }`}
       onClick={handleCardClick}
     >
-      {loadError && (
-        <div className="text-red-500 text-sm mb-2">{loadError}</div>
-      )}
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-medium text-lg text-gray-500">
@@ -170,7 +107,7 @@ const EvaluationCard: React.FC<EvaluationCardProps> = ({ collaborator, onRemove 
           <div className="mt-2 text-sm text-gray-500">Dê uma avaliação de 1 a 5 ao colaborador</div>
           <div className="flex gap-8">
             {[1, 2, 3, 4, 5].map((star) => {
-              const StarIcon = star <= rating ? FaStar : FaRegStar;
+              const StarIcon = star <= (rating || 0) ? FaStar : FaRegStar;
               return (
                 <StarIcon
                   key={star}
