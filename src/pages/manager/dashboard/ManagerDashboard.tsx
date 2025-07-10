@@ -3,9 +3,9 @@ import CollaboratorsTableWithPagination from '../../../components/CollaboratorsT
 import { useEffect, useState } from 'react';
 import DashboardService from '../../../services/ManagerService';
 import { useAuth } from '../../../hooks/useAuth';
-import DetailedScoreCard from '../../../components/DetailedScoreCard';
-import DetailedEvaluationsCard from '../../../components/DetailedEvaluationsCard';
-import PendingReviewsCard from '../../../components/PendingReviewsCard';
+import DetailedScoreCard from '../../../components/cards/DetailedScoreCard';
+import DetailedEvaluationsCard from '../../../components/cards/DetailedEvaluationsCard';
+import PendingReviewsCard from '../../../components/cards/PendingReviewsCard';
 
 const ManagerDashboardPage = () => {
   const { user } = useAuth();

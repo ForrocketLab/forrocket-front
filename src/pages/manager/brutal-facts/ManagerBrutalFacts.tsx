@@ -18,9 +18,9 @@ import type {
   TeamHistoricalPerformanceDto,
 } from '../../../types/brutalFacts';
 import ManagerService from '../../../services/ManagerService';
-import DetailedScoreCard from '../../../components/DetailedScoreCard';
-import ImprovePercentageCard from '../../../components/ImprovePercentageCard';
-import EvaluationsFinishedCard from '../../../components/EvaluationsFinishedCard';
+import DetailedScoreCard from '../../../components/cards/DetailedScoreCard';
+import ImprovePercentageCard from '../../../components/cards/ImprovePercentageCard';
+import EvaluationsFinishedCard from '../../../components/cards/EvaluationsFinishedCard';
 
 const ManagerBrutalFacts = () => {
   const [selectedMetric, setSelectedMetric] = useState('finalScore');

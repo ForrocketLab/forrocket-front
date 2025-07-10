@@ -66,9 +66,11 @@ const DetailedScoreCard = ({ title, description, score }: DetailedScoreCardProps
             <span className='text-2xl font-bold' style={{ color: color }}>
               {score ?? '-'}
             </span>
-            <span className='text-sm font-semibold' style={{ color: color }}>
-              {text}
-            </span>
+            {score ? (
+              <span className='text-sm font-semibold' style={{ color: color }}>
+                {text}
+              </span>
+            ) : null}
           </div>
         </div>
       }

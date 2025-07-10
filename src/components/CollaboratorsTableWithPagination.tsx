@@ -12,7 +12,7 @@ import {
   X,
   Filter,
 } from 'lucide-react';
-import CollaboratorRow from './CollaboratorRow';
+import CollaboratorRow from './tables/CollaboratorRow';
 import FilterStatusPopup from '../pages/manager/dashboard/components/FilterStatusPopup';
 
 interface CollaboratorsTableWithPaginationProps {

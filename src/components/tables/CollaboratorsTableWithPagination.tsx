@@ -12,8 +12,8 @@ import {
   X,
   Filter,
 } from 'lucide-react';
-import CollaboratorRow from '../../../../components/CollaboratorRow';
-import FilterStatusPopup from './FilterStatusPopup';
+import CollaboratorRow from './CollaboratorRow';
+import FilterStatusPopup from '../../pages/manager/dashboard/components/FilterStatusPopup';
 
 interface CollaboratorsTableWithPaginationProps {
   collaborators: DashboardSubordinate[];

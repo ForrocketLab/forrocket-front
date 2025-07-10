@@ -5,8 +5,8 @@ import CollaboratorHistoryChart from './components/CollaboratorHistoryChart';
 import CollaboratorCycleHistory from './components/CollaboratorCycleHistory';
 import EvaluationService from '../../../services/EvaluationService';
 import ManagerService from '../../../services/ManagerService';
-import DetailedScoreCard from '../../../components/DetailedScoreCard';
-import BaseCard from '../../../components/BaseCard';
+import DetailedScoreCard from '../../../components/cards/DetailedScoreCard';
+import BaseCard from '../../../components/cards/BaseCard';
 
 const CollaboratorEvolution = () => {
   const [performanceHistory, setPerformanceHistory] = useState<PerformanceHistoryDto>();

@@ -1,9 +1,9 @@
 import CollaboratorHistoryChart from './components/CollaboratorHistoryChart';
 import CollaboratorCycleHistory from './components/CollaboratorCycleHistory';
 import { useMemo } from 'react';
-import DetailedScoreCard from '../../../components/DetailedScoreCard';
-import ImprovePercentageCard from '../../../components/ImprovePercentageCard';
-import EvaluationsFinishedCard from '../../../components/EvaluationsFinishedCard';
+import DetailedScoreCard from '../../../components/cards/DetailedScoreCard';
+import ImprovePercentageCard from '../../../components/cards/ImprovePercentageCard';
+import EvaluationsFinishedCard from '../../../components/cards/EvaluationsFinishedCard';
 
 interface ManagerEvaluationsHistoryProps {
   performanceHistory: PerformanceHistoryDto;
