@@ -209,7 +209,7 @@ const CollaboratorEvaluationDetails: FC = () => {
         activeTab={activeTab}
         onTabChange={setActiveTab}
       />
-      <main className='px-6 pb-8'>
+      <main className='px-6 p-4 md:p-8'>
         {activeTab === 'evaluation' && (
           <EvaluationCriteriaList
             isAssessmentSubmitted={isAssessmentSubmitted}

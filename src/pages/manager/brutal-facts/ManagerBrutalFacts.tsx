@@ -186,7 +186,7 @@ const ManagerBrutalFacts = () => {
       )}
 
       {/* Cards de resumo */}
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 pt-8'>
+      <div className='grid grid-cols-1 p-4 md:p-8 lg:grid-cols-3 gap-6 pt-8'>
         <DetailedScoreCard
           title='Nota média geral'
           description={`Em comparação ao ciclo anterior.`}
@@ -204,20 +204,22 @@ const ManagerBrutalFacts = () => {
         />
       </div>
 
-      {/* Container de Resumo */}
-      <BrutalFactsSummary title='Resumo' summaryText={summaryText} />
+      <div className='px-4 pb-4 md:px-8 md:pb-4'>
+        {/* Container de Resumo */}
+        <BrutalFactsSummary title='Resumo' summaryText={summaryText} />
 
-      {/* Container de Desempenho com Gráfico */}
-      <PerformanceChartContainer
-        selectedMetric={selectedMetric}
-        onMetricChange={setSelectedMetric}
-        performanceData={performanceDataToUse}
-        metricOptions={metricOptions}
-        insightText={insightsText}
-      />
+        {/* Container de Desempenho com Gráfico */}
+        <PerformanceChartContainer
+          selectedMetric={selectedMetric}
+          onMetricChange={setSelectedMetric}
+          performanceData={performanceDataToUse}
+          metricOptions={metricOptions}
+          insightText={insightsText}
+        />
 
-      {/* Container da Tabela de Equalizações */}
-      <EqualizationTableContainer collaboratorsData={collaboratorsToUse} />
+        {/* Container da Tabela de Equalizações */}
+        <EqualizationTableContainer collaboratorsData={collaboratorsToUse} />
+      </div>
     </div>
   );
 };

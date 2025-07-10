@@ -134,7 +134,7 @@ const ManagerDashboardPage = () => {
   }
 
   return (
-    <div className='bg-gray-100 min-h-screen'>
+    <div className='bg-gray-100 min-h-screen p-4 md:p-8'>
       {/* Olá, Gestor e Botão de Perfil */}
       <div className='flex justify-between items-center mb-6'>
         <h1 className='text-xl font-semibold text-gray-800'>Olá, Gestor</h1>

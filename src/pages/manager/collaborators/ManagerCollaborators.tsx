@@ -78,7 +78,7 @@ const ManagerCollaborators: FC = () => {
   }
 
   return (
-    <div className='p-6 bg-gray-50 min-h-screen'>
+    <div className='p-4 md:p-8 bg-gray-50 min-h-screen'>
       <h1 className='text-2xl font-semibold text-gray-900 mb-6'>Meus Colaboradores</h1>
 
       {/* Tabela paginada de colaboradores */}
