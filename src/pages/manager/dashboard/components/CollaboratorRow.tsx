@@ -3,14 +3,14 @@ import { type FC } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom'; // <-- Importe useNavigate
 
-type Status = 'PENDING' | 'DRAFT' | 'SUBMITTED';
+type AssessmentStatus = 'PENDING' | 'DRAFT' | 'SUBMITTED';
 
 export interface CollaboratorRowProps {
   id: string; // <-- Certifique-se que o ID está nas props, ele é crucial para a navegação
   initials: string;
   name: string;
   jobTitle: string;
-  status: Status;
+  assessmentStatus: AssessmentStatus;
   selfAssessmentScore: number | null;
   managerScore: number | null;
 }
@@ -20,7 +20,7 @@ const CollaboratorRow: FC<CollaboratorRowProps> = ({
   initials,
   name,
   jobTitle,
-  status,
+  assessmentStatus,
   selfAssessmentScore,
   managerScore,
 }) => {
@@ -30,12 +30,12 @@ const CollaboratorRow: FC<CollaboratorRowProps> = ({
     PENDING: 'bg-[#BEE7CF] text-[#419958]',
     DRAFT: 'bg-[#FEF5B2] text-[#F5AA30]',
     SUBMITTED: 'bg-gray-200 text-gray-800',
-  }[status];
+  }[assessmentStatus];
 
   const managerScoreStyles = managerScore ? 'bg-[#08605F] text-white' : 'bg-[#E6E6E6] text-black';
 
-  function getStatus(status: Status) {
-    switch (status) {
+  function getStatus(assessmentStatus: AssessmentStatus) {
+    switch (assessmentStatus) {
       case 'PENDING':
         return 'Pendente';
       case 'DRAFT':
@@ -64,7 +64,7 @@ const CollaboratorRow: FC<CollaboratorRowProps> = ({
           <span className='text-sm text-gray-500'>{jobTitle}</span>
         </div>
         <span className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${statusStyles}`}>
-          {getStatus(status)}
+          {getStatus(assessmentStatus)}
         </span>
       </div>
 

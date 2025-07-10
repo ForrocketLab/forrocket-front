@@ -93,7 +93,7 @@ useEffect(() => {
 
     // Aplica o filtro de status
     if (filterStatus !== 'ALL') {
-      currentCollaborators = currentCollaborators.filter(collaborator => collaborator.status === filterStatus);
+      currentCollaborators = currentCollaborators.filter(collaborator => collaborator.assessmentStatus === filterStatus);
     }
 
     return currentCollaborators;

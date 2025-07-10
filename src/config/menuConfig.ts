@@ -166,6 +166,6 @@ export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
     path: '/rh/importar-historicos',
     label: 'Importar Histórico',
     icon: FaArrowAltCircleDown,
-    allowedRoles: [ROLES.RH, ROLES.ADMIN],
+    allowedRoles: [ROLES.RH],
   },
 ];

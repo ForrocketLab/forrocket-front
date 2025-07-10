@@ -74,10 +74,10 @@ function App() {
               <Route element={<ProtectedRoute allowedRoles={[ROLES.RH]} />}>
                 <Route path='/rh' element={<HRHomePage />} />
                 <Route path='/rh/colaboradores' element={<CollaboratorManagement />} />
-                <Route path='/rh/evolucao-historica' element={<HistoricalEvolution />} />
-                <Route path='/rh/criterios' element={<CriteriaManagement />} />
-                <Route path='/rh/importar-historicos' element={<RHImport />} />
-                <Route path='/rh/matriz-talento' element={<TalentMatrixPage />} />
+                          <Route path='/rh/evolucao-historica' element={<HistoricalEvolution />} />
+          <Route path='/rh/criterios' element={<CriteriaManagement />} />
+          <Route path='/rh/importar-historicos' element={<RHImport />} />
+          <Route path='/rh/matriz-talento' element={<TalentMatrixPage />} />
                 <Route path='/rh/matriz-talento/metodologia' element={<TalentMatrixMethodology />} />
               </Route>
 

@@ -4,7 +4,7 @@ interface DashboardSubordinate {
   name: string;
   initials: string;
   jobTitle: string;
-  status: 'PENDING' | 'DRAFT' | 'SUBMITTED'; // Usando tipos literais para segurança
+  assessmentStatus: 'PENDING' | 'DRAFT' | 'SUBMITTED'; // Usando tipos literais para segurança
   selfAssessmentScore: number | null;
   managerScore: number | null;
 }
