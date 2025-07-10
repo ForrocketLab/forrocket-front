@@ -1,5 +1,5 @@
 import { ArrowLeft } from 'lucide-react';
-import TabNavigation, { type TabItem } from '../../collaboratorEvaluations/components/TabNavigation';
+import TabNavigation, { type TabItem } from './TabNavigation';
 
 interface EvaluationHeaderProps {
   isAssessmentSubmitted: boolean;
@@ -23,7 +23,7 @@ const EvaluationHeader = ({
   onTabChange,
 }: EvaluationHeaderProps) => {
   return (
-    <header className="bg-white shadow-sm mb-6">
+    <header className='bg-white shadow-sm mb-6'>
       {/* Barra Superior */}
       <div className='h-16 w-full flex items-center justify-between px-6 border-b border-gray-200'>
         <div className='flex items-center gap-3'>

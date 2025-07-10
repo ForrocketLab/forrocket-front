@@ -1,21 +1,21 @@
-import DetailedScoreCard from '../dashboard/components/DetailedScoreCard';
-import { FaSortAmountUp, FaStar } from 'react-icons/fa';
+import { FaSortAmountUp } from 'react-icons/fa';
 import BaseCard from '../dashboard/components/BaseCard';
 import { LuFilePenLine } from 'react-icons/lu';
 import CollaboratorHistoryChart from './components/CollaboratorHistoryChart';
 import CollaboratorCycleHistory from './components/CollaboratorCycleHistory';
 import { useMemo } from 'react';
+import DetailedScoreCard from '../../../components/DetailedScoreCard';
 
 interface ManagerEvaluationsHistoryProps {
   performanceHistory: PerformanceHistoryDto;
 }
 
-const ManagerEvaluationsHistory: React.FC<ManagerEvaluationsHistoryProps> = ({ performanceHistory }) => {
+const ManagerEvaluationsHistory = ({ performanceHistory }: ManagerEvaluationsHistoryProps) => {
   const cardData = useMemo(() => {
-    const completedCycles = performanceHistory?.performanceData.filter(p => typeof p.finalScore === 'number');
+    const completedCycles = performanceHistory.performanceData.filter(p => typeof p.finalScore === 'number');
 
     // dados do ciclo mais recente
-    const mostRecentCycle = performanceHistory?.performanceData[0];
+    const mostRecentCycle = performanceHistory.performanceData[0];
     const recentScore = mostRecentCycle?.finalScore;
     const recentCycleName = mostRecentCycle?.cycle;
 
@@ -47,10 +47,7 @@ const ManagerEvaluationsHistory: React.FC<ManagerEvaluationsHistoryProps> = ({ p
         <DetailedScoreCard
           title='Sua Nota Atual'
           description={`Nota final do ciclo realizado em ${cardData.recentCycleName}.`}
-          score={cardData.recentScore ?? null}
-          ratingText={cardData.recentScore ? 'Great' : 'N/A'}
-          color='#419958'
-          icon={<FaStar size={32} />}
+          score={cardData.recentScore}
         />
         <BaseCard
           title={'Crescimento'}

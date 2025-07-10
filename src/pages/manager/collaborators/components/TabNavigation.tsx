@@ -52,7 +52,6 @@ const TabNavigation: FC<TabNavigationProps> = ({ tabs, activeTab, onTabChange })
           );
         })}
 
-        {/* A Barrinha Animada */}
         <span
           className='absolute bottom-0 h-1 bg-teal-600 transition-all duration-300 ease-in-out'
           style={indicatorStyle}

@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import DetailedScoreCard from '../dashboard/components/DetailedScoreCard';
-import { FaSortAmountUp, FaStar } from 'react-icons/fa';
+import { FaSortAmountUp } from 'react-icons/fa';
 import BaseCard from '../dashboard/components/BaseCard';
 import { LuFilePenLine } from 'react-icons/lu';
 import CollaboratorHistoryChart from './components/CollaboratorHistoryChart';
 import CollaboratorCycleHistory from './components/CollaboratorCycleHistory';
 import EvaluationService from '../../../services/EvaluationService';
 import ManagerService from '../../../services/ManagerService';
+import DetailedScoreCard from '../../../components/DetailedScoreCard';
 
 const CollaboratorEvolution = () => {
   const [performanceHistory, setPerformanceHistory] = useState<PerformanceHistoryDto>();
@@ -58,7 +58,7 @@ const CollaboratorEvolution = () => {
 
     // dados do ciclo mais recente
     const mostRecentCycle = performanceHistory?.performanceData[0];
-    const recentScore = mostRecentCycle?.finalScore;
+    const recentScore = mostRecentCycle ? mostRecentCycle.finalScore : null;
     const recentCycleName = mostRecentCycle?.cycle;
 
     // calculo de crescimento entre os dois últimos ciclos concluídos
@@ -118,10 +118,7 @@ const CollaboratorEvolution = () => {
         <DetailedScoreCard
           title='Sua Nota Atual'
           description={`Nota final do ciclo realizado em ${cardData.recentCycleName}.`}
-          score={cardData.recentScore ?? null}
-          ratingText={cardData.recentScore ? 'Great' : 'N/A'}
-          color='#419958'
-          icon={<FaStar size={32} />}
+          score={cardData.recentScore}
         />
         <BaseCard
           title={'Crescimento'}

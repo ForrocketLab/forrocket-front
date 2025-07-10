@@ -1,11 +1,10 @@
 import { LuFilePenLine } from 'react-icons/lu';
 import BaseCard from '../dashboard/components/BaseCard';
-import DetailedScoreCard from '../dashboard/components/DetailedScoreCard';
 import BrutalFactsHeader from './components/BrutalFactsHeader';
 import BrutalFactsSummary from './components/BrutalFactsSummary';
 import PerformanceChartContainer from './components/PerformanceChartContainer';
 import EqualizationTableContainer from './components/EqualizationTableContainer';
-import { FaSortAmountUp, FaStar } from 'react-icons/fa';
+import { FaSortAmountUp } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import LoadingSpinner from '../../../components/LoadingSpinner';
 import { useGlobalToast } from '../../../hooks/useGlobalToast';
@@ -22,6 +21,7 @@ import type {
   TeamHistoricalPerformanceDto,
 } from '../../../types/brutalFacts';
 import ManagerService from '../../../services/ManagerService';
+import DetailedScoreCard from '../../../components/DetailedScoreCard';
 
 const ManagerBrutalFacts = () => {
   const [selectedMetric, setSelectedMetric] = useState('finalScore');
@@ -157,13 +157,6 @@ const ManagerBrutalFacts = () => {
     ? teamAnalysisData.feedbackAnalysisSummary
     : 'Análise detalhada não disponível. Exibindo dados de exemplo.';
 
-  function getScoreText(score: number | null): string {
-    if (score === null) return 'N/A';
-    if (score >= 4.5) return 'Excelente';
-    if (score >= 3.5) return 'Bom';
-    return 'Precisa Melhorar';
-  }
-
   return (
     <div className='h-screen flex flex-col'>
       {/* Header */}
@@ -199,9 +192,6 @@ const ManagerBrutalFacts = () => {
           title='Nota média geral'
           description={`Em comparação ao ciclo anterior.`}
           score={metricsToUse.overallScoreAverage}
-          ratingText={getScoreText(metricsToUse.overallScoreAverage)}
-          color='#419958'
-          icon={<FaStar size={32} />}
         />
         <BaseCard
           title={'Desempenho de liderados'}
