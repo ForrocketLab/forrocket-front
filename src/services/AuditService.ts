@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import api from '../api';
 
 export interface AuditLogMetrics {
@@ -48,12 +49,15 @@ class AuditService {
       };
     } catch (error) {
       console.error('Erro ao buscar métricas de audit log:', error);
-      throw new Error('Falha ao carregar métricas do sistema de auditoria.');
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Erro ao carregar métricas.');
+      }
+      throw new Error('Falha de rede ao carregar métricas do sistema de auditoria.');
     }
   }
 
   /**
-   * Obtém as chamadas de API por hora.
+   * Obtém as métricas totais e diárias do sistema.
    */
   static async getHourlyApiCalls(timeframeHours: number = 24): Promise<HourlyApiCalls[]> {
     try {
@@ -63,7 +67,10 @@ class AuditService {
       return response.data;
     } catch (error) {
       console.error('Erro ao buscar chamadas de API por hora:', error);
-      throw new Error('Falha ao carregar dados de chamadas por hora.');
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Erro ao buscar chamadas por hora.');
+      }
+      throw new Error('Falha de rede ao buscar chamadas por hora.');
     }
   }
 
@@ -78,18 +85,21 @@ class AuditService {
       return response.data.topEndpoints;
     } catch (error) {
       console.error('Erro ao buscar top endpoints de API:', error);
-      throw new Error('Falha ao carregar top endpoints de API.');
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Erro ao buscar endpoints mais usados.');
+      }
+      throw new Error('Falha de rede ao buscar top endpoints.');
     }
   }
 
-  /**
+ /**
    * Obtém entradas de log de auditoria recentes do backend.
    */
   static async getRecentLogEntries(filters?: {
     search?: string;
     limit?: number;
     offset?: number;
-    excludeAdminLogs?: boolean; 
+    excludeAdminLogs?: boolean;
   }): Promise<AuditLogEntry[]> {
     try {
       const response = await api.get<AuditLogEntry[]>('/monitoring/recent-logs', {
@@ -98,7 +108,10 @@ class AuditService {
       return response.data;
     } catch (error) {
       console.error('Erro ao buscar entradas de log recentes:', error);
-      throw new Error('Falha ao carregar entradas de log recentes.');
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Erro ao buscar logs recentes.');
+      }
+      throw new Error('Falha de rede ao buscar logs recentes.');
     }
   }
 }
