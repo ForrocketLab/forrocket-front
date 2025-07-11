@@ -1,7 +1,7 @@
-import React, { type FC, useState } from 'react';
+import React, { type FC, useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Users, CheckCircle, ChevronDown, ChevronUp, AlertCircle, Download, Copy } from 'lucide-react';
+import { Calendar, Users, CheckCircle, ChevronDown, ChevronUp, AlertCircle, Download, Copy, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCommitteeCollaborators, useCommitteeMetrics, useCollaboratorEvaluationSummary } from '../../hooks/useCommittee';
 import ExportButton from '../../components/ExportButton';
 import CommitteeService from '../../services/CommitteeService';
@@ -13,6 +13,10 @@ const CommitteePage: FC = () => {
   const toast = useGlobalToast();
   const [expandedCollaborators, setExpandedCollaborators] = useState<string[]>([]);
   const [collaboratorSummaries, setCollaboratorSummaries] = useState<{[key: string]: any}>({});
+  
+  // Estados para paginação
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
   const { data: collaboratorsData, loading: collaboratorsLoading, error: collaboratorsError } = useCommitteeCollaborators();
   const { data: metricsData, loading: metricsLoading, error: metricsError } = useCommitteeMetrics();
 
@@ -56,8 +60,8 @@ const CommitteePage: FC = () => {
   const daysRemaining = metricsData?.deadlines.daysRemaining || null;
   const assessmentCompletion = metricsData?.metrics.selfAssessmentCompletion || 0;
 
-  // Mapear colaboradores para exibição na tabela (primeiros 5)
-  const displayCollaborators = collaborators.slice(0, 5).map(collaborator => {
+  // Mapear todos os colaboradores
+  const allCollaborators = collaborators.map(collaborator => {
     const summary = collaboratorSummaries[collaborator.id];
     const evaluationScores = summary?.evaluationScores;
     
@@ -74,6 +78,19 @@ const CommitteePage: FC = () => {
       managerAssessment: evaluationScores?.managerAssessment || null,
     };
   });
+
+  // Lógica de paginação
+  const totalPages = Math.ceil(allCollaborators.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const displayCollaborators = allCollaborators.slice(startIndex, endIndex);
+
+  // Resetar página se não há mais dados
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   // Componente inline para detalhes do colaborador
   const CollaboratorDetails: FC<{collaboratorId: string, collaboratorName: string, summary: any}> = ({ 
@@ -539,12 +556,18 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-medium text-gray-900">Resumo de equalizações</h2>
-            <button 
-              onClick={() => navigate('/committee/equalizacoes')}
-              className="text-sm text-[#085F60] hover:text-[#064b4c] font-medium"
-            >
-              Ver mais
-            </button>
+            {allCollaborators.length > 0 && (
+              <div className="text-sm text-gray-600">
+                {totalPages > 1 ? (
+                  <>
+                    Página {currentPage} de {totalPages} • 
+                    Mostrando {displayCollaborators.length} de {allCollaborators.length} colaboradores
+                  </>
+                ) : (
+                  `${allCollaborators.length} colaborador${allCollaborators.length !== 1 ? 'es' : ''}`
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -573,7 +596,28 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {displayCollaborators.map((collaborator) => (
+              {displayCollaborators.length === 0 && allCollaborators.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center">
+                    <div className="w-24 h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                      <Users className="w-12 h-12 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum colaborador encontrado</h3>
+                    <p className="text-gray-500">Não há colaboradores para exibir no momento.</p>
+                  </td>
+                </tr>
+              ) : displayCollaborators.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center">
+                    <div className="w-24 h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                      <Users className="w-12 h-12 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum colaborador nesta página</h3>
+                    <p className="text-gray-500">Navegue para outras páginas para ver mais colaboradores.</p>
+                  </td>
+                </tr>
+              ) : (
+                displayCollaborators.map((collaborator) => (
                 <React.Fragment key={collaborator.id}>
                   <tr 
                     className={`cursor-pointer transition-all duration-200 ${
@@ -640,10 +684,92 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
                     </tr>
                   )}
                 </React.Fragment>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>
+
+        {/* Paginação */}
+        {totalPages > 1 && (
+          <div className="px-6 py-4 border-t border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 flex justify-between sm:hidden">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                    currentPage === 1 
+                      ? 'text-gray-400 cursor-not-allowed' 
+                      : 'text-gray-700 bg-white hover:bg-gray-50'
+                  }`}
+                >
+                  Anterior
+                </button>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                    currentPage === totalPages 
+                      ? 'text-gray-400 cursor-not-allowed' 
+                      : 'text-gray-700 bg-white hover:bg-gray-50'
+                  }`}
+                >
+                  Próximo
+                </button>
+              </div>
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-gray-700">
+                    Mostrando <span className="font-medium">{startIndex + 1}</span> a{' '}
+                    <span className="font-medium">{Math.min(endIndex, allCollaborators.length)}</span> de{' '}
+                    <span className="font-medium">{allCollaborators.length}</span> colaboradores
+                  </p>
+                </div>
+                <div>
+                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
+                        currentPage === 1 
+                          ? 'text-gray-400 cursor-not-allowed' 
+                          : 'text-gray-500 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="sr-only">Anterior</span>
+                      <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                    </button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                          page === currentPage
+                            ? 'z-10 bg-[#085F60] border-[#085F60] text-white'
+                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
+                        currentPage === totalPages 
+                          ? 'text-gray-400 cursor-not-allowed' 
+                          : 'text-gray-500 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="sr-only">Próximo</span>
+                      <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                    </button>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
