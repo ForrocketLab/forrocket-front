@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CriteriaService, { type Criterion, type CreateCriterionDto, type UpdateCriterionDto, BusinessUnits } from '../../services/CriteriaService';
 import { useGlobalToast } from '../../hooks/useGlobalToast';
-import { formatDate } from '../../utils/dateUtils';
+
 
 const CriteriaManagement: React.FC = () => {
   const [criteria, setCriteria] = useState<Criterion[]>([]);
@@ -267,34 +267,6 @@ const CriteriaManagement: React.FC = () => {
     acc[pillarName].push(criterion);
     return acc;
   }, {} as Record<string, Criterion[]>);
-
-  const handleRemoveFromUnit = async (criterion: Criterion) => {
-    if (!selectedBusinessUnit || !criterion.id) return;
-    try {
-      setLoading(true);
-      await CriteriaService.removeCriterionFromUnit(criterion.id, selectedBusinessUnit);
-      await loadEffectiveCriteria(selectedBusinessUnit);
-      showSuccessToast('Critério removido da trilha com sucesso!');
-    } catch (error) {
-      showErrorToast('Erro ao remover critério da trilha');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRestoreToUnit = async (criterion: Criterion) => {
-    if (!selectedBusinessUnit || !criterion.id) return;
-    try {
-      setLoading(true);
-      await CriteriaService.restoreCriterionToUnit(criterion.id, selectedBusinessUnit);
-      await loadEffectiveCriteria(selectedBusinessUnit);
-      showSuccessToast('Critério restaurado para a trilha com sucesso!');
-    } catch (error) {
-      showErrorToast('Erro ao restaurar critério na trilha');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const loadCriteria = async () => {
     if (selectedBusinessUnit) {

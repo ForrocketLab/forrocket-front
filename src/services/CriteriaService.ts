@@ -218,7 +218,7 @@ class CriteriaServiceClass {
       if (cached) return cached;
     }
     try {
-      const response = await api.get(`/criteria/effective?businessUnit=${encodeURIComponent(businessUnit)}`);
+      const response = await api.get(`/public/criteria/effective?businessUnit=${encodeURIComponent(businessUnit)}`);
       const result = response.data as Criterion[];
       this.setCache(cacheKey, result);
       return result;
@@ -229,6 +229,13 @@ class CriteriaServiceClass {
       }
       throw new Error('Ocorreu um erro de rede. Tente novamente.');
     }
+  }
+
+  /**
+   * Lista critérios efetivos para o usuário logado baseado em sua business unit
+   */
+  async getEffectiveCriteriaForUser(userBusinessUnit: string, forceRefresh = false): Promise<Criterion[]> {
+    return this.getEffectiveCriteriaByBusinessUnit(userBusinessUnit, forceRefresh);
   }
 
   /**
@@ -274,6 +281,10 @@ class CriteriaServiceClass {
 
   static async getEffectiveCriteriaByBusinessUnit(businessUnit: string): Promise<Criterion[]> {
     return CriteriaServiceClass.getInstance().getEffectiveCriteriaByBusinessUnit(businessUnit);
+  }
+
+  static async getEffectiveCriteriaForUser(userBusinessUnit: string): Promise<Criterion[]> {
+    return CriteriaServiceClass.getInstance().getEffectiveCriteriaForUser(userBusinessUnit);
   }
 
   static async removeCriterionFromUnit(criterionId: string, businessUnit: string): Promise<void> {

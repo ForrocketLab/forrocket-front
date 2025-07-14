@@ -113,7 +113,10 @@ const STORAGE_KEYS = {
 // Função para mapear dados de autoavaliação para o formato do backend
 const mapSelfEvaluationToDto = (data: SelfEvaluationData): Record<string, any> => {
   const dto: Record<string, any> = {};
-  
+
+  // Função para converter para camelCase
+  const toCamel = (str: string) => str.replace(/[-_](.)/g, (_, c) => c.toUpperCase());
+
   // Mapear critérios de postura
   Object.entries(data.postureCriteria).forEach(([key, value]) => {
     const keyMap: Record<string, string> = {
@@ -123,18 +126,10 @@ const mapSelfEvaluationToDto = (data: SelfEvaluationData): Record<string, any> =
       capacidadeDeAprender: 'capacidadeAprender',
       serTeamPlayer: 'teamPlayer',
     };
-    
-    const mappedKey = keyMap[key];
-    if (!mappedKey) {
-      console.error(`❌ Chave não mapeada (posture): ${key}`);
-      return;
-    }
-
-    // Sempre incluir o score se não for nulo
+    const mappedKey = keyMap[key] || toCamel(key);
     if (value.score !== null) {
       dto[`${mappedKey}Score`] = value.score;
     }
-    // Sempre incluir a justification se não for vazia
     if (value.justification?.trim()) {
       dto[`${mappedKey}Justification`] = value.justification.trim();
     }
@@ -148,18 +143,10 @@ const mapSelfEvaluationToDto = (data: SelfEvaluationData): Record<string, any> =
       fazerMaisComMenos: 'fazerMaisMenos',
       pensarForaDaCaixa: 'pensarForaCaixa',
     };
-    
-    const mappedKey = keyMap[key];
-    if (!mappedKey) {
-      console.error(`❌ Chave não mapeada (execution): ${key}`);
-      return;
-    }
-
-    // Sempre incluir o score se não for nulo
+    const mappedKey = keyMap[key] || toCamel(key);
     if (value.score !== null) {
       dto[`${mappedKey}Score`] = value.score;
     }
-    // Sempre incluir a justification se não for vazia
     if (value.justification?.trim()) {
       dto[`${mappedKey}Justification`] = value.justification.trim();
     }
@@ -172,18 +159,10 @@ const mapSelfEvaluationToDto = (data: SelfEvaluationData): Record<string, any> =
       resultados: 'gestaoResultados',
       evolucaoDaRocketCorp: 'evolucaoRocket',
     };
-    
-    const mappedKey = keyMap[key];
-    if (!mappedKey) {
-      console.error(`❌ Chave não mapeada (management): ${key}`);
-      return;
-    }
-
-    // Sempre incluir o score se não for nulo
+    const mappedKey = keyMap[key] || toCamel(key);
     if (value.score !== null) {
       dto[`${mappedKey}Score`] = value.score;
     }
-    // Sempre incluir a justification se não for vazia
     if (value.justification?.trim()) {
       dto[`${mappedKey}Justification`] = value.justification.trim();
     }
@@ -348,52 +327,14 @@ export const EvaluationProvider: FC<EvaluationProviderProps> = ({ children }) =>
       const groupKey = `${group}Criteria` as const; 
       
       // Atualizar o valor imediatamente
-      (newData[groupKey] as any)[criterionName][field] = value; 
+      if (!(newData[groupKey] as any)[criterionName]) {
+        (newData[groupKey] as any)[criterionName] = { score: null, justification: '' };
+      }
+      (newData[groupKey] as any)[criterionName][field] = value;
       console.log(`💾 Value updated to ${value}`);
-      
-      // Preparar dados para auto-save
-      const mappedData = mapSelfEvaluationToDto(newData);
-
-      // Garantir que o campo atual seja incluído
-      const keyMap: Record<string, string> = {
-        sentimentoDeDono: 'sentimentoDeDono',
-        resilienciaNasAdversidades: 'resilienciaAdversidades', 
-        organizacaoNoTrabalho: 'organizacaoTrabalho',
-        capacidadeDeAprender: 'capacidadeAprender',
-        serTeamPlayer: 'teamPlayer',
-        entregarComQualidade: 'entregarQualidade',
-        atenderAosPrazos: 'atenderPrazos',
-        fazerMaisComMenos: 'fazerMaisMenos',
-        pensarForaDaCaixa: 'pensarForaCaixa',
-        gente: 'gestaoGente',
-        resultados: 'gestaoResultados',
-        evolucaoDaRocketCorp: 'evolucaoRocket',
-      };
-
-      const mappedKey = keyMap[criterionName];
-      if (!mappedKey) {
-        console.error(`❌ Chave não mapeada: ${criterionName}`);
-        return prev;
-      }
-
-      // Forçar a inclusão do campo atual
-      if (field === 'score') {
-        mappedData[`${mappedKey}Score`] = value;
-      } else if (field === 'justification') {
-        mappedData[`${mappedKey}Justification`] = value;
-      }
-
-      // Garantir cycleId
-      if (!mappedData.cycleId) {
-        mappedData.cycleId = '2025.1';
-      }
-
-      console.log('📤 Sending to auto-save:', mappedData);
-      autoSaveSelfEvaluation(mappedData);
-      
       return newData; 
     }); 
-  }, [autoSaveSelfEvaluation]);
+  }, []);
 
   // Effects para localStorage
   useEffect(() => { localStorage.setItem(STORAGE_KEYS.EVALUATIONS_360, JSON.stringify(evaluations360)); }, [evaluations360]);
