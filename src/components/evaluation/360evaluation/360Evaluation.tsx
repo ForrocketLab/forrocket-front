@@ -100,7 +100,7 @@ const Evaluation360 = () => {
   }
 
   return (
-    <div className="bg=[#F1F1F1] min-h-screen">
+    <div className="min-h-screen px-2 md:px-4 lg:px-8">
       <div className="mb-6">
         <SearchBar
           value={search}

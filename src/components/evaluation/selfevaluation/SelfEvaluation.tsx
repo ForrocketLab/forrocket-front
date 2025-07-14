@@ -260,19 +260,7 @@ const SelfEvaluation: React.FC<SelfEvaluationProps> = ({
   }
 
   return (
-    <div className="p-0 min-h-screen">
-      {user?.businessUnit && (
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <h4 className="text-sm font-medium text-blue-800 mb-2">
-            📋 Critérios para sua área: {user.businessUnit}
-          </h4>
-          <div className="text-sm text-blue-700">
-            <p>• Critérios base: {userCriteria.filter(c => c.isBase).length}</p>
-            <p>• Critérios específicos da área: {userCriteria.filter(c => !c.isBase).length}</p>
-            <p>• Total de critérios: {userCriteria.length}</p>
-          </div>
-        </div>
-      )}
+    <div className="min-h-screen px-2 md:px-4 lg:px-8">
       {Object.entries(grouped).map(([pillar, criteriaList]) => (
         <CriteriaCard
           key={pillar}

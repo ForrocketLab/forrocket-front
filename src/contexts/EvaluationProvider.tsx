@@ -168,6 +168,11 @@ const mapSelfEvaluationToDto = (data: SelfEvaluationData): Record<string, any> =
     }
   });
 
+  // Adicionar ciclo ao DTO
+  const cycle = (data as any).cycle || '2025.1';
+  dto.cycle = cycle;
+  dto.cycleId = cycle;
+
   console.log('📦 DTO mapeado:', dto);
   return dto;
 };
@@ -259,7 +264,7 @@ export const EvaluationProvider: FC<EvaluationProviderProps> = ({ children }) =>
 
   // Hook de auto-save
   const { autoSave: autoSaveSelfEvaluation } = useAutoSave({
-    data: mapSelfEvaluationToDto(selfEvaluationData),
+    data: {}, // Não usar diff automático
     saveFn: autoSaveFn,
     options: { debounceMs: 500, enabled: !!user }
   });
@@ -341,6 +346,13 @@ export const EvaluationProvider: FC<EvaluationProviderProps> = ({ children }) =>
   useEffect(() => { localStorage.setItem(STORAGE_KEYS.MENTORING_DATA, JSON.stringify(mentoringData)); }, [mentoringData]);
   useEffect(() => { localStorage.setItem(STORAGE_KEYS.SELF_EVALUATION_DATA, JSON.stringify(selfEvaluationData)); }, [selfEvaluationData]);
   useEffect(() => { localStorage.setItem(STORAGE_KEYS.REFERENCE_FEEDBACK, JSON.stringify(referenceFeedbackData)); }, [referenceFeedbackData]);
+
+  // useEffect para autosave sempre que selfEvaluationData mudar
+useEffect(() => {
+  if (!!user) {
+    autoSaveSelfEvaluation(mapSelfEvaluationToDto(selfEvaluationData));
+  }
+}, [selfEvaluationData, autoSaveSelfEvaluation, user]);
 
   // Funções de manipulação de dados
   const addEvaluation360 = useCallback((collaborator: EvaluableUser) => {
