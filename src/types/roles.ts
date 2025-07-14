@@ -4,4 +4,6 @@ export enum ROLES {
   COMMITTEE = 'comite',
   RH = 'rh',
   ADMIN = 'admin',
+  MENTOR = 'mentor',
+  LEADER = 'líder',
 }

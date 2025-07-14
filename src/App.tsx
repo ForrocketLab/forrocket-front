@@ -37,6 +37,9 @@ import PDIDetailsPage from './pages/pdis/PDIDetailsPage';
 import PDIForm from './pages/pdis/PDIForm';
 import CollaboratorEvolution from './pages/manager/collaborators/CollaboratorEvolution';
 import SimpleMarkdownTest from './components/SimpleMarkdownTest';
+import MentorDashboardPage from './pages/mentor/dashboard/MentorDashboard';
+import MentorMentees from './pages/mentor/mentees/MentorMentees';
+import MenteeEvaluationDetails from './pages/mentor/mentees/MenteeEvaluationDetails';
 
 function App() {
   const { toasts, removeToast } = useToastSubscription();
@@ -74,10 +77,10 @@ function App() {
               <Route element={<ProtectedRoute allowedRoles={[ROLES.RH]} />}>
                 <Route path='/rh' element={<HRHomePage />} />
                 <Route path='/rh/colaboradores' element={<CollaboratorManagement />} />
-                          <Route path='/rh/evolucao-historica' element={<HistoricalEvolution />} />
-          <Route path='/rh/criterios' element={<CriteriaManagement />} />
-          <Route path='/rh/importar-historicos' element={<RHImport />} />
-          <Route path='/rh/matriz-talento' element={<TalentMatrixPage />} />
+                <Route path='/rh/evolucao-historica' element={<HistoricalEvolution />} />
+                <Route path='/rh/criterios' element={<CriteriaManagement />} />
+                <Route path='/rh/importar-historicos' element={<RHImport />} />
+                <Route path='/rh/matriz-talento' element={<TalentMatrixPage />} />
                 <Route path='/rh/matriz-talento/metodologia' element={<TalentMatrixMethodology />} />
               </Route>
 
@@ -91,6 +94,12 @@ function App() {
                 <Route path='/manager/collaborators' element={<ManagerCollaborators />} />
                 <Route path='/manager/collaborators/:id/evaluations' element={<CollaboratorEvaluationDetails />} />
                 <Route path='/manager/brutal-facts' element={<ManagerBrutalFacts />} />
+              </Route>
+
+              <Route element={<ProtectedRoute allowedRoles={[ROLES.MENTOR]} />}>
+                <Route path='/mentor/dashboard' element={<MentorDashboardPage />} />
+                <Route path='/mentor/mentees' element={<MentorMentees />} />
+                <Route path='/mentor/mentees/:id/evaluations' element={<MenteeEvaluationDetails />} />
               </Route>
 
               <Route element={<ProtectedRoute allowedRoles={[ROLES.COLLABORATOR]} />}>
