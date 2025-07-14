@@ -37,6 +37,7 @@ import PDIDetailsPage from './pages/pdis/PDIDetailsPage';
 import PDIForm from './pages/pdis/PDIForm';
 import CollaboratorEvolution from './pages/manager/collaborators/CollaboratorEvolution';
 import SimpleMarkdownTest from './components/SimpleMarkdownTest';
+import ProjectPage from './pages/leader/projects/ProjectPage';
 
 function App() {
   const { toasts, removeToast } = useToastSubscription();
@@ -101,6 +102,12 @@ function App() {
                 <Route path='/pdis' element={<PDIsPage />} />
                 <Route path='/pdis/:id' element={<PDIDetailsPage />} />
                 <Route path='/pdis/:id/edit' element={<PDIForm />} />
+              </Route>
+
+              <Route element={<ProtectedRoute allowedRoles={[ROLES.LEADER]} />}>
+                <Route path='/leader/projects' element={<ProjectPage />} />
+              
+
               </Route>
 
               {/* ROTA DE FALLBACK (404) */}
