@@ -24,7 +24,7 @@ const ExecutionCriteriaList = ({
   onToggleExpansion,
   onRatingChange,
   onJustificationChange,
-}: ExecutionCriteriaListProps) => { 
+}: ExecutionCriteriaListProps) => {
   return (
     <div className='bg-white rounded-lg shadow-sm border border-gray-200 mt-6'>
       <div className='flex items-center justify-between px-6 py-4 border-b border-gray-200'>

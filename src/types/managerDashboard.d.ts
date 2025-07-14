@@ -67,3 +67,39 @@ interface CollaboratorFullEvaluation {
   }[];
   summary: any;
 }
+
+interface ManagerAssessmentAnswer {
+  criterionId: string;
+  score: number;
+  justification: string;
+}
+
+interface ManagerAssessmentData {
+  id: string;
+  cycle: string;
+  authorId: string;
+  evaluatedUserId: string;
+  status: 'DRAFT' | 'SUBMITTED';
+  answers: ManagerAssessmentAnswer[];
+  createdAt: Date;
+  updatedAt: Date;
+  submittedAt?: Date | null;
+}
+
+interface PillarScores {
+  BEHAVIOR: number | null;
+  EXECUTION: number | null;
+  MANAGEMENT: number | null;
+}
+
+interface PerformanceDataDto {
+  cycle: string;
+  selfScore: PillarScores;
+  managerScore: PillarScores;
+  finalScore: number | null;
+}
+
+interface PerformanceHistoryDto {
+  performanceData: PerformanceDataDto[];
+  assessmentsSubmittedCount: number;
+}

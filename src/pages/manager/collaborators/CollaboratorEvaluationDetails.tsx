@@ -1,6 +1,3 @@
-// src/pages/manager/CollaboratorEvaluationDetails.tsx
-
-// SEUS IMPORTS - MANTIDOS EXATAMENTE COMO ESTAVAM
 import { type FC, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ManagerService from '../../../services/ManagerService';
@@ -13,7 +10,6 @@ import ManagerEvaluationsHistory from './ManagerEvaluationsHistory';
 import ClientEvaluation from '../collaborators/components/ClientEvaluation';
 import type { DetailedSelfAssessment } from '../../../types/detailedEvaluations';
 import { POSTURE_CRITERIA_IDS, EXECUTION_CRITERIA_IDS, criteriaNames } from '../../../config/evaluationCriteria';
-
 
 export interface ManagerCriterionState {
   score: number;
@@ -38,7 +34,11 @@ const CollaboratorEvaluationDetails: FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [managerAssessments, setManagerAssessments] = useState<Record<string, ManagerCriterionState>>({});
-  const [isAssessmentSubmitted, setIsAssessmentSubmitted] = useState(false);
+  const [IsCollaboratorSelfAssessmentSubmitted, setIsCollaboratorSelfAssessmentSubmitted] = useState(false);
+  const [isManagerAssessmentSubmitted, setIsManagerAssessmentSubmitted] = useState(false);
+
+  const [managerOwnAssessment, setManagerOwnAssessment] = useState<ManagerAssessmentData | null>(null);
+
   const [activeTab, setActiveTab] = useState('evaluation');
 
   useEffect(() => {
@@ -51,20 +51,42 @@ const CollaboratorEvaluationDetails: FC = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const [selfAssessment, dashboardData, historyData] = await Promise.all([
+        const activeCycle: ActiveCycle = await ManagerService.getActiveCycle();
+
+        const [selfAssessment, dashboardData, historyData, ownManagerAssessment] = await Promise.all([
           ManagerService.getDetailedSelfAssessment(collaboratorIdFromUrl),
-          ManagerService.getManagerDashboard('2025.1'),
+          ManagerService.getManagerDashboard(activeCycle.name),
           ManagerService.getCollaboratorPerformanceHistory(collaboratorIdFromUrl),
+          ManagerService.getManagerOwnAssessmentForSubordinate(collaboratorIdFromUrl, activeCycle.name),
         ]);
+
         setDetailedSelfAssessment(selfAssessment);
         setPerformanceHistory(historyData);
+        setManagerOwnAssessment(ownManagerAssessment);
 
-        // ATUALIZAÇÃO CRÍTICA: Define isAssessmentSubmitted com base no status da autoavaliação
         if (selfAssessment?.status === 'SUBMITTED') {
-          setIsAssessmentSubmitted(true);
+          setIsCollaboratorSelfAssessmentSubmitted(true);
         } else {
-          setIsAssessmentSubmitted(false);
+          setIsCollaboratorSelfAssessmentSubmitted(false);
         }
+
+        if (ownManagerAssessment?.status === 'SUBMITTED') {
+          setIsManagerAssessmentSubmitted(true);
+        } else {
+          setIsManagerAssessmentSubmitted(false);
+        }
+
+        if (ownManagerAssessment) {
+          const initialManagerAssessments: Record<string, ManagerCriterionState> = {};
+          ownManagerAssessment.answers.forEach(answer => {
+            initialManagerAssessments[answer.criterionId] = {
+              score: answer.score,
+              justification: answer.justification,
+            };
+          });
+          setManagerAssessments(initialManagerAssessments);
+        }
+
 
         const subordinates =
           dashboardData?.collaboratorsInfo?.flatMap((group: DashboardProjectGroup) => group.subordinates) ?? [];
@@ -83,12 +105,14 @@ const CollaboratorEvaluationDetails: FC = () => {
   }, [collaboratorIdFromUrl]);
 
   const handleManagerRatingChange = (criterionId: string, score: number) => {
+    if (isManagerAssessmentSubmitted) return;
     setManagerAssessments(prev => ({
       ...prev,
       [criterionId]: { ...prev[criterionId], score, justification: prev[criterionId]?.justification ?? '' },
     }));
   };
   const handleManagerJustificationChange = (criterionId: string, justification: string) => {
+    if (isManagerAssessmentSubmitted) return;
     setManagerAssessments(prev => ({
       ...prev,
       [criterionId]: { ...prev[criterionId], justification, score: prev[criterionId]?.score ?? 0 },
@@ -96,6 +120,8 @@ const CollaboratorEvaluationDetails: FC = () => {
   };
 
   const handleSubmitManagerAssessment = async () => {
+    if (isManagerAssessmentSubmitted) return;
+
     const allCriteria = [...POSTURE_CRITERIA_IDS, ...EXECUTION_CRITERIA_IDS];
     const completedCount = allCriteria.filter(
       id => (managerAssessments[id]?.score ?? 0) > 0 && (managerAssessments[id]?.justification ?? '').trim() !== '',
@@ -106,13 +132,12 @@ const CollaboratorEvaluationDetails: FC = () => {
       return;
     }
 
-    setIsAssessmentSubmitted(true);
+    setIsLoading(true);
     toast.info('Aguarde', 'A enviar a sua avaliação...');
 
     const payloadToSend: Record<string, any> = {
       evaluatedUserId: collaboratorIdFromUrl,
-      cycle: '2025.1',
-      assessments: [],
+      cycle: detailedSelfAssessment?.cycle || '2025.1',
     };
 
     allCriteria.forEach(criterionId => {
@@ -126,6 +151,9 @@ const CollaboratorEvaluationDetails: FC = () => {
       await ManagerService.submitManagerSubordinateAssessment(payloadToSend as any);
       toast.success('Sucesso', 'Avaliação enviada e salva com sucesso!');
 
+      setIsManagerAssessmentSubmitted(true);
+      setIsLoading(false);
+
       setTimeout(() => {
         navigate('/manager/collaborators');
       }, 1500);
@@ -134,7 +162,8 @@ const CollaboratorEvaluationDetails: FC = () => {
         'Falha na Submissão',
         submitError instanceof Error ? submitError.message : 'Ocorreu um erro desconhecido.',
       );
-      setIsAssessmentSubmitted(false);
+      setIsLoading(false);
+      setIsManagerAssessmentSubmitted(false);
     }
   };
 
@@ -174,7 +203,7 @@ const CollaboratorEvaluationDetails: FC = () => {
   return (
     <div className='bg-gray-50 min-h-screen'>
       <EvaluationHeader
-        isAssessmentSubmitted={isAssessmentSubmitted}
+        isAssessmentSubmitted={isManagerAssessmentSubmitted}
         collaboratorName={collaboratorName}
         collaboratorInitials={collaboratorName
           .split(' ')
@@ -191,7 +220,7 @@ const CollaboratorEvaluationDetails: FC = () => {
         {activeTab === 'evaluation' && (
           <>
             <PostureCriteriaList
-              isAssessmentSubmitted={isAssessmentSubmitted}
+              isAssessmentSubmitted={isManagerAssessmentSubmitted}
               answers={detailedSelfAssessment.answers}
               managerAssessments={managerAssessments}
               expandedCriterion={expandedCriterion}
@@ -208,7 +237,7 @@ const CollaboratorEvaluationDetails: FC = () => {
             />
 
             <ExecutionCriteriaList
-              isAssessmentSubmitted={isAssessmentSubmitted}
+              isAssessmentSubmitted={isManagerAssessmentSubmitted}
               answers={detailedSelfAssessment.answers}
               managerAssessments={managerAssessments}
               expandedCriterion={expandedCriterion}

@@ -24,8 +24,21 @@ const EqualizationTableContainer = ({ collaboratorsData }: EqualizationTableCont
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPerformance, setFilterPerformance] = useState('all');
   const [sortOrder, setSortOrder] = useState('alphabetical');
+
+  const [tempFilterStatus, setTempFilterStatus] = useState('all');
+  const [tempFilterPerformance, setTempFilterPerformance] = useState('all');
+  const [tempSortOrder, setTempSortOrder] = useState('alphabetical');
+
   const [showFilterPopover, setShowFilterPopover] = useState(false);
   const filterPopoverRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (showFilterPopover) {
+      setTempFilterStatus(filterStatus);
+      setTempFilterPerformance(filterPerformance);
+      setTempSortOrder(sortOrder);
+    }
+  }, [showFilterPopover, filterStatus, filterPerformance, sortOrder]);
 
   // Fechar popover ao clicar fora
   useEffect(() => {
@@ -58,8 +71,7 @@ const EqualizationTableContainer = ({ collaboratorsData }: EqualizationTableCont
         (filterPerformance === 'high' && collaborator.finalScore && collaborator.finalScore >= 4.0) ||
         (filterPerformance === 'medium' &&
           collaborator.finalScore &&
-          collaborator.finalScore >= 3.5 &&
-          collaborator.finalScore < 4.0) ||
+          collaborator.finalScore >= 3.5 && collaborator.finalScore < 4.0) ||
         (filterPerformance === 'low' && collaborator.finalScore && collaborator.finalScore < 3.5);
 
       return matchesSearch && matchesStatus && matchesPerformance;
@@ -82,6 +94,24 @@ const EqualizationTableContainer = ({ collaboratorsData }: EqualizationTableCont
 
     return filtered;
   }, [searchTerm, filterStatus, filterPerformance, sortOrder, collaboratorsData]);
+
+  const handleApplyFilters = () => {
+    setFilterStatus(tempFilterStatus);
+    setFilterPerformance(tempFilterPerformance);
+    setSortOrder(tempSortOrder);
+    setShowFilterPopover(false);
+  };
+
+  const handleClearAllFilters = () => {
+    setSearchTerm('');
+    setFilterStatus('all');
+    setFilterPerformance('all');
+    setSortOrder('alphabetical');
+    setTempFilterStatus('all');
+    setTempFilterPerformance('all');
+    setTempSortOrder('alphabetical');
+    setShowFilterPopover(false);
+  };
 
   return (
     <div className='bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6'>
@@ -120,8 +150,8 @@ const EqualizationTableContainer = ({ collaboratorsData }: EqualizationTableCont
                   <div>
                     <label className='block text-sm font-medium text-gray-700 mb-2'>Ordenar por:</label>
                     <select
-                      value={sortOrder}
-                      onChange={e => setSortOrder(e.target.value)}
+                      value={tempSortOrder}
+                      onChange={e => setTempSortOrder(e.target.value)}
                       className='w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 p-2'
                     >
                       <option value='alphabetical'>Ordem alfabética</option>
@@ -134,8 +164,8 @@ const EqualizationTableContainer = ({ collaboratorsData }: EqualizationTableCont
                   <div>
                     <label className='block text-sm font-medium text-gray-700 mb-2'>Nível de Performance:</label>
                     <select
-                      value={filterPerformance}
-                      onChange={e => setFilterPerformance(e.target.value)}
+                      value={tempFilterPerformance}
+                      onChange={e => setTempFilterPerformance(e.target.value)}
                       className='w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 p-2'
                     >
                       <option value='all'>Todos os níveis</option>
@@ -149,31 +179,28 @@ const EqualizationTableContainer = ({ collaboratorsData }: EqualizationTableCont
                   <div>
                     <label className='block text-sm font-medium text-gray-700 mb-2'>Status:</label>
                     <select
-                      value={filterStatus}
-                      onChange={e => setFilterStatus(e.target.value)}
+                      value={tempFilterStatus}
+                      onChange={e => setTempFilterStatus(e.target.value)}
                       className='w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 p-2'
                     >
                       <option value='all'>Todos os status</option>
-                      <option value='high'>Performance alta</option>
-                      <option value='medium'>Performance média</option>
-                      <option value='low'>Performance baixa</option>
+                      <option value='pending'>Pendente</option>
+                      <option value='finalizado'>Finalizado</option>
                     </select>
                   </div>
 
                   {/* Botões de ação */}
                   <div className='flex gap-2 pt-2 border-t border-gray-200'>
                     <button
-                      onClick={() => {
-                        setFilterStatus('all');
-                        setFilterPerformance('all');
-                        setSortOrder('alphabetical');
-                      }}
+                      type='button'
+                      onClick={handleClearAllFilters}
                       className='flex-1 px-3 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors hover:cursor-pointer'
                     >
                       Limpar
                     </button>
                     <button
-                      onClick={() => setShowFilterPopover(false)}
+                      type='button'
+                      onClick={handleApplyFilters}
                       className='flex-1 px-3 py-2 text-sm text-white rounded-lg transition-colors hover:cursor-pointer'
                       style={{ backgroundColor: '#08605F' }}
                     >

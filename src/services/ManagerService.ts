@@ -100,7 +100,7 @@ class ManagerService {
   }
 
   static async getReceived360Assessments(
-    subordinateId: string | undefined,
+    subordinateId: string,
     cycle: string,
   ): Promise<Received360Evaluation[]> {
     try {
@@ -120,6 +120,27 @@ class ManagerService {
       console.error(`Erro ao buscar avaliações 360 para o usuário ${subordinateId}:`, error);
       if (error instanceof AxiosError && error.response) {
         throw new Error(error.response.data.message || 'Falha ao buscar avaliações 360.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  static async getManagerOwnAssessmentForSubordinate(subordinateId: string, cycle: string): Promise<ManagerAssessmentData | null> {
+    try {
+      const response = await api.get<ManagerAssessmentData>(`/evaluations/manager/my-assessment/subordinate/${subordinateId}`, {
+        headers: {
+          Authorization: `Bearer ${AuthService.getToken()}`,
+        },
+        params: { cycle },
+      });
+      return response.data;
+    } catch (error) {
+      if (error instanceof AxiosError && error.response?.status === 404) {
+        return null;
+      }
+      console.error('Erro ao buscar avaliação própria do gestor para o subordinado:', error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar avaliação própria do gestor.');
       }
       throw new Error('Ocorreu um erro de rede. Tente novamente.');
     }
@@ -150,12 +171,9 @@ class ManagerService {
 
   static async getCollaboratorPerformanceHistory(subordinateId: string): Promise<PerformanceHistoryDto> {
     try {
-      const response = await api.get<PerformanceHistoryDto>('/evaluations/manager/performance/history', {
+      const response = await api.get<PerformanceHistoryDto>(`/evaluations/manager/performance/history/${subordinateId}`, {
         headers: {
           Authorization: `Bearer ${AuthService.getToken()}`,
-        },
-        params: {
-          subordinateId,
         },
       });
       return response.data;
@@ -254,7 +272,7 @@ class ManagerService {
     } catch (error) {
       console.error(`Erro ao buscar notas do cliente para o projeto ${projectId}:`, error);
       if (error instanceof AxiosError && error.response) {
-        if (error.response.status === 404) return {};
+        if (error.response.status === 404) return {}; // Retorna objeto vazio se não houver notas
         throw new Error(error.response.data.message || 'Falha ao buscar as notas do cliente.');
       }
       throw new Error('Ocorreu um erro de rede. Tente novamente.');
