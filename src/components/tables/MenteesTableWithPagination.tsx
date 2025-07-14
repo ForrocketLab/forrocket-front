@@ -388,7 +388,7 @@ const MenteesTableWithPagination: FC<MenteesTableWithPaginationProps> = ({
                   <SortIcon column='status' />
                 </div>
                 <div className='col-span-2 text-center'>Autoavaliação</div>
-                <div className='col-span-2 text-center'>Nota Mentor</div>
+                <div className='col-span-2 text-center'>Nota Gestor</div>
                 <div className='col-span-2 text-center'>Visualizar</div>
               </div>
             </div>

@@ -1,11 +1,13 @@
+// pages/mentor/dashboard/MentorDashboardPage.tsx
+
 import CycleStatus, { CycleData } from '../../manager/dashboard/components/CycleStatus';
 import MenteesTableWithPagination from '../../../components/tables/MenteesTableWithPagination';
 import { useEffect, useState, useCallback } from 'react';
-import MentorService, { MentorDashboardResponse } from '../../../services/MentorService';
+import MentorService, { MentorDashboardResponse, MentoredCollaborator } from '../../../services/MentorService';
 import { useAuth } from '../../../hooks/useAuth';
 import DetailedScoreCard from '../../../components/cards/DetailedScoreCard';
 import DetailedEvaluationsCard from '../../../components/cards/DetailedEvaluationsCard';
-import PendingReviewsCard from '../../../components/cards/PendingReviewsCard';
+import EvaluationsFinishedCard from '../../../components/cards/EvaluationsFinishedCard';
 
 const MentorDashboardPage = () => {
   const { user } = useAuth();
@@ -30,33 +32,15 @@ const MentorDashboardPage = () => {
       setDashboardData(data);
 
       // Adaptar mentorados para o formato esperado pela tabela
-      const adaptedMentees: DashboardSubordinate[] = data.mentoredCollaborators.map(mentee => {
-        // Mapear status do mentor para o formato esperado pela tabela
-        let assessmentStatus: 'PENDING' | 'DRAFT' | 'SUBMITTED';
-        switch (mentee.mentorAssessmentStatus) {
-          case 'PENDING':
-            assessmentStatus = 'PENDING';
-            break;
-          case 'DRAFT':
-            assessmentStatus = 'DRAFT';
-            break;
-          case 'SUBMITTED':
-            assessmentStatus = 'SUBMITTED';
-            break;
-          default:
-            assessmentStatus = 'PENDING';
-        }
-
-        return {
-          id: mentee.collaboratorId,
-          name: mentee.collaboratorName,
-          initials: mentee.initials,
-          jobTitle: mentee.jobTitle,
-          assessmentStatus,
-          selfAssessmentScore: mentee.selfAssessmentAverage,
-          managerScore: mentee.managerAssessmentAverage,
-        };
-      });
+      const adaptedMentees: DashboardSubordinate[] = data.mentoredCollaborators.map((mentee: MentoredCollaborator) => ({
+        id: mentee.collaboratorId,
+        name: mentee.collaboratorName,
+        initials: mentee.initials,
+        jobTitle: mentee.jobTitle,
+        assessmentStatus: mentee.mentorAssessmentStatus, // O tipo já é compatível
+        selfAssessmentScore: mentee.selfAssessmentAverage,
+        managerScore: mentee.managerAssessmentAverage,
+      }));
       setMenteesList(adaptedMentees);
     } catch (err) {
       console.error('Erro ao carregar dados do dashboard do mentor:', err);
@@ -64,14 +48,13 @@ const MentorDashboardPage = () => {
     }
   }, []);
 
-  // Carregar dados iniciais apenas uma vez
+  // Carregar dados iniciais
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
         setIsLoading(true);
         setError(null);
 
-        // Buscar ciclo ativo
         const activeCycle = await MentorService.getActiveCycle();
         const formattedCurrentCycle: CycleData = {
           name: activeCycle.name,
@@ -79,46 +62,38 @@ const MentorDashboardPage = () => {
         };
         setCurrentCycle(formattedCurrentCycle);
 
-        // Carregar dados do dashboard para o ciclo ativo
         await loadDashboardData(activeCycle.name);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Ocorreu um erro ao carregar o dashboard do mentor.');
+        setError(err instanceof Error ? err.message : 'Ocorreu um erro ao carregar o dashboard.');
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchInitialData();
+  }, [loadDashboardData]);
 
-    user?.roles.forEach(role => {
-      console.log(`Usuário tem o papel: ${role}`);
-    });
-  }, [user?.roles, loadDashboardData]);
-
-  // Carregar ciclos disponíveis separadamente
+  // Carregar ciclos disponíveis
   useEffect(() => {
     const loadAvailableCycles = async () => {
+      if (!currentCycle) return;
       try {
         setIsLoadingCycles(true);
         const cycles = await MentorService.getAllCycles();
-        const formattedCycles: CycleData[] = cycles.map((cycle: { name: string; status: string }) => ({
+        const formattedCycles: CycleData[] = cycles.map(cycle => ({
           name: cycle.name,
           status: cycle.status,
         }));
         setAvailableCycles(formattedCycles);
       } catch (err) {
         console.error('Erro ao carregar ciclos:', err);
-        // Em caso de erro, mantém apenas o ciclo atual se existe
-        if (currentCycle) {
-          setAvailableCycles([currentCycle]);
-        }
+        setAvailableCycles([currentCycle]);
       } finally {
         setIsLoadingCycles(false);
       }
     };
 
-    // Só carrega os ciclos se ainda não foram carregados
-    if (currentCycle && availableCycles.length === 0) {
+    if (availableCycles.length === 0) {
       loadAvailableCycles();
     }
   }, [currentCycle, availableCycles.length]);
@@ -128,14 +103,10 @@ const MentorDashboardPage = () => {
     try {
       setIsLoading(true);
       setError(null);
-
-      // Atualizar ciclo atual
       setCurrentCycle(cycle);
-
-      // Carregar dados do novo ciclo
       await loadDashboardData(cycle.name);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao carregar dados do ciclo selecionado.');
+      setError(err instanceof Error ? err.message : 'Erro ao carregar dados do ciclo.');
     } finally {
       setIsLoading(false);
     }
@@ -166,12 +137,6 @@ const MentorDashboardPage = () => {
       </div>
     );
   }
-
-  // Calcular porcentagem de avaliações completadas
-  const completionPercentage =
-    dashboardData.summary.activeAssessments > 0
-      ? Math.round((dashboardData.summary.completedAssessments / dashboardData.summary.activeAssessments) * 100)
-      : 0;
 
   return (
     <div className='p-6 bg-gray-50 min-h-screen'>
@@ -205,31 +170,27 @@ const MentorDashboardPage = () => {
           />
         </div>
 
-        {/* Cards de resumo */}
+        {/* Cards de resumo - AGORA USANDO OS DADOS CORRETOS DA API */}
         <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-6'>
           <DetailedScoreCard
-            title='Score Médio'
-            description='Média das últimas avaliações'
-            score={dashboardData.summary.averageScore}
+            title='Sua Média como Mentor'
+            description='Média das avaliações que você recebeu'
+            score={dashboardData.summary.mentoringAssessmentAverage}
           />
           <DetailedEvaluationsCard
-            title='Progresso das Avaliações'
-            description='Avaliações completadas'
-            percentage={completionPercentage}
+            title='Progresso do Ciclo'
+            description='Percentual de conclusão das avaliações dos mentorados'
+            percentage={dashboardData.summary.completionPercentage}
           />
-          <PendingReviewsCard title='Mentorados' pendingCount={dashboardData.summary.totalMentees} />
+          <EvaluationsFinishedCard
+            title='Avaliações Pendentes'
+            count={dashboardData.summary.pendingReviews}
+            description='Avaliações de mentorados que ainda não foram concluídas'
+          />
         </div>
 
         {/* Tabela de mentorados */}
-        <div className='bg-white rounded-lg shadow-sm'>
-          <div className='p-6 border-b border-gray-200'>
-            <h2 className='text-lg font-semibold text-gray-900'>Meus Mentorados</h2>
-            <p className='text-sm text-gray-500 mt-1'>Lista completa dos colaboradores sob sua mentoria</p>
-          </div>
-          <div className='p-6'>
-            <MenteesTableWithPagination mentees={menteesList} />
-          </div>
-        </div>
+        <MenteesTableWithPagination mentees={menteesList} />
       </div>
     </div>
   );

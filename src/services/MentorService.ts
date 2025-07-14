@@ -20,10 +20,10 @@ export interface MentorDashboardResponse {
  * Resumo com métricas principais do mentor
  */
 export interface MentorDashboardSummary {
-  totalMentees: number;
-  activeAssessments: number;
-  completedAssessments: number;
-  averageScore: number | null;
+  mentoringAssessmentAverage: number | null;
+  pendingReviews: number;
+  totalMentoredCollaborators: number;
+  completionPercentage: number;
 }
 
 /**

@@ -108,79 +108,22 @@ const MentorMentees: FC = () => {
     <div className='p-6 bg-gray-50 min-h-screen'>
       <div className='max-w-7xl mx-auto'>
         {/* Header */}
-        <div className='mb-6'>
-          <h1 className='text-2xl font-bold text-gray-900'>Meus Mentorados</h1>
-          <p className='text-gray-600 mt-2'>Gerencie e acompanhe o progresso dos colaboradores sob sua mentoria</p>
-        </div>
-
-        {/* Stats Cards
-        // <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-6'>
-        //   <div className='bg-white p-6 rounded-lg shadow-sm border'>
-        //     <div className='flex items-center'>
-        //       <div className='w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center'>
-        //         <span className='text-blue-600 font-semibold text-lg'>{mentees.length}</span>
-        //       </div>
-        //       <div className='ml-4'>
-        //         <h3 className='text-sm font-medium text-gray-500'>Total de Mentorados</h3>
-        //         <p className='text-lg font-semibold text-gray-900'>
-        //           {mentees.length === 1 ? '1 colaborador' : `${mentees.length} colaboradores`}
-        //         </p>
-        //       </div>
-        //     </div>
-        //   </div>
-
-        //   <div className='bg-white p-6 rounded-lg shadow-sm border'>
-        //     <div className='flex items-center'>
-        //       <div className='w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center'>
-        //         <span className='text-green-600 font-semibold text-lg'>
-        //           {mentees.filter(m => m.assessmentStatus === 'SUBMITTED').length}
-        //         </span>
-        //       </div>
-        //       <div className='ml-4'>
-        //         <h3 className='text-sm font-medium text-gray-500'>Avaliações Concluídas</h3>
-        //         <p className='text-lg font-semibold text-gray-900'>
-        //           {mentees.filter(m => m.assessmentStatus === 'SUBMITTED').length} de {mentees.length}
-        //         </p>
-        //       </div>
-        //     </div>
-        //   </div>
-
-        //   <div className='bg-white p-6 rounded-lg shadow-sm border'>
-        //     <div className='flex items-center'>
-        //       <div className='w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center'>
-        //         <span className='text-yellow-600 font-semibold text-lg'>
-        //           {mentees.filter(m => m.assessmentStatus === 'PENDING').length}
-        //         </span>
-        //       </div>
-        //       <div className='ml-4'>
-        //         <h3 className='text-sm font-medium text-gray-500'>Pendentes</h3>
-        //         <p className='text-lg font-semibold text-gray-900'>
-        //           {mentees.filter(m => m.assessmentStatus === 'PENDING').length} avaliações
-        //         </p>
-        //       </div>
-        //     </div>
-        //   </div>
-        // </div> */}
+        <h1 className='text-2xl font-bold text-gray-900'>Meus Mentorados</h1>
+        <p className='text-gray-600 mt-2'>Gerencie e acompanhe o progresso dos colaboradores sob sua mentoria</p>
 
         {/* Tabela de mentorados */}
-        <div className='bg-white rounded-lg shadow-sm'>
-          <div className='p-6 border-b border-gray-200'>
-            <h2 className='text-lg font-semibold text-gray-900'>Lista de Mentorados</h2>
-            <p className='text-sm text-gray-500 mt-1'>Visualize e gerencie todos os colaboradores sob sua mentoria</p>
-          </div>
-          <div className='p-6'>
-            {mentees.length > 0 ? (
-              <MenteesTableWithPagination mentees={mentees} />
-            ) : (
-              <div className='text-center py-12'>
-                <div className='w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4'>
-                  <span className='text-gray-400 text-xl'>👥</span>
-                </div>
-                <h3 className='text-lg font-medium text-gray-900 mb-2'>Nenhum mentorado encontrado</h3>
-                <p className='text-gray-500'>Você ainda não possui colaboradores sob sua mentoria no ciclo atual.</p>
+        <div className='p-6'>
+          {mentees.length > 0 ? (
+            <MenteesTableWithPagination mentees={mentees} />
+          ) : (
+            <div className='text-center py-12'>
+              <div className='w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4'>
+                <span className='text-gray-400 text-xl'>👥</span>
               </div>
-            )}
-          </div>
+              <h3 className='text-lg font-medium text-gray-900 mb-2'>Nenhum mentorado encontrado</h3>
+              <p className='text-gray-500'>Você ainda não possui colaboradores sob sua mentoria no ciclo atual.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
