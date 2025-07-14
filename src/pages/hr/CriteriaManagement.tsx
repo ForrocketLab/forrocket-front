@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import CriteriaService, { type Criterion, type CreateCriterionDto, type UpdateCriterionDto } from '../../services/CriteriaService';
+import CriteriaService, { type Criterion, type CreateCriterionDto, type UpdateCriterionDto, BusinessUnits } from '../../services/CriteriaService';
 import { useGlobalToast } from '../../hooks/useGlobalToast';
 import { formatDate } from '../../utils/dateUtils';
 
@@ -9,6 +9,7 @@ const CriteriaManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPillar, setSelectedPillar] = useState('');
+  const [selectedBusinessUnit, setSelectedBusinessUnit] = useState('');
   const [expandedCriteria, setExpandedCriteria] = useState<Set<string>>(new Set());
   const [editingCriterion, setEditingCriterion] = useState<Criterion | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -20,17 +21,22 @@ const CriteriaManagement: React.FC = () => {
     description: '',
     pillar: 'BEHAVIOR',
     weight: 1.0,
-    isRequired: true
+    isRequired: true,
+    businessUnit: undefined
   });
   const { success: showSuccessToast, error: showErrorToast } = useGlobalToast();
 
   useEffect(() => {
-    loadCriteria();
-  }, []);
+    if (selectedBusinessUnit) {
+      loadEffectiveCriteria(selectedBusinessUnit);
+    } else {
+      loadBaseCriteria();
+    }
+  }, [selectedBusinessUnit]);
 
   useEffect(() => {
     applyFilters();
-  }, [criteria, searchTerm, selectedPillar]);
+  }, [criteria, searchTerm, selectedPillar, selectedBusinessUnit]);
 
   // Fechar edição com ESC
   useEffect(() => {
@@ -52,15 +58,27 @@ const CriteriaManagement: React.FC = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [editingCriterion, showDeleteModal, showCreateModal]);
 
-  const loadCriteria = async () => {
+  const loadEffectiveCriteria = async (businessUnit: string) => {
     try {
       setLoading(true);
-      const data = await CriteriaService.getAllCriteria();
-      console.log('✅ Critérios carregados:', data.length, 'em', new Date().toLocaleTimeString());
+      const data = await CriteriaService.getEffectiveCriteriaByBusinessUnit(businessUnit);
       setCriteria(data);
     } catch (error) {
-      console.error('Erro ao carregar critérios:', error);
-      showErrorToast('Erro ao carregar critérios');
+      console.error('Erro ao carregar critérios efetivos:', error);
+      showErrorToast('Erro ao carregar critérios da trilha');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadBaseCriteria = async () => {
+    try {
+      setLoading(true);
+      const data = await CriteriaService.getEffectiveCriteriaByBusinessUnit(''); // Busca só o base
+      setCriteria(data);
+    } catch (error) {
+      console.error('Erro ao carregar critérios base:', error);
+      showErrorToast('Erro ao carregar critérios base');
     } finally {
       setLoading(false);
     }
@@ -81,6 +99,14 @@ const CriteriaManagement: React.FC = () => {
     // Filtro por pilar
     if (selectedPillar) {
       filtered = filtered.filter(criterion => criterion.pillar === selectedPillar);
+    }
+
+    // Filtro por unidade de negócio
+    if (selectedBusinessUnit) {
+      // Mostra critérios base (isBase: true) e específicos da unidade
+      filtered = filtered.filter(
+        criterion => criterion.isBase || criterion.businessUnit === selectedBusinessUnit
+      );
     }
 
     setFilteredCriteria(filtered);
@@ -126,6 +152,7 @@ const CriteriaManagement: React.FC = () => {
   const clearFilters = () => {
     setSearchTerm('');
     setSelectedPillar('');
+    setSelectedBusinessUnit('');
   };
 
   const handleEditCriterion = (criterion: Criterion) => {
@@ -135,7 +162,8 @@ const CriteriaManagement: React.FC = () => {
       description: criterion.description,
       pillar: criterion.pillar,
       weight: criterion.weight,
-      isRequired: criterion.isRequired
+      isRequired: criterion.isRequired,
+      businessUnit: criterion.businessUnit
     });
   };
 
@@ -159,7 +187,14 @@ const CriteriaManagement: React.FC = () => {
 
   const handleCancelEdit = () => {
     setEditingCriterion(null);
-    setEditForm({});
+    setEditForm({
+      name: '',
+      description: '',
+      pillar: 'BEHAVIOR',
+      weight: 1.0,
+      isRequired: true,
+      businessUnit: undefined
+    });
   };
 
   const handleDeleteCriterion = (criterion: Criterion) => {
@@ -219,7 +254,8 @@ const CriteriaManagement: React.FC = () => {
       description: '',
       pillar: 'BEHAVIOR',
       weight: 1.0,
-      isRequired: true
+      isRequired: true,
+      businessUnit: undefined
     });
   };
 
@@ -231,6 +267,42 @@ const CriteriaManagement: React.FC = () => {
     acc[pillarName].push(criterion);
     return acc;
   }, {} as Record<string, Criterion[]>);
+
+  const handleRemoveFromUnit = async (criterion: Criterion) => {
+    if (!selectedBusinessUnit || !criterion.id) return;
+    try {
+      setLoading(true);
+      await CriteriaService.removeCriterionFromUnit(criterion.id, selectedBusinessUnit);
+      await loadEffectiveCriteria(selectedBusinessUnit);
+      showSuccessToast('Critério removido da trilha com sucesso!');
+    } catch (error) {
+      showErrorToast('Erro ao remover critério da trilha');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRestoreToUnit = async (criterion: Criterion) => {
+    if (!selectedBusinessUnit || !criterion.id) return;
+    try {
+      setLoading(true);
+      await CriteriaService.restoreCriterionToUnit(criterion.id, selectedBusinessUnit);
+      await loadEffectiveCriteria(selectedBusinessUnit);
+      showSuccessToast('Critério restaurado para a trilha com sucesso!');
+    } catch (error) {
+      showErrorToast('Erro ao restaurar critério na trilha');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadCriteria = async () => {
+    if (selectedBusinessUnit) {
+      await loadEffectiveCriteria(selectedBusinessUnit);
+    } else {
+      await loadBaseCriteria();
+    }
+  };
 
   if (loading) {
     return (
@@ -274,9 +346,9 @@ const CriteriaManagement: React.FC = () => {
 
         {/* Filtros */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 mb-4">
             {/* Busca */}
-            <div className="flex-1 max-w-md">
+            <div className="flex-1 w-full lg:max-w-md">
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -293,33 +365,50 @@ const CriteriaManagement: React.FC = () => {
               </div>
             </div>
 
-            {/* Filtro por Pilar */}
-            <div className="min-w-48">
-              <select
-                value={selectedPillar}
-                onChange={(e) => setSelectedPillar(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-              >
-                <option value="">Unidade</option>
-                <option value="BEHAVIOR">Comportamento</option>
-                <option value="EXECUTION">Execução</option>
-                <option value="MANAGEMENT">Gestão</option>
-              </select>
-            </div>
+            {/* Filtros em linha para desktop */}
+            <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+              {/* Filtro por Pilar */}
+              <div className="min-w-48">
+                <select
+                  value={selectedPillar}
+                  onChange={(e) => setSelectedPillar(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                >
+                  <option value="">Todos os Pilares</option>
+                  <option value="BEHAVIOR">Comportamento</option>
+                  <option value="EXECUTION">Execução</option>
+                  <option value="MANAGEMENT">Gestão</option>
+                </select>
+              </div>
 
-            <button
-              onClick={clearFilters}
-              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              Limpar filtros
-            </button>
+              {/* Filtro por Unidade de Negócio */}
+              <div className="min-w-48">
+                <select
+                  value={selectedBusinessUnit}
+                  onChange={(e) => setSelectedBusinessUnit(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                >
+                  <option value="">Todas as Unidades</option>
+                  <option value="all">Critérios Gerais</option>
+                  <option value={BusinessUnits.DIGITAL_PRODUCTS}>Digital Products</option>
+                  <option value={BusinessUnits.OPERATIONS}>Operations</option>
+                </select>
+              </div>
+
+              <button
+                onClick={clearFilters}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Limpar filtros
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Conteúdo Principal */}
-        <div className="flex gap-6">
+        <div className="flex flex-col lg:flex-row gap-6">
           {/* Lista de Trilhas/Pilares */}
-          <div className="w-64 flex-shrink-0 bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="w-full lg:w-64 flex-shrink-0 bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="p-4 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">Trilha</h2>
             </div>
@@ -346,17 +435,20 @@ const CriteriaManagement: React.FC = () => {
           </div>
 
           {/* Área de Critérios */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 w-full">
             {Object.entries(groupedCriteria).map(([pillarName, pillarCriteria]) => (
               <div key={pillarName} className="mb-8">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                    {pillarName}
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </h3>
-                </div>
+                            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                {pillarName}
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </h3>
+              <span className="text-sm text-gray-500">
+                {pillarCriteria.length} critério{pillarCriteria.length !== 1 ? 's' : ''}
+              </span>
+            </div>
 
                 <div className="space-y-4">
                   {pillarCriteria.map((criterion) => (
@@ -388,7 +480,7 @@ const CriteriaManagement: React.FC = () => {
                                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                                 />
                               </div>
-                              <div className="grid grid-cols-2 gap-4">
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                   <label className="block text-sm font-medium text-gray-700 mb-1">Pilar</label>
                                   <select
@@ -413,6 +505,18 @@ const CriteriaManagement: React.FC = () => {
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                                   />
                                 </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Unidade de Negócio</label>
+                                  <select
+                                    value={editForm.businessUnit || ''}
+                                    onChange={(e) => setEditForm({...editForm, businessUnit: e.target.value || undefined})}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                                  >
+                                    <option value="">Todas as Unidades</option>
+                                    <option value={BusinessUnits.DIGITAL_PRODUCTS}>Digital Products</option>
+                                    <option value={BusinessUnits.OPERATIONS}>Operations</option>
+                                  </select>
+                                </div>
                               </div>
                               <div className="flex items-center">
                                 <input
@@ -427,7 +531,7 @@ const CriteriaManagement: React.FC = () => {
                                 </label>
                               </div>
                             </div>
-                            <div className="flex gap-2 pt-4 border-t border-gray-200">
+                            <div className="flex flex-col sm:flex-row gap-2 pt-4 border-t border-gray-200">
                               <button
                                 onClick={handleSaveEdit}
                                 disabled={loading}
@@ -449,18 +553,23 @@ const CriteriaManagement: React.FC = () => {
                           <>
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-2">
+                                <div className="flex flex-wrap items-center gap-2 mb-2">
                                   <h4 className="text-lg font-medium text-gray-900">{criterion.name}</h4>
                                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${CriteriaService.getPillarColor(criterion.pillar)}`}>
                                     {CriteriaService.getPillarDisplayName(criterion.pillar)}
                                   </span>
+                                  {criterion.businessUnit && (
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${CriteriaService.getBusinessUnitColor(criterion.businessUnit)}`}>
+                                      {CriteriaService.getBusinessUnitDisplayName(criterion.businessUnit)}
+                                    </span>
+                                  )}
                                   <span className="text-sm text-gray-500">
                                     Peso {Math.round(criterion.weight * 100)}%
                                   </span>
                                 </div>
                                 <p className="text-gray-600 text-sm mb-3">{criterion.description}</p>
                               </div>
-                              <div className="flex items-center gap-2 ml-4">
+                              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 ml-4">
                                 <div className="flex items-center">
                                   <span className="text-sm text-gray-600 mr-2">Campo obrigatório</span>
                                   <button
@@ -495,21 +604,7 @@ const CriteriaManagement: React.FC = () => {
 
                             {expandedCriteria.has(criterion.id) && (
                               <div className="mt-4 pt-4 border-t border-gray-200">
-                                <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-                                  <div>
-                                    <span className="text-gray-500">Criado em:</span>
-                                    <span className="ml-2 text-gray-900">
-                                      {new Date(criterion.createdAt).toLocaleDateString('pt-BR')}
-                                    </span>
-                                  </div>
-                                  <div>
-                                    <span className="text-gray-500">Atualizado em:</span>
-                                    <span className="ml-2 text-gray-900">
-                                      {new Date(criterion.updatedAt).toLocaleDateString('pt-BR')}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="flex gap-2">
+                                <div className="flex flex-col sm:flex-row gap-2">
                                   <button
                                     onClick={() => handleEditCriterion(criterion)}
                                     disabled={loading}
@@ -644,7 +739,7 @@ const CriteriaManagement: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Pilar *</label>
                   <select
@@ -668,6 +763,18 @@ const CriteriaManagement: React.FC = () => {
                     onChange={(e) => setCreateForm({...createForm, weight: parseInt(e.target.value) / 100})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Unidade de Negócio</label>
+                  <select
+                    value={createForm.businessUnit || ''}
+                    onChange={(e) => setCreateForm({...createForm, businessUnit: e.target.value || undefined})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  >
+                    <option value="">Todas as Unidades</option>
+                    <option value={BusinessUnits.DIGITAL_PRODUCTS}>Digital Products</option>
+                    <option value={BusinessUnits.OPERATIONS}>Operations</option>
+                  </select>
                 </div>
               </div>
 

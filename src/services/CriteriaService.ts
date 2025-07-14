@@ -9,6 +9,8 @@ export interface Criterion {
   pillar: 'BEHAVIOR' | 'EXECUTION' | 'MANAGEMENT';
   weight: number;
   isRequired: boolean;
+  businessUnit?: string;
+  isBase?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -19,6 +21,7 @@ export interface CreateCriterionDto {
   pillar: 'BEHAVIOR' | 'EXECUTION' | 'MANAGEMENT';
   weight?: number;
   isRequired?: boolean;
+  businessUnit?: string;
 }
 
 export interface UpdateCriterionDto {
@@ -27,7 +30,15 @@ export interface UpdateCriterionDto {
   pillar?: 'BEHAVIOR' | 'EXECUTION' | 'MANAGEMENT';
   weight?: number;
   isRequired?: boolean;
+  businessUnit?: string;
 }
+
+export const BusinessUnits = {
+  DIGITAL_PRODUCTS: 'Digital Products',
+  OPERATIONS: 'Operations',
+} as const;
+
+export type BusinessUnit = typeof BusinessUnits[keyof typeof BusinessUnits];
 
 class CriteriaServiceClass {
   private static instance: CriteriaServiceClass;
@@ -81,6 +92,32 @@ class CriteriaServiceClass {
       return result;
     } catch (error) {
       console.error('Erro ao buscar critérios:', error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar critérios.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  /**
+   * Lista critérios por unidade de negócio
+   */
+  async getCriteriaByBusinessUnit(businessUnit: string, forceRefresh = false): Promise<Criterion[]> {
+    const cacheKey = `criteria-${businessUnit}`;
+    
+    if (!forceRefresh) {
+      const cached = this.getCache(cacheKey);
+      if (cached) return cached;
+    }
+
+    try {
+      const response = await api.get(`/criteria?businessUnit=${encodeURIComponent(businessUnit)}`);
+      const result = response.data as Criterion[];
+      
+      this.setCache(cacheKey, result);
+      return result;
+    } catch (error) {
+      console.error('Erro ao buscar critérios por unidade de negócio:', error);
       if (error instanceof AxiosError && error.response) {
         throw new Error(error.response.data.message || 'Falha ao buscar critérios.');
       }
@@ -172,6 +209,55 @@ class CriteriaServiceClass {
   }
 
   /**
+   * Lista critérios efetivos (base + específicos - removidos) para uma unidade de negócio
+   */
+  async getEffectiveCriteriaByBusinessUnit(businessUnit: string, forceRefresh = false): Promise<Criterion[]> {
+    const cacheKey = `effective-criteria-${businessUnit}`;
+    if (!forceRefresh) {
+      const cached = this.getCache(cacheKey);
+      if (cached) return cached;
+    }
+    try {
+      const response = await api.get(`/criteria/effective?businessUnit=${encodeURIComponent(businessUnit)}`);
+      const result = response.data as Criterion[];
+      this.setCache(cacheKey, result);
+      return result;
+    } catch (error) {
+      console.error('Erro ao buscar critérios efetivos:', error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar critérios.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  /**
+   * Remove um critério base de uma unidade de negócio
+   */
+  async removeCriterionFromUnit(criterionId: string, businessUnit: string): Promise<void> {
+    try {
+      await api.post('/criteria/remove-from-unit', { criterionId, businessUnit });
+      this.clearCache();
+    } catch (error) {
+      console.error('Erro ao remover critério da unidade:', error);
+      throw new Error('Erro ao remover critério da unidade');
+    }
+  }
+
+  /**
+   * Restaura um critério base em uma unidade de negócio
+   */
+  async restoreCriterionToUnit(criterionId: string, businessUnit: string): Promise<void> {
+    try {
+      await api.post('/criteria/restore-to-unit', { criterionId, businessUnit });
+      this.clearCache();
+    } catch (error) {
+      console.error('Erro ao restaurar critério na unidade:', error);
+      throw new Error('Erro ao restaurar critério na unidade');
+    }
+  }
+
+  /**
    * Métodos estáticos para compatibilidade
    */
   static async getAllCriteria(): Promise<Criterion[]> {
@@ -180,6 +266,22 @@ class CriteriaServiceClass {
 
   static async refreshCriteria(): Promise<Criterion[]> {
     return CriteriaServiceClass.getInstance().getAllCriteria(true);
+  }
+
+  static async getCriteriaByBusinessUnit(businessUnit: string): Promise<Criterion[]> {
+    return CriteriaServiceClass.getInstance().getCriteriaByBusinessUnit(businessUnit);
+  }
+
+  static async getEffectiveCriteriaByBusinessUnit(businessUnit: string): Promise<Criterion[]> {
+    return CriteriaServiceClass.getInstance().getEffectiveCriteriaByBusinessUnit(businessUnit);
+  }
+
+  static async removeCriterionFromUnit(criterionId: string, businessUnit: string): Promise<void> {
+    return CriteriaServiceClass.getInstance().removeCriterionFromUnit(criterionId, businessUnit);
+  }
+
+  static async restoreCriterionToUnit(criterionId: string, businessUnit: string): Promise<void> {
+    return CriteriaServiceClass.getInstance().restoreCriterionToUnit(criterionId, businessUnit);
   }
 
   static clearCache(): void {
@@ -221,6 +323,22 @@ class CriteriaServiceClass {
       'MANAGEMENT': 'bg-purple-100 text-purple-800'
     };
     return pillarColors[pillar as keyof typeof pillarColors] || 'bg-gray-100 text-gray-800';
+  }
+
+  static getBusinessUnitDisplayName(businessUnit: string): string {
+    switch (businessUnit) {
+      case BusinessUnits.DIGITAL_PRODUCTS: return 'Digital Products';
+      case BusinessUnits.OPERATIONS: return 'Operations';
+      default: return 'Todas as Unidades';
+    }
+  }
+
+  static getBusinessUnitColor(businessUnit: string): string {
+    switch (businessUnit) {
+      case BusinessUnits.DIGITAL_PRODUCTS: return 'bg-indigo-100 text-indigo-800';
+      case BusinessUnits.OPERATIONS: return 'bg-orange-100 text-orange-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   }
 }
 
