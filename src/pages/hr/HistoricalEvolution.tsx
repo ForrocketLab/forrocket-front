@@ -633,7 +633,7 @@ const HistoricalEvolution: React.FC = () => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="cycle" />
               <YAxis domain={[0, 5]} />
-              <Tooltip />
+              <Tooltip formatter={(value: any, name: any) => [Number(value).toFixed(2), name]} />
               <Legend />
               {selectedMetric === 'all' || selectedMetric === 'self' ? (
                 <Line type="monotone" dataKey="autoavaliacao" stroke="#3B82F6" strokeWidth={2} name="Autoavaliação" />
@@ -656,7 +656,7 @@ const HistoricalEvolution: React.FC = () => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="cycle" />
               <YAxis domain={[0, 5]} />
-              <Tooltip />
+              <Tooltip formatter={(value: any, name: any) => [Number(value).toFixed(2), name]} />
               <Legend />
               <Area type="monotone" dataKey="autoavaliacao" stackId="1" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.3} name="Autoavaliação" />
               <Area type="monotone" dataKey="gestor" stackId="2" stroke="#8B5CF6" fill="#8B5CF6" fillOpacity={0.3} name="Gestor" />
@@ -672,7 +672,7 @@ const HistoricalEvolution: React.FC = () => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="cycle" />
               <YAxis domain={[0, 5]} />
-              <Tooltip />
+              <Tooltip formatter={(value: any, name: any) => [Number(value).toFixed(2), name]} />
               <Legend />
               <Bar dataKey="autoavaliacao" fill="#3B82F6" name="Autoavaliação" />
               <Bar dataKey="gestor" fill="#8B5CF6" name="Gestor" />
@@ -690,7 +690,7 @@ const HistoricalEvolution: React.FC = () => {
               <PolarAngleAxis dataKey="pillar" />
               <PolarRadiusAxis angle={90} domain={[0, 5]} />
               <Radar name="Desempenho" dataKey="average" stroke="#10B981" fill="#10B981" fillOpacity={0.3} />
-              <Tooltip />
+              <Tooltip formatter={(value: any, name: any) => [Number(value).toFixed(2), name]} />
             </RadarChart>
           </ResponsiveContainer>
         );
