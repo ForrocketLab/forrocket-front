@@ -105,7 +105,6 @@ class ManagerService {
   ): Promise<Received360Evaluation[]> {
     try {
       const response = await api.get<Received360Evaluation[]>(
-        // URL com o ID do colaborador
         `/evaluations/manager/subordinate/${subordinateId}/360-assessments`,
         {
           headers: {
@@ -151,7 +150,6 @@ class ManagerService {
 
   static async getCollaboratorPerformanceHistory(subordinateId: string): Promise<PerformanceHistoryDto> {
     try {
-      // O backend espera o ID do liderado para filtrar o histórico
       const response = await api.get<PerformanceHistoryDto>('/evaluations/manager/performance/history', {
         headers: {
           Authorization: `Bearer ${AuthService.getToken()}`,
@@ -229,7 +227,6 @@ class ManagerService {
 
   static async getCollaboratorProjects(subordinateId: string): Promise<Project[]> {
     try {
-      // Endpoint ajustado conforme especificação para buscar projetos do usuário.
       const response = await api.get<Project[]>(`/users/${subordinateId}/projects`, {
         headers: {
           Authorization: `Bearer ${AuthService.getToken()}`,
@@ -247,7 +244,6 @@ class ManagerService {
 
   static async getClientProjectScores(projectId: string): Promise<ClientScores> {
     try {
-      // 🎯 IMPORTANTE: Altere a URL base para o endereço e porta corretos do seu backend!
       const backendUrl = `http://localhost:3000/api/projects/${projectId}/scores`;
       const response = await api.get<ClientScores>(backendUrl, {
         headers: {
@@ -258,7 +254,7 @@ class ManagerService {
     } catch (error) {
       console.error(`Erro ao buscar notas do cliente para o projeto ${projectId}:`, error);
       if (error instanceof AxiosError && error.response) {
-        if (error.response.status === 404) return {}; // Retorna objeto vazio se não houver notas
+        if (error.response.status === 404) return {};
         throw new Error(error.response.data.message || 'Falha ao buscar as notas do cliente.');
       }
       throw new Error('Ocorreu um erro de rede. Tente novamente.');
