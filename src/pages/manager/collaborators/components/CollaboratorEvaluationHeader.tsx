@@ -12,7 +12,7 @@ interface EvaluationHeaderProps {
   onTabChange: (tabId: string) => void;
 }
 
-const EvaluationHeader = ({
+const CollaboratorEvaluationHeader = ({
   isAssessmentSubmitted,
   collaboratorName,
   collaboratorInitials,
@@ -62,4 +62,4 @@ const EvaluationHeader = ({
   );
 };
 
-export default EvaluationHeader;
+export default CollaboratorEvaluationHeader;
