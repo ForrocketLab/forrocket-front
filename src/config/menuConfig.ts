@@ -3,7 +3,7 @@ import { ROLES } from '../types/roles'; // Seu enum de papéis
 
 import { FaCog, FaArrowAltCircleDown } from 'react-icons/fa';
 import { IoBarChartOutline } from 'react-icons/io5';
-import { LuCaptions, LuChartSpline, LuFilePenLine, LuUsers } from 'react-icons/lu';
+import { LuCaptions, LuChartSpline, LuFilePenLine, LuUsers, LuTrendingUp } from 'react-icons/lu';
 import {
   FileText,
   Users,
@@ -77,6 +77,13 @@ export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
     label: 'Brutal Facts',
     icon: LuCaptions,
     allowedRoles: [ROLES.MANAGER],
+  },
+  // ===== Líder =====
+  {
+    path: '/leader/projects',
+    label: 'Projetos',
+    icon: LuTrendingUp,
+    allowedRoles: [ROLES.LEADER],
   },
 
   // ===== RH =====
