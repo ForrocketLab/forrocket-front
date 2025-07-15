@@ -1,9 +1,8 @@
-// src/components/EvaluationCriteriaList.tsx
 import { Star, CheckCircle, ChevronUp, ChevronDown } from 'lucide-react';
-import { ALLOWED_EXECUTION_CRITERIA_IDS, type ManagerCriterionState } from '../CollaboratorEvaluationDetails';
-import type { SelfAssessmentAnswer } from '../../../../types/evaluations';
+import { EXECUTION_CRITERIA_IDS } from '../../../../config/evaluationCriteria';
+import type { ManagerCriterionState, SelfAssessmentAnswer } from '../../../../types/evaluations';
 
-interface EvaluationCriteriaListProps {
+interface ExecutionCriteriaListProps {
   isAssessmentSubmitted: boolean;
   answers: SelfAssessmentAnswer[];
   managerAssessments: Record<string, ManagerCriterionState>;
@@ -15,7 +14,7 @@ interface EvaluationCriteriaListProps {
   onJustificationChange: (id: string, justification: string) => void;
 }
 
-const EvaluationCriteriaList = ({
+const ExecutionCriteriaList = ({
   isAssessmentSubmitted,
   answers,
   managerAssessments,
@@ -25,9 +24,9 @@ const EvaluationCriteriaList = ({
   onToggleExpansion,
   onRatingChange,
   onJustificationChange,
-}: EvaluationCriteriaListProps) => {
+}: ExecutionCriteriaListProps) => {
   return (
-    <div className='bg-white rounded-lg shadow-sm border border-gray-200'>
+    <div className='bg-white rounded-lg shadow-sm border border-gray-200 mt-6'>
       <div className='flex items-center justify-between px-6 py-4 border-b border-gray-200'>
         <h2 className='text-lg font-semibold text-gray-900'>Critérios de Execução</h2>
         <div className='flex items-center gap-3'>
@@ -38,11 +37,11 @@ const EvaluationCriteriaList = ({
       </div>
 
       <div className='divide-y divide-gray-200'>
-        {ALLOWED_EXECUTION_CRITERIA_IDS.map((criterionId, index) => {
+        {EXECUTION_CRITERIA_IDS.map((criterionId, index) => {
           const isExpanded = expandedCriterion.has(criterionId);
           const managerScore = managerAssessments[criterionId]?.score || 0;
           const selfAnswer = answers.find(a => a.criterionId === criterionId);
-          const hasManagerAssessment = managerScore > 0 && managerAssessments[criterionId]?.justification.trim() !== '';
+          const hasManagerAssessment = managerScore > 0 && (managerAssessments[criterionId]?.justification || '').trim() !== '';
 
           return (
             <div key={criterionId}>
@@ -116,9 +115,7 @@ const EvaluationCriteriaList = ({
                           >
                             <Star
                               className={`w-5 h-5 ${
-                                starValue <= managerScore
-                                  ? 'text-teal-600 fill-current'
-                                  : 'text-gray-300 hover:text-teal-400'
+                                starValue <= managerScore ? 'text-teal-600 fill-current' : 'text-gray-300 hover:text-teal-400'
                               }`}
                             />
                           </button>
@@ -149,4 +146,4 @@ const EvaluationCriteriaList = ({
   );
 };
 
-export default EvaluationCriteriaList;
+export default ExecutionCriteriaList;

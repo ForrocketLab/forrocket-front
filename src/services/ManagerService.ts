@@ -10,11 +10,7 @@ export interface Project {
   projectName: string;
 }
 
-export interface ClientEvaluation {
-  cycle: string;
-  score: number;
-  justification: string;
-}
+export type ClientScores = Record<string, number>;
 
 class ManagerService {
   static async getManagerDashboard(cycle: string): Promise<ManagerDashboardResponse> {
@@ -104,12 +100,11 @@ class ManagerService {
   }
 
   static async getReceived360Assessments(
-    subordinateId: string | undefined,
+    subordinateId: string,
     cycle: string,
   ): Promise<Received360Evaluation[]> {
     try {
       const response = await api.get<Received360Evaluation[]>(
-        // URL com o ID do colaborador
         `/evaluations/manager/subordinate/${subordinateId}/360-assessments`,
         {
           headers: {
@@ -125,6 +120,27 @@ class ManagerService {
       console.error(`Erro ao buscar avaliações 360 para o usuário ${subordinateId}:`, error);
       if (error instanceof AxiosError && error.response) {
         throw new Error(error.response.data.message || 'Falha ao buscar avaliações 360.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  static async getManagerOwnAssessmentForSubordinate(subordinateId: string, cycle: string): Promise<ManagerAssessmentData | null> {
+    try {
+      const response = await api.get<ManagerAssessmentData>(`/evaluations/manager/my-assessment/subordinate/${subordinateId}`, {
+        headers: {
+          Authorization: `Bearer ${AuthService.getToken()}`,
+        },
+        params: { cycle },
+      });
+      return response.data;
+    } catch (error) {
+      if (error instanceof AxiosError && error.response?.status === 404) {
+        return null;
+      }
+      console.error('Erro ao buscar avaliação própria do gestor para o subordinado:', error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar avaliação própria do gestor.');
       }
       throw new Error('Ocorreu um erro de rede. Tente novamente.');
     }
@@ -155,13 +171,9 @@ class ManagerService {
 
   static async getCollaboratorPerformanceHistory(subordinateId: string): Promise<PerformanceHistoryDto> {
     try {
-      // O backend espera o ID do liderado para filtrar o histórico
-      const response = await api.get<PerformanceHistoryDto>('/evaluations/manager/performance/history', {
+      const response = await api.get<PerformanceHistoryDto>(`/evaluations/manager/performance/history/${subordinateId}`, {
         headers: {
           Authorization: `Bearer ${AuthService.getToken()}`,
-        },
-        params: {
-          subordinateId,
         },
       });
       return response.data;
@@ -233,7 +245,6 @@ class ManagerService {
 
   static async getCollaboratorProjects(subordinateId: string): Promise<Project[]> {
     try {
-      // Endpoint ajustado conforme especificação para buscar projetos do usuário.
       const response = await api.get<Project[]>(`/users/${subordinateId}/projects`, {
         headers: {
           Authorization: `Bearer ${AuthService.getToken()}`,
@@ -249,25 +260,24 @@ class ManagerService {
     }
   }
 
-  static async getClientProjectEvaluations(projectId: string): Promise<ClientEvaluation[]> {
+  static async getClientProjectScores(projectId: string): Promise<ClientScores> {
     try {
-      // Endpoint atualizado conforme a especificação do backend
-      const response = await api.get<ClientEvaluation[]>(`/evaluations/collaborator/projects/${projectId}/details`, {
-
+      const backendUrl = `http://localhost:3000/api/projects/${projectId}/scores`;
+      const response = await api.get<ClientScores>(backendUrl, {
         headers: {
           Authorization: `Bearer ${AuthService.getToken()}`,
         },
       });
       return response.data;
     } catch (error) {
-      console.error(`Erro ao buscar avaliações do cliente para o projeto ${projectId}:`, error);
+      console.error(`Erro ao buscar notas do cliente para o projeto ${projectId}:`, error);
       if (error instanceof AxiosError && error.response) {
-        if (error.response.status === 404) return []; // Retorna array vazio se não houver avaliações
-        throw new Error(error.response.data.message || 'Falha ao buscar as avaliações do cliente.');
+        if (error.response.status === 404) return {}; // Retorna objeto vazio se não houver notas
+        throw new Error(error.response.data.message || 'Falha ao buscar as notas do cliente.');
       }
       throw new Error('Ocorreu um erro de rede. Tente novamente.');
     }
-}
+  }
 }
 
 export default ManagerService;

@@ -24,7 +24,7 @@ const CollaboratorManagement: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState('');
   const [selectedProject, setSelectedProject] = useState('');
   const [selectedJobTitle, setSelectedJobTitle] = useState('');
-  const [showActiveOnly, setShowActiveOnly] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('active');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -100,7 +100,7 @@ const CollaboratorManagement: React.FC = () => {
     selectedRole, 
     selectedProject, 
     selectedJobTitle, 
-    showActiveOnly
+    statusFilter // usar statusFilter
   ]);
 
   const loadInitialData = async () => {
@@ -136,6 +136,10 @@ const CollaboratorManagement: React.FC = () => {
 
   const loadCollaborators = async () => {
     try {
+      let isActive: boolean | undefined;
+      if (statusFilter === 'active') isActive = true;
+      else if (statusFilter === 'inactive') isActive = false;
+      else isActive = undefined;
       const currentFilters: CollaboratorFilters = {
         search: searchTerm || undefined,
         businessUnit: selectedBusinessUnit || undefined,
@@ -144,11 +148,9 @@ const CollaboratorManagement: React.FC = () => {
         roles: selectedRole ? [selectedRole] : undefined,
         projectId: selectedProject || undefined,
         jobTitle: selectedJobTitle || undefined,
-        isActive: showActiveOnly ? true : undefined,
+        isActive,
       };
-
       const data = await HRService.getUsersWithAdvancedFilters(currentFilters);
-      
       setCollaborators(data?.users || []);
       setTotalCount(data?.totalCount || 0);
       setFilteredCount(data?.filteredCount || 0);
@@ -156,7 +158,6 @@ const CollaboratorManagement: React.FC = () => {
     } catch (error) {
       console.error('Erro ao carregar colaboradores:', error);
       showErrorToast('Erro ao carregar colaboradores');
-      // Definir arrays vazios em caso de erro
       setCollaborators([]);
       setTotalCount(0);
       setFilteredCount(0);
@@ -304,7 +305,7 @@ const CollaboratorManagement: React.FC = () => {
     setSelectedRole('');
     setSelectedProject('');
     setSelectedJobTitle('');
-    setShowActiveOnly(true);
+    setStatusFilter('active');
   };
 
   const getRealEvaluationProgress = (collaborator: CollaboratorWithProjectsAndProgress) => {
@@ -438,7 +439,7 @@ const CollaboratorManagement: React.FC = () => {
     if (selectedRole) count++;
     if (selectedProject) count++;
     if (selectedJobTitle) count++;
-    if (!showActiveOnly) count++; // Contar se não está mostrando apenas ativos
+    if (statusFilter !== 'active') count++; // só conta se não for o padrão
     return count;
   };
 
@@ -650,16 +651,19 @@ const CollaboratorManagement: React.FC = () => {
             <div className="flex items-center justify-between">
               {/* Status Ativo/Inativo */}
               <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="showActiveOnly"
-                  checked={showActiveOnly}
-                  onChange={(e) => setShowActiveOnly(e.target.checked)}
-                  className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
-                />
-                <label htmlFor="showActiveOnly" className="ml-2 text-sm font-medium text-gray-700">
-                  Mostrar apenas colaboradores ativos
+                <label htmlFor="statusFilter" className="text-sm font-medium text-gray-700 mr-2">
+                  Status
                 </label>
+                <select
+                  id="statusFilter"
+                  value={statusFilter}
+                  onChange={e => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+                  className="px-2 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                >
+                  <option value="active">Apenas ativos</option>
+                  <option value="inactive">Apenas inativos</option>
+                  <option value="all">Todos</option>
+                </select>
               </div>
 
               {/* Botão Limpar Filtros */}
