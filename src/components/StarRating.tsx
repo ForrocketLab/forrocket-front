@@ -26,7 +26,7 @@ export const StarRating = ({ rating, onRatingChange, size = 'md', className }: S
           <Star
             className={`${sizeClasses[size]} transition-colors ${
               star <= rating ? 'fill-[#08605F] text-[#08605F]/70' : 'fill-none text-gray-300 hover:text-[#08605F]/70'
-            }`}
+            } hover:cursor-pointer`}
           />
         </button>
       ))}

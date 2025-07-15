@@ -45,8 +45,8 @@ export const ColleagueEvaluation = ({
         {/* Header with colleague info */}
         <div className='flex items-center mb-6'>
           <div className='flex items-center gap-4'>
-            <div className='h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center'>
-              <span className='text-lg font-semibold text-blue-600'>{initials}</span>
+            <div className='h-12 w-12 rounded-full bg-green-100 flex items-center justify-center'>
+              <span className='text-lg font-semibold text-green-600'>{initials}</span>
             </div>
             <div>
               <h3 className='font-semibold text-gray-900'>{name}</h3>

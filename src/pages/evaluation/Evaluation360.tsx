@@ -131,12 +131,12 @@ const Evaluation360 = () => {
                 <span className='inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700 border'>
                   {completedEvaluations}/{totalColleagues} avaliados
                 </span>
-                <span className='text-2xl font-bold text-blue-600'>{progress.toFixed(0)}%</span>
+                <span className='text-2xl font-bold text-[#085F60]'>{progress.toFixed(0)}%</span>
               </div>
             </div>
             <div className='w-full bg-gray-200 rounded-full h-3'>
               <div
-                className='bg-blue-600 h-3 rounded-full transition-all duration-500'
+                className='bg-[#08605F] h-3 rounded-full transition-all duration-500'
                 style={{ width: `${progress}%` }}
               />
             </div>
