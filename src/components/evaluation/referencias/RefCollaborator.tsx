@@ -105,7 +105,7 @@ const RefCollaborator = () => {
     };
 
     return (
-        <div className="flex flex-col flex-1">
+        <div className="min-h-screen px-2 md:px-4 lg:px-8">
             <main className="flex-1">
                 <div className="mb-6">
                     <div className="max-w mx-auto relative">
