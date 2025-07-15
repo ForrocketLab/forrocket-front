@@ -425,68 +425,68 @@ const EqualizacoesPage: FC = () => {
   }
 
   return (
-    <div className='p-6 bg-gray-50 min-h-screen'>
+    <div className='p-4 sm:p-6 bg-gray-50 min-h-screen'>
       {/* Header */}
-      <div className='mb-6'>
-        <h1 className='text-2xl font-semibold text-gray-900'>Equalizações</h1>
+      <div className='mb-4 sm:mb-6'>
+        <h1 className='text-xl sm:text-2xl font-semibold text-gray-900'>Equalizações</h1>
       </div>
 
       {/* Cards de Métricas */}
-      <div className='grid grid-cols-1 md:grid-cols-4 gap-6 mb-6'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-4 sm:mb-6'>
         {/* Total de Colaboradores */}
-        <div className='bg-white rounded-lg shadow-sm p-6 border border-gray-200'>
-          <div className='flex items-center gap-4'>
-            <div className='w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center'>
-              <Users className='w-6 h-6 text-blue-600' />
+        <div className='bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200'>
+          <div className='flex items-center gap-3 sm:gap-4'>
+            <div className='w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center'>
+              <Users className='w-5 h-5 sm:w-6 sm:h-6 text-blue-600' />
             </div>
-            <div>
+            <div className='flex-1 min-w-0'>
               <h3 className='text-sm font-medium text-gray-600'>Total</h3>
               <p className='text-xs text-gray-500'>Colaboradores no ciclo</p>
-              <div className='text-2xl font-bold text-blue-600 mt-1'>{totalCollaborators}</div>
+              <div className='text-xl sm:text-2xl font-bold text-blue-600 mt-1'>{totalCollaborators}</div>
             </div>
           </div>
         </div>
 
         {/* Equalizações Pendentes */}
-        <div className='bg-white rounded-lg shadow-sm p-6 border border-gray-200'>
-          <div className='flex items-center gap-4'>
-            <div className='w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center'>
-              <Clock className='w-6 h-6 text-yellow-600' />
+        <div className='bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200'>
+          <div className='flex items-center gap-3 sm:gap-4'>
+            <div className='w-10 h-10 sm:w-12 sm:h-12 bg-yellow-100 rounded-lg flex items-center justify-center'>
+              <Clock className='w-5 h-5 sm:w-6 sm:h-6 text-yellow-600' />
             </div>
-            <div>
+            <div className='flex-1 min-w-0'>
               <h3 className='text-sm font-medium text-gray-600'>Pendentes</h3>
               <p className='text-xs text-gray-500'>Aguardando equalização</p>
-              <div className='text-2xl font-bold text-yellow-600 mt-1'>{pendingCount}</div>
+              <div className='text-xl sm:text-2xl font-bold text-yellow-600 mt-1'>{pendingCount}</div>
             </div>
           </div>
         </div>
 
         {/* Equalizações Finalizadas */}
-        <div className='bg-white rounded-lg shadow-sm p-6 border border-gray-200'>
-          <div className='flex items-center gap-4'>
-            <div className='w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center'>
-              <CheckCircle className='w-6 h-6 text-green-600' />
+        <div className='bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200'>
+          <div className='flex items-center gap-3 sm:gap-4'>
+            <div className='w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg flex items-center justify-center'>
+              <CheckCircle className='w-5 h-5 sm:w-6 sm:h-6 text-green-600' />
             </div>
-            <div>
+            <div className='flex-1 min-w-0'>
               <h3 className='text-sm font-medium text-gray-600'>Finalizadas</h3>
               <p className='text-xs text-gray-500'>Equalizações concluídas</p>
-              <div className='text-2xl font-bold text-green-600 mt-1'>{completedCount}</div>
+              <div className='text-xl sm:text-2xl font-bold text-green-600 mt-1'>{completedCount}</div>
             </div>
           </div>
         </div>
 
         {/* Progresso Geral */}
-        <div className='bg-white rounded-lg shadow-sm p-6 border border-gray-200'>
-          <div className='flex items-center gap-4'>
-            <div className='w-12 h-12 bg-[#085F60] bg-opacity-10 rounded-lg flex items-center justify-center'>
-              <TrendingUp className='w-6 h-6 text-[#085F60]' />
+        <div className='bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200'>
+          <div className='flex items-center gap-3 sm:gap-4'>
+            <div className='w-10 h-10 sm:w-12 sm:h-12 bg-[#085F60] bg-opacity-10 rounded-lg flex items-center justify-center'>
+              <TrendingUp className='w-5 h-5 sm:w-6 sm:h-6 text-[#085F60]' />
             </div>
-            <div>
+            <div className='flex-1 min-w-0'>
               <h3 className='text-sm font-medium text-gray-600'>Progresso</h3>
               <p className='text-xs text-gray-500'>Percentual concluído</p>
               <div className='flex items-center gap-2 mt-1'>
-                <div className='text-2xl font-bold text-[#085F60]'>{completionPercentage}%</div>
-                <div className='flex-1 bg-gray-200 rounded-full h-2 w-16'>
+                <div className='text-xl sm:text-2xl font-bold text-[#085F60]'>{completionPercentage}%</div>
+                <div className='flex-1 bg-gray-200 rounded-full h-2 min-w-0'>
                   <div
                     className='bg-[#085F60] h-2 rounded-full transition-all duration-300'
                     style={{ width: `${completionPercentage}%` }}
@@ -499,7 +499,7 @@ const EqualizacoesPage: FC = () => {
       </div>
 
       {/* Alertas e Prazos */}
-      <div className='space-y-4 mb-6'>
+      <div className='space-y-4 mb-4 sm:mb-6'>
         {/* Alerta de Prazo */}
         {daysRemaining !== null && (
           <div
@@ -563,8 +563,8 @@ const EqualizacoesPage: FC = () => {
       </div>
 
       {/* Barra de Busca e Filtros */}
-      <div className='mb-6'>
-        <div className='flex gap-4 items-start'>
+      <div className='mb-4 sm:mb-6'>
+        <div className='flex flex-col sm:flex-row gap-4 items-start'>
           <div className='flex-1 relative'>
             <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4' />
             <input
@@ -577,10 +577,10 @@ const EqualizacoesPage: FC = () => {
           </div>
 
           {/* Botão de Filtro */}
-          <div className='relative'>
+          <div className='relative w-full sm:w-auto'>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`p-3 rounded-lg transition-colors flex items-center gap-2 ${
+              className={`w-full sm:w-auto p-3 rounded-lg transition-colors flex items-center justify-center sm:justify-start gap-2 ${
                 hasActiveFilters
                   ? 'bg-[#085F60] text-white'
                   : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
@@ -594,7 +594,7 @@ const EqualizacoesPage: FC = () => {
 
             {/* Dropdown de Filtros */}
             {showFilters && (
-              <div className='absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50'>
+              <div className='absolute right-0 sm:right-0 top-full mt-2 w-full sm:w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50'>
                 <div className='p-4'>
                   <div className='flex items-center justify-between mb-4'>
                     <h3 className='text-lg font-semibold text-gray-900'>Filtros</h3>
@@ -708,7 +708,7 @@ const EqualizacoesPage: FC = () => {
 
         {/* Indicadores de Filtros Ativos */}
         {hasActiveFilters && (
-          <div className='mt-3 flex flex-wrap gap-2'>
+          <div className='mt-3 flex flex-wrap gap-2 text-sm'>
             <span className='text-sm text-gray-600'>Filtros ativos:</span>
             {activeFilters.status !== 'all' && (
               <span className='inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full'>
@@ -745,7 +745,7 @@ const EqualizacoesPage: FC = () => {
 
       {/* Lista de Colaboradores */}
       {filteredCollaborators.length > 0 && (
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div className="text-sm text-gray-600">
             {totalPages > 1 ? (
               <>
@@ -760,17 +760,17 @@ const EqualizacoesPage: FC = () => {
       )}
       <div className="space-y-4">
         {paginatedCollaborators.length === 0 && filteredCollaborators.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-24 h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-              <Users className="w-12 h-12 text-gray-400" />
+          <div className="text-center py-8 sm:py-12">
+            <div className="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+              <Users className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum colaborador encontrado</h3>
             <p className="text-gray-500">Tente ajustar os filtros ou a busca para ver os colaboradores.</p>
           </div>
         ) : paginatedCollaborators.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-24 h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-              <Users className="w-12 h-12 text-gray-400" />
+          <div className="text-center py-8 sm:py-12">
+            <div className="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+              <Users className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum colaborador nesta página</h3>
             <p className="text-gray-500">Navegue para outras páginas para ver mais colaboradores.</p>
@@ -783,14 +783,14 @@ const EqualizacoesPage: FC = () => {
                 className='p-4 cursor-pointer hover:bg-gray-50 transition-colors'
                 onClick={() => toggleCardExpansion(collaborator.id)}
               >
-                <div className='flex items-center justify-between'>
-                  <div className='flex items-center gap-4'>
+                <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3'>
+                  <div className='flex items-center gap-3 sm:gap-4'>
                     <div className='w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-sm font-medium text-gray-700'>
                       {collaborator.avatar}
                     </div>
-                    <div>
-                      <h3 className='font-medium text-gray-900'>{collaborator.name}</h3>
-                      <p className='text-sm text-gray-500'>{collaborator.role}</p>
+                    <div className='flex-1 min-w-0'>
+                      <h3 className='font-medium text-gray-900 truncate'>{collaborator.name}</h3>
+                      <p className='text-sm text-gray-500 truncate'>{collaborator.role}</p>
                     </div>
                     <span
                       className={`px-2 py-1 text-xs font-medium rounded-full ${
@@ -804,21 +804,21 @@ const EqualizacoesPage: FC = () => {
                   </div>
 
                   {/* Notas resumidas */}
-                  <div className='flex items-center gap-6 text-sm'>
+                  <div className='flex items-center justify-between sm:justify-end gap-4 sm:gap-6 text-sm'>
                     <div className='text-center'>
-                      <div className='text-xs text-gray-500'>Autoavaliação</div>
+                      <div className='text-xs text-gray-500'>Auto</div>
                       <div className='font-medium'>{collaborator.selfAssessment || '--'}</div>
                     </div>
-                    <div className='text-center'>
-                      <div className='text-xs text-gray-500'>Avaliação 360</div>
+                    <div className='text-center hidden sm:block'>
+                      <div className='text-xs text-gray-500'>360°</div>
                       <div className='font-medium'>{collaborator.assessment360 || '--'}</div>
                     </div>
-                    <div className='text-center'>
-                      <div className='text-xs text-gray-500'>Nota gestor</div>
+                    <div className='text-center hidden md:block'>
+                      <div className='text-xs text-gray-500'>Gestor</div>
                       <div className='font-medium'>{collaborator.managerAssessment || '--'}</div>
                     </div>
                     <div className='text-center'>
-                      <div className='text-xs text-gray-500'>Nota final</div>
+                      <div className='text-xs text-gray-500'>Final</div>
                       <div className='font-medium'>
                         {collaborator.finalScore ? (
                           <span className='inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#085F60] text-white'>
@@ -876,7 +876,7 @@ const EqualizacoesPage: FC = () => {
                     )}
 
                     {/* Barras de Progresso */}
-                    <div className='grid grid-cols-3 gap-6 mb-6'>
+                    <div className='grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6'>
                       <div>
                         <div className='flex justify-between items-center mb-2'>
                           <span className='text-sm text-gray-600'>Autoavaliação</span>
@@ -941,7 +941,7 @@ const EqualizacoesPage: FC = () => {
                         </div>
 
                         {/* Botões de Ação */}
-                        <div className='flex justify-end gap-3'>
+                        <div className='flex flex-col sm:flex-row justify-end gap-3'>
                           {editingCollaborators.includes(collaborator.id) && (
                             <button
                               onClick={() => handleCancelEdit(collaborator.id)}
@@ -970,7 +970,7 @@ const EqualizacoesPage: FC = () => {
                       </>
                     ) : (
                       /* Colaborador Finalizado */
-                      <div className='flex justify-between items-center'>
+                      <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3'>
                         <div className='flex items-center gap-3'>
                           <div className='w-8 h-8 bg-green-100 rounded-full flex items-center justify-center'>
                             <svg className='w-4 h-4 text-green-600' fill='currentColor' viewBox='0 0 20 20'>
@@ -986,13 +986,14 @@ const EqualizacoesPage: FC = () => {
                             <span className='font-semibold text-[#085F60]'>{collaborator.finalScore}</span>
                           </div>
                         </div>
-                        <div className='flex gap-2'>
+                        <div className='flex flex-wrap gap-2'>
                           <button
                             onClick={() => handleCopyResult(collaborator)}
-                            className='flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors'
+                            className='flex items-center gap-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm'
                             title='Copiar resultado'
                           >
                             <Copy className='w-4 h-4' />
+                            <span className='hidden sm:inline'>Copiar</span>
                           </button>
                           <ExportButton
                             collaboratorId={collaborator.id}
@@ -1002,11 +1003,11 @@ const EqualizacoesPage: FC = () => {
                           />
                           <button
                             onClick={() => handleEditResult(collaborator)}
-                            className='flex items-center gap-2 px-4 py-2 border border-[#085F60] text-[#085F60] rounded-lg hover:bg-[#085F60] hover:text-white transition-colors'
+                            className='flex items-center gap-2 px-3 sm:px-4 py-2 border border-[#085F60] text-[#085F60] rounded-lg hover:bg-[#085F60] hover:text-white transition-colors text-sm'
                             title='Editar resultado'
                           >
                             <Edit3 className='w-4 h-4' />
-                            Editar resultado
+                            <span className='hidden sm:inline'>Editar resultado</span>
                           </button>
                         </div>
                       </div>
@@ -1020,7 +1021,7 @@ const EqualizacoesPage: FC = () => {
 
       {/* Paginação */}
       {totalPages > 1 && (
-        <div className="mt-8 flex items-center justify-between">
+        <div className="mt-6 sm:mt-8 flex items-center justify-between">
           <div className="flex-1 flex justify-between sm:hidden">
             <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
