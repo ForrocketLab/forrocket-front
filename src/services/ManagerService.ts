@@ -10,6 +10,24 @@ export interface Project {
   projectName: string;
 }
 
+export interface ClientEvaluation {
+  cycle: string;
+  score: number;
+  justification: string;
+}
+
+export interface ProjectDetailsResponse {
+  projectName: string;
+  scores: {
+    cycle: string;
+    score: number;
+    reason: string; 
+  }[];
+  percentage: number;
+  EndDate: string;
+  CollaboratorsNumber: number;
+}
+
 export type ClientScores = Record<string, number>;
 
 class ManagerService {
@@ -260,24 +278,40 @@ class ManagerService {
     }
   }
 
-  static async getClientProjectScores(projectId: string): Promise<ClientScores> {
-    try {
-      const backendUrl = `http://localhost:3000/api/projects/${projectId}/scores`;
-      const response = await api.get<ClientScores>(backendUrl, {
-        headers: {
-          Authorization: `Bearer ${AuthService.getToken()}`,
-        },
-      });
-      return response.data;
-    } catch (error) {
-      console.error(`Erro ao buscar notas do cliente para o projeto ${projectId}:`, error);
-      if (error instanceof AxiosError && error.response) {
-        if (error.response.status === 404) return {}; // Retorna objeto vazio se não houver notas
-        throw new Error(error.response.data.message || 'Falha ao buscar as notas do cliente.');
-      }
-      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+
+
+  static async getClientProjectEvaluations(projectId: string): Promise<ClientEvaluation[]> {
+  try {
+    // A função agora espera receber o objeto completo 'ProjectDetailsResponse'
+    const response = await api.get<ProjectDetailsResponse>(`/evaluations/collaborator/projects/${projectId}/details`, {
+      headers: {
+        Authorization: `Bearer ${AuthService.getToken()}`,
+      },
+    });
+
+    // **AQUI ESTÁ A CORREÇÃO**
+    // Verificamos se a propriedade 'scores' existe na resposta
+    const scoresHistory = response.data.scores || [];
+
+    // Mapeamos o array completo de scores, ajustando o nome do campo
+    const mappedEvaluations = scoresHistory.map(evaluation => ({
+      cycle: evaluation.cycle,
+      score: evaluation.score,
+      justification: evaluation.reason, // Mapeamos 'reason' para 'justification'
+    }));
+
+    return mappedEvaluations;
+
+  } catch (error) {
+    console.error(`Erro ao buscar avaliações do cliente para o projeto ${projectId}:`, error);
+    if (error instanceof AxiosError && error.response) {
+      if (error.response.status === 404) return [];
+      throw new Error(error.response.data.message || 'Falha ao buscar as avaliações do cliente.');
     }
+    throw new Error('Ocorreu um erro de rede. Tente novamente.');
   }
+}
+
 }
 
 export default ManagerService;
