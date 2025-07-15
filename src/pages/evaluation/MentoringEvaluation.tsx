@@ -12,33 +12,42 @@ const MentoringEvaluation = () => {
 
   // Derivar lista de avaliações de mentores a partir do contexto
   const evaluations = useMemo(() => {
-    if (Object.keys(state.mentoring).length > 0) {
-      return Object.entries(state.mentoring).map(([id, data]) => ({
-        id,
-        mentorName: '', // Preencher se necessário, ou buscar de um cache inicial
-        mentorRole: '',
-        mentorInitials: '',
-        rating: data.rating,
-        justification: data.justification,
-      }));
-    }
-    return [];
+    return Object.entries(state.mentoring).map(([id, data]) => ({
+      id,
+      mentorName: data.mentorName || '',
+      mentorRole: data.mentorRole || '',
+      mentorInitials: data.mentorInitials || '',
+      rating: data.rating || 0,
+      justification: data.justification || '',
+    }));
   }, [state.mentoring]);
 
   useEffect(() => {
     const loadMentoringData = async () => {
       setLoading(true);
-      if (evaluations.length > 0) {
+      if (Object.keys(state.mentoring).length > 0) {
         setLoading(false);
         return;
       }
       // Só busca do backend se não houver nada no contexto
       try {
         const response = await EvaluationService.getMentorAssessments();
-        // Preenche o contexto para as próximas vezes
-        const contextData: Record<string, { rating: number; justification: string }> = {};
+        // Preenche o contexto com todos os dados do mentor
+        const contextData: Record<
+          string,
+          {
+            mentorName?: string;
+            mentorRole?: string;
+            mentorInitials?: string;
+            rating: number;
+            justification: string;
+          }
+        > = {};
         response.forEach(evaluation => {
           contextData[evaluation.id] = {
+            mentorName: evaluation.mentorName,
+            mentorRole: evaluation.mentorRole,
+            mentorInitials: evaluation.mentorInitials,
             rating: evaluation.rating || 0,
             justification: evaluation.justification || '',
           };
@@ -51,29 +60,18 @@ const MentoringEvaluation = () => {
       }
     };
     loadMentoringData();
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleEvaluationUpdate = async (evaluationId: string, updates: Partial<MentorAssessment>) => {
-    // Atualizar contexto global - apenas salvar no contexto local
+  const handleEvaluationUpdate = (evaluationId: string, updates: Partial<MentorAssessment>) => {
+    // Atualizar contexto global enviando apenas os campos modificados
     dispatch({
       type: 'UPDATE_MENTORING',
       payload: {
         mentorId: evaluationId,
-        data: {
-          rating: updates.rating || 0,
-          justification: updates.justification || '',
-        },
+        data: updates, // Envia apenas os campos que foram alterados
       },
     });
-
-    // Atualizar localmente para feedback imediato
-    // setEvaluations(prev =>
-    //   prev.map(evaluation => (evaluation.id === evaluationId ? { ...evaluation, ...updates } : evaluation)),
-    // );
-
-    // Remover requisição automática ao backend
-    console.log('Avaliação atualizada localmente para mentor:', evaluationId);
   };
 
   const handleRatingChange = (evaluationId: string, rating: number) => {

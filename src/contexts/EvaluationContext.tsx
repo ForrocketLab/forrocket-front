@@ -11,6 +11,10 @@ export interface SelfAssessmentData {
 
 export interface Evaluation360Data {
   [colleagueId: string]: {
+    id?: string;
+    name?: string;
+    role?: string;
+    initials?: string;
     rating: number;
     strengths: string;
     improvements: string;
@@ -20,6 +24,9 @@ export interface Evaluation360Data {
 
 export interface MentoringData {
   [mentorId: string]: {
+    mentorName?: string;
+    mentorRole?: string;
+    mentorInitials?: string;
     rating: number;
     justification: string;
   };
@@ -54,6 +61,7 @@ export type EvaluationAction =
   | { type: 'UPDATE_REFERENCE_JUSTIFICATION'; payload: { id: string; justification: string } }
   | { type: 'UPDATE_COMPLETION_STATUS'; payload: Partial<EvaluationState['completionStatus']> }
   | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'CLEAR_ALL_DATA' }
   | { type: 'LOAD_FROM_STORAGE' };
 
 // Estado inicial
@@ -98,7 +106,14 @@ function evaluationReducer(state: EvaluationState, action: EvaluationAction): Ev
         evaluation360: {
           ...state.evaluation360,
           [action.payload.colleagueId]: {
-            ...state.evaluation360[action.payload.colleagueId],
+            // Usar valores padrão apenas se não existir dados anteriores
+            ...(state.evaluation360[action.payload.colleagueId] || {
+              rating: 0,
+              strengths: '',
+              improvements: '',
+              workAgainMotivation: '',
+            }),
+            // Aplicar apenas os novos dados
             ...action.payload.data,
           },
         },
@@ -150,6 +165,11 @@ function evaluationReducer(state: EvaluationState, action: EvaluationAction): Ev
 
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload };
+
+    case 'CLEAR_ALL_DATA':
+      // Limpar localStorage
+      localStorage.removeItem('evaluationData');
+      return initialState;
 
     case 'LOAD_FROM_STORAGE':
       try {
@@ -203,7 +223,6 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error('Erro ao carregar dados de avaliação do localStorage:', error);
     }
-    // eslint-disable-next-line
   }, []);
 
   // Salvar no localStorage sempre que o estado mudar

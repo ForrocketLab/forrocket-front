@@ -65,7 +65,6 @@ const ReferenceAssessment = () => {
     }
 
     loadData();
-    // eslint-disable-next-line
   }, [dispatch, selectedReferences.length]);
 
   // Filtrar colaboradores disponíveis (excluindo os já selecionados)

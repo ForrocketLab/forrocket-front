@@ -24,15 +24,15 @@ const Evaluation360 = () => {
   // Derivar lista de colegas a partir do contexto
   const colleagues = useMemo<Colleague[]>(() => {
     return Object.values(state.evaluation360)
-      .map((data: any) => ({
-        id: data.id,
-        name: data.name,
-        role: data.role,
-        initials: data.initials,
-        rating: data.rating,
-        strengths: data.strengths,
-        improvements: data.improvements,
-        workAgainMotivation: data.workAgainMotivation as WorkAgainMotivation,
+      .map(data => ({
+        id: data.id || '',
+        name: data.name || '',
+        role: data.role || '',
+        initials: data.initials || '',
+        rating: data.rating || 0,
+        strengths: data.strengths || '',
+        improvements: data.improvements || '',
+        workAgainMotivation: (data.workAgainMotivation || '') as WorkAgainMotivation,
       }))
       .filter(c => c.id && c.name && c.role && c.initials);
   }, [state.evaluation360]);
@@ -49,7 +49,19 @@ const Evaluation360 = () => {
       try {
         const response = await EvaluationService.getProjectCollaborators360();
         // Preenche o contexto para as próximas vezes, incluindo todos os dados relevantes
-        const contextData: Record<string, any> = {};
+        const contextData: Record<
+          string,
+          {
+            id: string;
+            name: string;
+            role: string;
+            initials: string;
+            rating: number;
+            strengths: string;
+            improvements: string;
+            workAgainMotivation: string;
+          }
+        > = {};
         response.forEach(colleague => {
           contextData[colleague.id] = {
             ...colleague, // inclui nome, cargo, iniciais, etc
@@ -71,31 +83,25 @@ const Evaluation360 = () => {
   }, []);
 
   const handleColleagueUpdate = (colleagueId: string, updates: Partial<Colleague>) => {
-    // Atualizar contexto global
+    // Atualizar contexto global enviando apenas os campos modificados
     dispatch({
       type: 'UPDATE_EVALUATION_360',
       payload: {
         colleagueId,
-        data: {
-          rating: updates.rating || 0,
-          strengths: updates.strengths || '',
-          improvements: updates.improvements || '',
-          workAgainMotivation: updates.workAgainMotivation || '',
-        },
+        data: updates, // Envia apenas os campos que foram alterados
       },
     });
-
-    // Atualizar estado local para a UI
-    // setColleagues(prev => // This line is removed as colleagues is now derived from state.evaluation360
-    //   prev.map(colleague => (colleague.id === colleagueId ? { ...colleague, ...updates } : colleague)),
-    // );
   };
 
-  const filteredColleagues = useMemo(() => colleagues.filter(
-    colleague =>
-      colleague.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      colleague.role.toLowerCase().includes(searchTerm.toLowerCase()),
-  ), [colleagues, searchTerm]);
+  const filteredColleagues = useMemo(
+    () =>
+      colleagues.filter(
+        colleague =>
+          colleague.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          colleague.role.toLowerCase().includes(searchTerm.toLowerCase()),
+      ),
+    [colleagues, searchTerm],
+  );
 
   const completedEvaluations = colleagues.filter(c => c.rating > 0).length;
   const totalColleagues = colleagues.length;

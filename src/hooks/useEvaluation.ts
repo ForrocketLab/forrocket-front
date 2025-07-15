@@ -13,7 +13,15 @@ export const useEvaluation = () => {
   if (!context) {
     throw new Error('useEvaluation must be used within an EvaluationProvider');
   }
-  return context;
+
+  const clearAllData = () => {
+    context.dispatch({ type: 'CLEAR_ALL_DATA' });
+  };
+
+  return {
+    ...context,
+    clearAllData,
+  };
 };
 
 // Hook para verificar completude
