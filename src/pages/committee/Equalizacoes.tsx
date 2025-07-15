@@ -436,13 +436,13 @@ const EqualizacoesPage: FC = () => {
         {/* Total de Colaboradores */}
         <div className='bg-white rounded-lg shadow-sm p-6 border border-gray-200'>
           <div className='flex items-center gap-4'>
-            <div className='w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center'>
-              <Users className='w-6 h-6 text-blue-600' />
+            <div className='w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center'>
+              <Users className='w-6 h-6 text-gray-600' />
             </div>
             <div>
               <h3 className='text-sm font-medium text-gray-600'>Total</h3>
               <p className='text-xs text-gray-500'>Colaboradores no ciclo</p>
-              <div className='text-2xl font-bold text-blue-600 mt-1'>{totalCollaborators}</div>
+              <div className='text-2xl font-bold text-[#085F60] mt-1'>{totalCollaborators}</div>
             </div>
           </div>
         </div>
@@ -450,13 +450,13 @@ const EqualizacoesPage: FC = () => {
         {/* Equalizações Pendentes */}
         <div className='bg-white rounded-lg shadow-sm p-6 border border-gray-200'>
           <div className='flex items-center gap-4'>
-            <div className='w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center'>
-              <Clock className='w-6 h-6 text-yellow-600' />
+            <div className='w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center'>
+              <Clock className='w-6 h-6 text-gray-600' />
             </div>
             <div>
               <h3 className='text-sm font-medium text-gray-600'>Pendentes</h3>
               <p className='text-xs text-gray-500'>Aguardando equalização</p>
-              <div className='text-2xl font-bold text-yellow-600 mt-1'>{pendingCount}</div>
+              <div className='text-2xl font-bold text-[#085F60] mt-1'>{pendingCount}</div>
             </div>
           </div>
         </div>
@@ -464,13 +464,13 @@ const EqualizacoesPage: FC = () => {
         {/* Equalizações Finalizadas */}
         <div className='bg-white rounded-lg shadow-sm p-6 border border-gray-200'>
           <div className='flex items-center gap-4'>
-            <div className='w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center'>
-              <CheckCircle className='w-6 h-6 text-green-600' />
+            <div className='w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center'>
+              <CheckCircle className='w-6 h-6 text-gray-600' />
             </div>
             <div>
               <h3 className='text-sm font-medium text-gray-600'>Finalizadas</h3>
               <p className='text-xs text-gray-500'>Equalizações concluídas</p>
-              <div className='text-2xl font-bold text-green-600 mt-1'>{completedCount}</div>
+              <div className='text-2xl font-bold text-[#085F60] mt-1'>{completedCount}</div>
             </div>
           </div>
         </div>
@@ -478,8 +478,8 @@ const EqualizacoesPage: FC = () => {
         {/* Progresso Geral */}
         <div className='bg-white rounded-lg shadow-sm p-6 border border-gray-200'>
           <div className='flex items-center gap-4'>
-            <div className='w-12 h-12 bg-[#085F60] bg-opacity-10 rounded-lg flex items-center justify-center'>
-              <TrendingUp className='w-6 h-6 text-[#085F60]' />
+            <div className='w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center'>
+              <TrendingUp className='w-6 h-6 text-gray-600' />
             </div>
             <div>
               <h3 className='text-sm font-medium text-gray-600'>Progresso</h3>
