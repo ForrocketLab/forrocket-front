@@ -858,7 +858,7 @@ class EvaluationService {
         references,
       };
 
-      await api.put('/evaluations/collaborator/reference-feedbacks/batch', payload, {
+      await api.patch('/evaluations/collaborator/reference-feedbacks/batch', payload, {
         headers: {
           Authorization: `Bearer ${this.getToken()}`,
         },

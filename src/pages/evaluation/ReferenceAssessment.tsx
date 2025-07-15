@@ -11,6 +11,7 @@ interface AvailableCollaborator {
   role: string;
   initials: string;
   department?: string;
+  email?: string; // Adicionado para armazenar o email do colaborador
 }
 
 // Mock data de colaboradores disponíveis (fallback)
@@ -89,41 +90,26 @@ const ReferenceAssessment = () => {
       try {
         setLoading(true);
 
-        // Carregar colaboradores disponíveis - usar mock como fallback
-        let transformedCollaborators = mockAvailableCollaborators;
-
-        try {
-          // Tentar carregar do backend primeiro
-          const availableCollabs = await EvaluationService.getAvailableCollaborators();
-
-          // Transformar os dados para o formato esperado pelo componente
-          transformedCollaborators = availableCollabs.map(collab => ({
-            id: collab.id,
-            name: collab.name,
-            role: 'Colaborador', // Valor padrão já que não vem do backend
-            initials: collab.name
-              .split(' ')
-              .map(word => word.charAt(0))
-              .join('')
-              .toUpperCase()
-              .substring(0, 2),
-            department: 'Departamento',
-          }));
-
-          console.log('Colaboradores carregados do backend:', transformedCollaborators);
-        } catch (collaboratorError) {
-          console.warn('Erro ao carregar colaboradores do backend, usando dados mock:', collaboratorError);
-          // transformedCollaborators já está definido com mockAvailableCollaborators
-        }
-
+        // Carregar colaboradores disponíveis do backend
+        const availableCollabs = await EvaluationService.getAvailableCollaborators();
+        const transformedCollaborators = availableCollabs.map(collab => ({
+          id: collab.id,
+          name: collab.name,
+          role: 'Colaborador', // Valor padrão, backend não retorna cargo
+          initials: collab.name
+            .split(' ')
+            .map(word => word.charAt(0))
+            .join('')
+            .toUpperCase()
+            .substring(0, 2),
+          department: '',
+          email: collab.email,
+        }));
         setAvailableCollaborators(transformedCollaborators);
 
         // Carregar referências existentes do backend
         const existingReferences = await EvaluationService.getReferenceFeedbacks();
         setSelectedReferences(existingReferences);
-
-        console.log('Colaboradores disponíveis carregados:', transformedCollaborators);
-        console.log('Referências existentes carregadas:', existingReferences);
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
         toast.error('Erro ao carregar dados', 'Não foi possível carregar os dados iniciais.');
@@ -174,26 +160,7 @@ const ReferenceAssessment = () => {
   const handleSaveAllReferences = async () => {
     try {
       setUpdating('all');
-
-      // Log detalhado dos dados que serão enviados ao backend
-      console.log('=== DADOS PARA BACKEND ===');
-      console.log('Total de referências:', selectedReferences.length);
-      console.log('Dados completos:', JSON.stringify(selectedReferences, null, 2));
-
-      selectedReferences.forEach((reference, index) => {
-        console.log(`\n--- Referência ${index + 1} ---`);
-        console.log('ID:', reference.id);
-        console.log('Nome:', reference.referenceName);
-        console.log('Cargo:', reference.referenceRole);
-        console.log('Iniciais:', reference.referenceInitials);
-        console.log('Justificativa:', reference.justification || '(vazia)');
-        console.log('Tamanho da justificativa:', reference.justification.length, 'caracteres');
-      });
-
-      // Chamar o endpoint real do backend
       await EvaluationService.saveAllReferenceFeedbacks(selectedReferences);
-
-      console.log('✅ Todas as referências salvas com sucesso!');
       toast.success('Referências salvas', 'Todas as avaliações foram salvas com sucesso.');
     } catch (error) {
       console.error('❌ Erro ao salvar todas as referências:', error);
