@@ -37,6 +37,14 @@ export interface EvaluationState {
   evaluation360: Evaluation360Data;
   mentoring: MentoringData;
   references: ReferenceAssessmentDto[];
+  availableCollaborators: Array<{
+    id: string;
+    name: string;
+    role: string;
+    initials: string;
+    department?: string;
+    email?: string;
+  }>;
   completionStatus: {
     selfAssessment: boolean;
     evaluation360: boolean;
@@ -59,6 +67,17 @@ export type EvaluationAction =
   | { type: 'ADD_REFERENCE'; payload: ReferenceAssessmentDto }
   | { type: 'REMOVE_REFERENCE'; payload: string }
   | { type: 'UPDATE_REFERENCE_JUSTIFICATION'; payload: { id: string; justification: string } }
+  | {
+      type: 'SET_AVAILABLE_COLLABORATORS';
+      payload: Array<{
+        id: string;
+        name: string;
+        role: string;
+        initials: string;
+        department?: string;
+        email?: string;
+      }>;
+    }
   | { type: 'UPDATE_COMPLETION_STATUS'; payload: Partial<EvaluationState['completionStatus']> }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'CLEAR_ALL_DATA' }
@@ -70,6 +89,7 @@ const initialState: EvaluationState = {
   evaluation360: {},
   mentoring: {},
   references: [],
+  availableCollaborators: [],
   completionStatus: {
     selfAssessment: false,
     evaluation360: false,
@@ -157,6 +177,9 @@ function evaluationReducer(state: EvaluationState, action: EvaluationAction): Ev
         ),
       };
 
+    case 'SET_AVAILABLE_COLLABORATORS':
+      return { ...state, availableCollaborators: action.payload };
+
     case 'UPDATE_COMPLETION_STATUS':
       return {
         ...state,
@@ -218,6 +241,9 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
           if (parsedData.references) {
             dispatch({ type: 'SET_REFERENCES', payload: parsedData.references });
           }
+          if (parsedData.availableCollaborators) {
+            dispatch({ type: 'SET_AVAILABLE_COLLABORATORS', payload: parsedData.availableCollaborators });
+          }
         }
       }
     } catch (error) {
@@ -233,12 +259,13 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
         evaluation360: state.evaluation360,
         mentoring: state.mentoring,
         references: state.references,
+        availableCollaborators: state.availableCollaborators,
       };
       localStorage.setItem('evaluationData', JSON.stringify(dataToStore));
     } catch (error) {
       console.error('Erro ao salvar dados de avaliação no localStorage:', error);
     }
-  }, [state.selfAssessment, state.evaluation360, state.mentoring, state.references]);
+  }, [state.selfAssessment, state.evaluation360, state.mentoring, state.references, state.availableCollaborators]);
 
   return <EvaluationContext.Provider value={{ state, dispatch }}>{children}</EvaluationContext.Provider>;
 };

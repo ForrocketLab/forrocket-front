@@ -15,36 +15,38 @@ interface AvailableCollaborator {
 }
 
 const ReferenceAssessment = () => {
-  const [availableCollaborators, setAvailableCollaborators] = useState<AvailableCollaborator[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [loading, setLoading] = useState(true);
   const { state, dispatch } = useEvaluation();
 
-  // Derivar referências selecionadas a partir do contexto
+  // Derivar referências selecionadas e colaboradores disponíveis a partir do contexto
   const selectedReferences = useMemo(() => state.references, [state.references]);
+  const availableCollaborators = useMemo(() => state.availableCollaborators, [state.availableCollaborators]);
 
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
 
-        // Carregar colaboradores disponíveis do backend
-        const availableCollabs = await EvaluationService.getAvailableCollaborators();
-        const transformedCollaborators = availableCollabs.map(collab => ({
-          id: collab.id,
-          name: collab.name,
-          role: 'Colaborador', // Valor padrão, backend não retorna cargo
-          initials: collab.name
-            .split(' ')
-            .map(word => word.charAt(0))
-            .join('')
-            .toUpperCase()
-            .substring(0, 2),
-          department: '',
-          email: collab.email,
-        }));
-        setAvailableCollaborators(transformedCollaborators);
+        // Carregar colaboradores disponíveis do backend apenas se não estiverem no contexto
+        if (availableCollaborators.length === 0) {
+          const availableCollabs = await EvaluationService.getAvailableCollaborators();
+          const transformedCollaborators = availableCollabs.map(collab => ({
+            id: collab.id,
+            name: collab.name,
+            role: 'Colaborador', // Valor padrão, backend não retorna cargo
+            initials: collab.name
+              .split(' ')
+              .map(word => word.charAt(0))
+              .join('')
+              .toUpperCase()
+              .substring(0, 2),
+            department: '',
+            email: collab.email,
+          }));
+          dispatch({ type: 'SET_AVAILABLE_COLLABORATORS', payload: transformedCollaborators });
+        }
 
         // Carregar referências existentes do backend apenas se não há dados no Context
         if (selectedReferences.length === 0) {
@@ -59,13 +61,13 @@ const ReferenceAssessment = () => {
     };
 
     // Se já tem dados no contexto, monta a UI a partir deles
-    if (selectedReferences.length > 0) {
+    if (selectedReferences.length > 0 && availableCollaborators.length > 0) {
       setLoading(false);
       return;
     }
 
     loadData();
-  }, [dispatch, selectedReferences.length]);
+  }, [dispatch, selectedReferences.length, availableCollaborators.length]);
 
   // Filtrar colaboradores disponíveis (excluindo os já selecionados)
   const filteredAvailableCollaborators = availableCollaborators.filter(
