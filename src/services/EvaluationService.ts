@@ -918,6 +918,56 @@ class EvaluationService {
       }
     }
   }
+
+  /**
+   * Salva todas as avaliações 360 de uma vez (operação batch)
+   * @param assessments Lista de avaliações 360 para salvar
+   * @returns Promise que resolve quando o salvamento é bem-sucedido
+   */
+  async saveEvaluations360Batch(
+    assessments: Array<{
+      id: string;
+      rating: number;
+      strengths: string;
+      improvements: string;
+      workAgainMotivation: string;
+    }>,
+  ): Promise<void> {
+    try {
+      const payload = {
+        assessments: assessments.map(assessment => ({
+          id: assessment.id,
+          rating: assessment.rating,
+          strengths: assessment.strengths,
+          improvements: assessment.improvements,
+          workAgainMotivation: assessment.workAgainMotivation,
+        })),
+      };
+
+      console.log('Enviando avaliações 360 em batch:', payload);
+
+      await api.patch('/evaluations/collaborator/360-assessment/batch', payload, {
+        headers: {
+          Authorization: `Bearer ${this.getToken()}`,
+        },
+      });
+
+      console.log('✅ Avaliações 360 salvas em batch com sucesso');
+    } catch (error) {
+      console.error('❌ Erro ao salvar avaliações 360 em batch:', error);
+
+      if (error instanceof AxiosError && error.response?.status === 401) {
+        AuthService.logout();
+        throw new Error('Sua sessão expirou. Por favor, faça login novamente.');
+      }
+
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao salvar avaliações 360 em batch.');
+      }
+
+      throw new Error('Erro ao salvar avaliações 360 em batch.');
+    }
+  }
 }
 
 export default new EvaluationService();

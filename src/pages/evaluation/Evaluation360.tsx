@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Search, Users } from 'lucide-react';
 import { ColleagueEvaluation } from './ColleagueEvaluation';
 import EvaluationService, { WorkAgainMotivation } from '../../services/EvaluationService';
-import { useGlobalToast } from '../../hooks/useGlobalToast';
+import { useEvaluation } from '../../hooks/useEvaluation';
 
 interface Colleague {
   id: string;
@@ -16,76 +16,86 @@ interface Colleague {
 }
 
 const Evaluation360 = () => {
-  const [colleagues, setColleagues] = useState<Colleague[]>([]);
+  // Removido useState de colleagues, pois agora é derivado do contexto
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const toast = useGlobalToast();
+  const { state, dispatch } = useEvaluation();
+
+  // Derivar lista de colegas a partir do contexto
+  const colleagues = useMemo<Colleague[]>(() => {
+    return Object.values(state.evaluation360)
+      .map((data: any) => ({
+        id: data.id,
+        name: data.name,
+        role: data.role,
+        initials: data.initials,
+        rating: data.rating,
+        strengths: data.strengths,
+        improvements: data.improvements,
+        workAgainMotivation: data.workAgainMotivation as WorkAgainMotivation,
+      }))
+      .filter(c => c.id && c.name && c.role && c.initials);
+  }, [state.evaluation360]);
 
   // Carregar colaboradores avaliáveis
   useEffect(() => {
     const loadColleagues = async () => {
+      setLoading(true);
+      if (Object.keys(state.evaluation360).length > 0) {
+        setLoading(false);
+        return;
+      }
+      // Só busca do backend se não houver nada no contexto
       try {
-        setLoading(true);
         const response = await EvaluationService.getProjectCollaborators360();
-
-        console.log('Resposta da API (novo endpoint):', response);
-
-        // Verificar se a resposta é um array
-        if (!Array.isArray(response)) {
-          console.error('Resposta da API não é um array:', response);
-          throw new Error('Formato de resposta inválido da API');
-        }
-
-        // Mapear diretamente a resposta para o formato esperado
-        const mappedColleagues: Colleague[] = response.map(colleague => ({
-          id: colleague.id,
-          name: colleague.name,
-          role: colleague.role,
-          initials: colleague.initials,
-          rating: colleague.rating,
-          strengths: colleague.strengths,
-          improvements: colleague.improvements,
-          workAgainMotivation: colleague.workAgainMotivation,
-        }));
-
-        setColleagues(mappedColleagues);
+        // Preenche o contexto para as próximas vezes, incluindo todos os dados relevantes
+        const contextData: Record<string, any> = {};
+        response.forEach(colleague => {
+          contextData[colleague.id] = {
+            ...colleague, // inclui nome, cargo, iniciais, etc
+            rating: colleague.rating || 0,
+            strengths: colleague.strengths || '',
+            improvements: colleague.improvements || '',
+            workAgainMotivation: colleague.workAgainMotivation || '',
+          };
+        });
+        dispatch({ type: 'SET_EVALUATION_360', payload: contextData });
       } catch (error) {
         console.error('Erro ao carregar colaboradores:', error);
-        toast.error('Erro ao carregar dados', 'Não foi possível carregar os colaboradores para avaliação.');
-
-        // Fallback com dados de exemplo em caso de erro
-        const fallbackColleagues: Colleague[] = [
-          {
-            id: 'fallback-1',
-            name: 'Colaborador Exemplo',
-            role: 'Desenvolvedor',
-            initials: 'CE',
-            rating: 0,
-            strengths: '',
-            improvements: '',
-            workAgainMotivation: WorkAgainMotivation.NEUTRAL,
-          },
-        ];
-        setColleagues(fallbackColleagues);
       } finally {
         setLoading(false);
       }
     };
-
     loadColleagues();
+    // eslint-disable-next-line
   }, []);
 
   const handleColleagueUpdate = (colleagueId: string, updates: Partial<Colleague>) => {
-    setColleagues(prev =>
-      prev.map(colleague => (colleague.id === colleagueId ? { ...colleague, ...updates } : colleague)),
-    );
+    // Atualizar contexto global
+    dispatch({
+      type: 'UPDATE_EVALUATION_360',
+      payload: {
+        colleagueId,
+        data: {
+          rating: updates.rating || 0,
+          strengths: updates.strengths || '',
+          improvements: updates.improvements || '',
+          workAgainMotivation: updates.workAgainMotivation || '',
+        },
+      },
+    });
+
+    // Atualizar estado local para a UI
+    // setColleagues(prev => // This line is removed as colleagues is now derived from state.evaluation360
+    //   prev.map(colleague => (colleague.id === colleagueId ? { ...colleague, ...updates } : colleague)),
+    // );
   };
 
-  const filteredColleagues = colleagues.filter(
+  const filteredColleagues = useMemo(() => colleagues.filter(
     colleague =>
       colleague.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       colleague.role.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  ), [colleagues, searchTerm]);
 
   const completedEvaluations = colleagues.filter(c => c.rating > 0).length;
   const totalColleagues = colleagues.length;

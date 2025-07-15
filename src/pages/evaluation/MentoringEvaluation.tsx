@@ -1,61 +1,79 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Users } from 'lucide-react';
 import { StarRating } from '../../components/StarRating';
-import { useGlobalToast } from '../../hooks/useGlobalToast';
+import { useEvaluation } from '../../hooks/useEvaluation';
 import EvaluationService, { MentorAssessment } from '../../services/EvaluationService';
 
 const MentoringEvaluation = () => {
-  const [evaluations, setEvaluations] = useState<MentorAssessment[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  // Removido useState de evaluations, pois agora é derivado do contexto
+  const [searchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState<string | null>(null);
-  const toast = useGlobalToast();
+  const { state, dispatch } = useEvaluation();
+
+  // Derivar lista de avaliações de mentores a partir do contexto
+  const evaluations = useMemo(() => {
+    if (Object.keys(state.mentoring).length > 0) {
+      return Object.entries(state.mentoring).map(([id, data]) => ({
+        id,
+        mentorName: '', // Preencher se necessário, ou buscar de um cache inicial
+        mentorRole: '',
+        mentorInitials: '',
+        rating: data.rating,
+        justification: data.justification,
+      }));
+    }
+    return [];
+  }, [state.mentoring]);
 
   useEffect(() => {
     const loadMentoringData = async () => {
+      setLoading(true);
+      if (evaluations.length > 0) {
+        setLoading(false);
+        return;
+      }
+      // Só busca do backend se não houver nada no contexto
       try {
-        setLoading(true);
         const response = await EvaluationService.getMentorAssessments();
-        setEvaluations(response);
+        // Preenche o contexto para as próximas vezes
+        const contextData: Record<string, { rating: number; justification: string }> = {};
+        response.forEach(evaluation => {
+          contextData[evaluation.id] = {
+            rating: evaluation.rating || 0,
+            justification: evaluation.justification || '',
+          };
+        });
+        dispatch({ type: 'SET_MENTORING', payload: contextData });
       } catch (error) {
         console.error('Erro ao carregar mentores:', error);
-        toast.error('Erro ao carregar dados', 'Não foi possível carregar os mentores para avaliação.');
       } finally {
         setLoading(false);
       }
     };
-
     loadMentoringData();
+    // eslint-disable-next-line
   }, []);
 
   const handleEvaluationUpdate = async (evaluationId: string, updates: Partial<MentorAssessment>) => {
-    try {
-      setUpdating(evaluationId);
+    // Atualizar contexto global - apenas salvar no contexto local
+    dispatch({
+      type: 'UPDATE_MENTORING',
+      payload: {
+        mentorId: evaluationId,
+        data: {
+          rating: updates.rating || 0,
+          justification: updates.justification || '',
+        },
+      },
+    });
 
-      // Atualizar localmente primeiro para feedback imediato
-      setEvaluations(prev =>
-        prev.map(evaluation => (evaluation.id === evaluationId ? { ...evaluation, ...updates } : evaluation)),
-      );
+    // Atualizar localmente para feedback imediato
+    // setEvaluations(prev =>
+    //   prev.map(evaluation => (evaluation.id === evaluationId ? { ...evaluation, ...updates } : evaluation)),
+    // );
 
-      // Enviar para o backend
-      await EvaluationService.updateMentorAssessment(updates);
-
-      console.log('Avaliação atualizada com sucesso para mentor:', evaluationId);
-    } catch (error) {
-      console.error('Erro ao atualizar avaliação:', error);
-      toast.error('Erro ao salvar', 'Não foi possível salvar a avaliação.');
-
-      // Reverter mudança local em caso de erro
-      // Para fazer isso, precisamos recarregar os dados do backend
-      try {
-        const response = await EvaluationService.getMentorAssessments();
-        setEvaluations(response);
-      } catch (reloadError) {
-        console.error('Erro ao recarregar dados:', reloadError);
-      }
-    } finally {
-      setUpdating(null);
-    }
+    // Remover requisição automática ao backend
+    console.log('Avaliação atualizada localmente para mentor:', evaluationId);
   };
 
   const handleRatingChange = (evaluationId: string, rating: number) => {
@@ -67,10 +85,6 @@ const MentoringEvaluation = () => {
       evaluation.mentorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       evaluation.mentorRole.toLowerCase().includes(searchTerm.toLowerCase()),
   );
-
-  const completedEvaluations = evaluations.filter(e => e.rating > 0).length;
-  const totalEvaluations = evaluations.length;
-  const progress = totalEvaluations > 0 ? (completedEvaluations / totalEvaluations) * 100 : 0;
 
   return (
     <div className='min-h-screen bg-gray-50'>
@@ -87,12 +101,7 @@ const MentoringEvaluation = () => {
           ) : filteredEvaluations.length > 0 ? (
             filteredEvaluations.map(evaluation => (
               <div key={evaluation.id} className='bg-white border border-gray-200 rounded-lg shadow-sm relative'>
-                {/* Loading overlay */}
-                {updating === evaluation.id && (
-                  <div className='absolute inset-0 bg-white/80 rounded-lg flex items-center justify-center z-10'>
-                    <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500'></div>
-                  </div>
-                )}
+                {/* Remover loading overlay */}
                 <div className='p-6'>
                   {/* Header with mentor info */}
                   <div className='flex items-center mb-6'>

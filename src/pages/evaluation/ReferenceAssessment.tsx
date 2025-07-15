@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Search, Users, Save } from 'lucide-react';
 import { ReferenceEvaluation } from './ReferenceEvaluation';
-import { useGlobalToast } from '../../hooks/useGlobalToast';
 import EvaluationService, { ReferenceAssessmentDto } from '../../services/EvaluationService';
+import { useEvaluation } from '../../hooks/useEvaluation';
 
 // Interface para colaborador disponível
 interface AvailableCollaborator {
@@ -14,76 +14,15 @@ interface AvailableCollaborator {
   email?: string; // Adicionado para armazenar o email do colaborador
 }
 
-// Mock data de colaboradores disponíveis (fallback)
-/*
-const mockAvailableCollaborators: AvailableCollaborator[] = [
-  {
-    id: 'col-1',
-    name: 'Maria Silva Santos',
-    role: 'Product Manager',
-    initials: 'MS',
-    department: 'Produto',
-  },
-  {
-    id: 'col-2',
-    name: 'João Pedro Oliveira',
-    role: 'Senior Designer',
-    initials: 'JP',
-    department: 'Design',
-  },
-  {
-    id: 'col-3',
-    name: 'Ana Carolina Lima',
-    role: 'Data Analyst',
-    initials: 'AC',
-    department: 'Dados',
-  },
-  {
-    id: 'col-4',
-    name: 'Carlos Eduardo Silva',
-    role: 'Tech Lead',
-    initials: 'CE',
-    department: 'Engenharia',
-  },
-  {
-    id: 'col-5',
-    name: 'Fernanda Costa',
-    role: 'UX Researcher',
-    initials: 'FC',
-    department: 'Design',
-  },
-  {
-    id: 'col-6',
-    name: 'Rafael Mendes',
-    role: 'DevOps Engineer',
-    initials: 'RM',
-    department: 'Engenharia',
-  },
-  {
-    id: 'col-7',
-    name: 'Beatriz Alves',
-    role: 'Marketing Manager',
-    initials: 'BA',
-    department: 'Marketing',
-  },
-  {
-    id: 'col-8',
-    name: 'Gabriel Santos',
-    role: 'Full Stack Developer',
-    initials: 'GS',
-    department: 'Engenharia',
-  },
-];
-*/
-
 const ReferenceAssessment = () => {
   const [availableCollaborators, setAvailableCollaborators] = useState<AvailableCollaborator[]>([]);
-  const [selectedReferences, setSelectedReferences] = useState<ReferenceAssessmentDto[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState<string | null>(null);
-  const toast = useGlobalToast();
+  const { state, dispatch } = useEvaluation();
+
+  // Derivar referências selecionadas a partir do contexto
+  const selectedReferences = useMemo(() => state.references, [state.references]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -107,19 +46,27 @@ const ReferenceAssessment = () => {
         }));
         setAvailableCollaborators(transformedCollaborators);
 
-        // Carregar referências existentes do backend
-        const existingReferences = await EvaluationService.getReferenceFeedbacks();
-        setSelectedReferences(existingReferences);
+        // Carregar referências existentes do backend apenas se não há dados no Context
+        if (selectedReferences.length === 0) {
+          const existingReferences = await EvaluationService.getReferenceFeedbacks();
+          dispatch({ type: 'SET_REFERENCES', payload: existingReferences });
+        }
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
-        toast.error('Erro ao carregar dados', 'Não foi possível carregar os dados iniciais.');
       } finally {
         setLoading(false);
       }
     };
 
+    // Se já tem dados no contexto, monta a UI a partir deles
+    if (selectedReferences.length > 0) {
+      setLoading(false);
+      return;
+    }
+
     loadData();
-  }, []);
+    // eslint-disable-next-line
+  }, [dispatch, selectedReferences.length]);
 
   // Filtrar colaboradores disponíveis (excluindo os já selecionados)
   const filteredAvailableCollaborators = availableCollaborators.filter(
@@ -140,39 +87,24 @@ const ReferenceAssessment = () => {
       justification: '',
     };
 
-    setSelectedReferences(prev => [...prev, newReference]);
+    dispatch({ type: 'ADD_REFERENCE', payload: newReference });
     setSearchTerm('');
     setShowSearchResults(false);
-    toast.success('Referência adicionada', `${collaborator.name} foi adicionado como referência.`);
-  };
-
-  const handleReferenceUpdate = (referenceId: string, updates: Partial<ReferenceAssessmentDto>) => {
-    // Atualizar apenas localmente, sem enviar para o backend
-    setSelectedReferences(prev =>
-      prev.map(reference => (reference.id === referenceId ? { ...reference, ...updates } : reference)),
-    );
+    // Remover toast de sucesso - salvar silenciosamente
   };
 
   const handleJustificationChange = (referenceId: string, justification: string) => {
-    handleReferenceUpdate(referenceId, { justification });
+    dispatch({ type: 'UPDATE_REFERENCE_JUSTIFICATION', payload: { id: referenceId, justification } });
   };
 
+  // Remover função de salvar todas as referências automaticamente
   const handleSaveAllReferences = async () => {
-    try {
-      setUpdating('all');
-      await EvaluationService.saveAllReferenceFeedbacks(selectedReferences);
-      toast.success('Referências salvas', 'Todas as avaliações foram salvas com sucesso.');
-    } catch (error) {
-      console.error('❌ Erro ao salvar todas as referências:', error);
-      toast.error('Erro ao salvar', 'Não foi possível salvar as avaliações. Tente novamente.');
-    } finally {
-      setUpdating(null);
-    }
+    console.log('Salvando referências localmente apenas');
   };
 
   const handleRemoveReference = (referenceId: string) => {
-    setSelectedReferences(prev => prev.filter(reference => reference.id !== referenceId));
-    toast.success('Referência removida', 'A referência foi removida da sua avaliação.');
+    dispatch({ type: 'REMOVE_REFERENCE', payload: referenceId });
+    // Remover toast de sucesso - remover silenciosamente
   };
 
   return (
@@ -240,20 +172,10 @@ const ReferenceAssessment = () => {
                 </div>
                 <button
                   onClick={handleSaveAllReferences}
-                  disabled={updating === 'all'}
-                  className='flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors'
+                  className='flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors'
                 >
-                  {updating === 'all' ? (
-                    <>
-                      <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white'></div>
-                      <span>Salvando todas...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Save className='h-4 w-4' />
-                      <span>Salvar Todas</span>
-                    </>
-                  )}
+                  <Save className='h-4 w-4' />
+                  <span>Salvar Todas</span>
                 </button>
               </div>
             </div>

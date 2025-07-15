@@ -1,6 +1,6 @@
-import { useState, useEffect, forwardRef, useImperativeHandle, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Criteria, PillarSection } from './PillarSection';
-import { useGlobalToast } from '../hooks/useGlobalToast';
+import { useEvaluation } from '../hooks/useEvaluation';
 import EvaluationService, { type CriteriaDto } from '../services/EvaluationService';
 
 interface Pillar {
@@ -18,49 +18,11 @@ export interface SelfAssessmentData {
   };
 }
 
-export interface EvaluationFormRef {
-  getAssessmentData: () => SelfAssessmentData;
-  isComplete: () => boolean;
-  getAllCriteria: () => CriteriaDto[];
-}
-
-const EvaluationForm = forwardRef<EvaluationFormRef>((_, ref) => {
-  const [pillars, setPillars] = useState<Pillar[]>([]);
+const EvaluationForm = () => {
+  // Removido useState de pillars, pois agora é derivado do contexto
   const [loading, setLoading] = useState(true);
-  const [allCriteria, setAllCriteria] = useState<CriteriaDto[]>([]);
   const [hasExistingAssessment, setHasExistingAssessment] = useState(false);
-  const toast = useGlobalToast();
-
-  // Função para gerar os dados dinâmicos da avaliação
-  const generateAssessmentData = useCallback((): SelfAssessmentData => {
-    const data: SelfAssessmentData = {};
-
-    pillars.forEach(pillar => {
-      pillar.criteria.forEach(criterion => {
-        // Usar o ID original do critério como chave, com objeto contendo score e justification
-        data[criterion.id] = {
-          score: criterion.rating,
-          justification: criterion.justification,
-        };
-      });
-    });
-
-    return data;
-  }, [pillars]);
-
-  // Verificar se todos os critérios obrigatórios estão preenchidos
-  const isAssessmentComplete = (): boolean => {
-    return pillars.every(pillar =>
-      pillar.criteria.every(criterion => criterion.rating > 0 && criterion.justification.trim().length > 0),
-    );
-  };
-
-  // Expor métodos para o componente pai
-  useImperativeHandle(ref, () => ({
-    getAssessmentData: () => generateAssessmentData(),
-    isComplete: () => isAssessmentComplete(),
-    getAllCriteria: () => allCriteria,
-  }));
+  const { state, dispatch } = useEvaluation();
 
   // Função para mapear critérios da API para o formato do componente (dinâmico)
   const mapCriteriaToComponent = (
@@ -97,8 +59,9 @@ const EvaluationForm = forwardRef<EvaluationFormRef>((_, ref) => {
     // Agrupar critérios por pilar
     apiCriteria.forEach(criterion => {
       if (pillarMap[criterion.pillar]) {
-        // Buscar dados existentes para este critério
-        const existingData = existingAssessment?.[criterion.id];
+        // Buscar dados existentes para este critério - primeiro do contexto, depois do backend
+        const contextData = state.selfAssessment[criterion.id];
+        const existingData = contextData || existingAssessment?.[criterion.id];
 
         pillarMap[criterion.pillar].criteria.push({
           id: criterion.id,
@@ -121,59 +84,80 @@ const EvaluationForm = forwardRef<EvaluationFormRef>((_, ref) => {
       .filter(pillar => pillar.criteria.length > 0);
   };
 
+  const [criteriaCache, setCriteriaCache] = useState<CriteriaDto[]>([]);
+  // Derivar pilares a partir do contexto
+  const pillars = useMemo(() => {
+    if (Object.keys(state.selfAssessment).length > 0 && criteriaCache.length > 0) {
+      return mapCriteriaToComponent(criteriaCache, state.selfAssessment);
+    }
+    return [];
+  }, [state.selfAssessment, criteriaCache]);
+
   // Carregar critérios da API e avaliação existente
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
-
         // Carregar critérios
         const apiCriteria = await EvaluationService.getCriteria();
-        setAllCriteria(apiCriteria);
-
-        // Carregar avaliação existente (se houver)
-        const existingAssessment = await EvaluationService.getSelfAssessment();
-
-        // Mapear critérios para o formato do componente
-        const mappedPillars = mapCriteriaToComponent(apiCriteria, existingAssessment);
-        setPillars(mappedPillars);
-
-        // Definir se há avaliação existente
-        setHasExistingAssessment(!!existingAssessment);
-
-        // Mostrar mensagem se avaliação existente foi carregada
-        if (existingAssessment) {
-          toast.info('Avaliação carregada', 'Seus dados anteriores foram carregados com sucesso.');
+        setCriteriaCache(apiCriteria);
+        // Carregar avaliação existente (se houver) apenas se não há dados no contexto
+        let existingAssessment = null;
+        if (Object.keys(state.selfAssessment).length === 0) {
+          existingAssessment = await EvaluationService.getSelfAssessment();
+          if (existingAssessment) {
+            dispatch({ type: 'SET_SELF_ASSESSMENT', payload: existingAssessment });
+          }
         }
       } catch (error) {
         console.error('Erro ao carregar dados:', error);
-        toast.error('Erro ao carregar dados', 'Não foi possível carregar os dados da avaliação.');
       } finally {
         setLoading(false);
       }
     };
-
+    // Se já tem dados no contexto, monta a UI a partir deles
+    if (Object.keys(state.selfAssessment).length > 0 && criteriaCache.length > 0) {
+      setLoading(false);
+      return;
+    }
     loadData();
+    // eslint-disable-next-line
   }, []);
 
   const handleCriteriaUpdate = (pillarId: string, criteriaId: string, updates: Partial<Criteria>) => {
-    setPillars(
-      prev =>
-        prev?.map(pillar =>
-          pillar.id === pillarId
-            ? {
-                ...pillar,
-                criteria: pillar.criteria.map(criteria =>
-                  criteria.id === criteriaId ? { ...criteria, ...updates } : criteria,
-                ),
-              }
-            : pillar,
-        ) || [],
-    );
+    // Atualizar o contexto global - sempre atualizar com valores seguros
+    const currentData = state.selfAssessment[criteriaId] || { score: 0, justification: '' };
+
+    dispatch({
+      type: 'UPDATE_SELF_ASSESSMENT',
+      payload: {
+        criterionId: criteriaId,
+        score: updates.rating !== undefined ? updates.rating : currentData.score,
+        justification: updates.justification !== undefined ? updates.justification : currentData.justification,
+      },
+    });
+
+    // Atualizar o estado local para a UI
+    // setPillars(
+    //   prev =>
+    //     prev?.map(pillar =>
+    //       pillar.id === pillarId
+    //         ? {
+    //             ...pillar,
+    //             criteria: pillar.criteria.map(criteria =>
+    //               criteria.id === criteriaId ? { ...criteria, ...updates } : criteria,
+    //             ),
+    //           }
+    //         : pillar,
+    //     ) || [],
+    // );
   };
 
   const totalCriteria = pillars.reduce((sum, pillar) => sum + pillar.criteria.length, 0);
-  const completedCriteria = pillars.reduce((sum, pillar) => sum + pillar.criteria.filter(c => c.rating > 0).length, 0);
+  const completedCriteria = pillars.reduce(
+    (sum, pillar) => sum + pillar.criteria.filter(c => c.rating > 0 && c.justification.trim().length > 0).length,
+    0,
+  );
   const overallProgress = totalCriteria > 0 ? (completedCriteria / totalCriteria) * 100 : 0;
 
   // const handleSave = () => {
@@ -215,20 +199,30 @@ const EvaluationForm = forwardRef<EvaluationFormRef>((_, ref) => {
             </div>
             <div className='flex items-center gap-4'>
               <span className='inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700'>
-                {completedCriteria}/{totalCriteria} preenchidos
+                {/* completedCriteria e totalCriteria devem ser recalculados a partir de pillars */}
+                {pillars.reduce((sum, pillar) => sum + pillar.criteria.filter(c => c.rating > 0 && c.justification.trim().length > 0).length, 0)}/{pillars.reduce((sum, pillar) => sum + pillar.criteria.length, 0)} preenchidos
               </span>
-              <span className='text-2xl font-bold text-[#08605F]'>{overallProgress.toFixed(0)}%</span>
+              <span className='text-2xl font-bold text-[#08605F]'>
+                {(() => {
+                  const total = pillars.reduce((sum, pillar) => sum + pillar.criteria.length, 0);
+                  const completed = pillars.reduce((sum, pillar) => sum + pillar.criteria.filter(c => c.rating > 0 && c.justification.trim().length > 0).length, 0);
+                  return total > 0 ? ((completed / total) * 100).toFixed(0) : '0';
+                })()}%
+              </span>
             </div>
           </div>
           <div className='w-full bg-gray-200 rounded-full h-3'>
             <div
               className='bg-[#08605F] h-3 rounded-full transition-all duration-500'
-              style={{ width: `${overallProgress}%` }}
+              style={{ width: `${(() => {
+                const total = pillars.reduce((sum, pillar) => sum + pillar.criteria.length, 0);
+                const completed = pillars.reduce((sum, pillar) => sum + pillar.criteria.filter(c => c.rating > 0 && c.justification.trim().length > 0).length, 0);
+                return total > 0 ? (completed / total) * 100 : 0;
+              })()}%` }}
             />
           </div>
           <p className='text-sm text-gray-600 mt-2'>Complete sua avaliação preenchendo todos os critérios abaixo</p>
         </div>
-
         {/* Pillars */}
         <div className='space-y-4'>
           {pillars.map((pillar, index) => (
@@ -246,8 +240,6 @@ const EvaluationForm = forwardRef<EvaluationFormRef>((_, ref) => {
       </div>
     </div>
   );
-});
-
-EvaluationForm.displayName = 'EvaluationForm';
+};
 
 export default EvaluationForm;
