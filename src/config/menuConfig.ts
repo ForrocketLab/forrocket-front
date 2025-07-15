@@ -46,6 +46,7 @@ export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
     icon: LuFilePenLine,
     allowedRoles: [ROLES.COLLABORATOR],
   },
+
   {
     path: '/evolution',
     label: 'Evolução',
@@ -109,6 +110,12 @@ export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
     path: '/rh/criterios',
     label: 'Gestão de Critérios',
     icon: Settings,
+    allowedRoles: [ROLES.RH],
+  },
+  {
+    path: '/rh/clima-organizacional',
+    label: 'Clima Organizacional',
+    icon: LuTrendingUp,
     allowedRoles: [ROLES.RH],
   },
 

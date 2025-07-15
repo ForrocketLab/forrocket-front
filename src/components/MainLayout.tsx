@@ -1,10 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import SideMenu from './SideMenu';
+import ClimateAssessmentFloatingButton from './ClimateAssessmentFloatingButton';
+import { useClimateAssessmentStatus } from '../hooks/useClimateAssessmentStatus';
 
 const MainLayout = () => {
   // O estado que controla se o menu está expandido ou não
   const [isExpanded, setIsExpanded] = useState(window.innerWidth > 768);
+  const { isActive: isClimateAssessmentActive } = useClimateAssessmentStatus();
+
+  // Log para debug
+  useEffect(() => {
+    console.log('🔍 MainLayout: isClimateAssessmentActive:', isClimateAssessmentActive);
+  }, [isClimateAssessmentActive]);
 
   // Função para alternar o estado
   const toggleSidebar = () => {
@@ -40,6 +48,9 @@ const MainLayout = () => {
       >
         <Outlet />
       </main>
+
+      {/* Botão flutuante da avaliação de clima organizacional */}
+      <ClimateAssessmentFloatingButton isVisible={isClimateAssessmentActive} />
     </div>
   );
 };

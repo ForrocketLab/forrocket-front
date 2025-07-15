@@ -28,6 +28,7 @@ import AuditLogPage from './pages/admin/AuditLog';
 import TalentMatrixPage from './pages/hr/TalentMatrixPage';
 import TalentMatrixMethodology from './pages/hr/TalentMatrixMethodology';
 import HistoricalEvolution from './pages/hr/HistoricalEvolution';
+import ClimateAssessmentConfig from './components/hr/ClimateAssessmentConfig';
 import ManagerBrutalFacts from './pages/manager/brutal-facts/ManagerBrutalFacts';
 import OKRsPage from './pages/okrs/OKRsPage';
 import OKRDetailsPage from './pages/okrs/OKRDetailsPage';
@@ -75,10 +76,11 @@ function App() {
               <Route element={<ProtectedRoute allowedRoles={[ROLES.RH]} />}>
                 <Route path='/rh' element={<HRHomePage />} />
                 <Route path='/rh/colaboradores' element={<CollaboratorManagement />} />
-                          <Route path='/rh/evolucao-historica' element={<HistoricalEvolution />} />
-          <Route path='/rh/criterios' element={<CriteriaManagement />} />
-          <Route path='/rh/importar-historicos' element={<RHImport />} />
-          <Route path='/rh/matriz-talento' element={<TalentMatrixPage />} />
+                <Route path='/rh/evolucao-historica' element={<HistoricalEvolution />} />
+                <Route path='/rh/criterios' element={<CriteriaManagement />} />
+                <Route path='/rh/clima-organizacional' element={<ClimateAssessmentConfig />} />
+                <Route path='/rh/importar-historicos' element={<RHImport />} />
+                <Route path='/rh/matriz-talento' element={<TalentMatrixPage />} />
                 <Route path='/rh/matriz-talento/metodologia' element={<TalentMatrixMethodology />} />
               </Route>
 
@@ -104,10 +106,10 @@ function App() {
                 <Route path='/pdis/:id/edit' element={<PDIForm />} />
               </Route>
 
+
+
               <Route element={<ProtectedRoute allowedRoles={[ROLES.LEADER]} />}>
                 <Route path='/leader/projects' element={<ProjectPage />} />
-              
-
               </Route>
 
               {/* ROTA DE FALLBACK (404) */}
