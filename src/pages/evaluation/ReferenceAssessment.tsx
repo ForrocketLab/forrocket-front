@@ -176,30 +176,6 @@ const ReferenceAssessment = () => {
           </div>
         </div>
 
-        {/* Save All Button */}
-        {selectedReferences.length > 0 && (
-          <div className='bg-white border border-gray-200 rounded-lg shadow-sm mb-6'>
-            <div className='p-4'>
-              <div className='flex justify-between items-center'>
-                <div>
-                  <h3 className='text-lg font-medium text-gray-900'>Referências Selecionadas</h3>
-                  <p className='text-sm text-gray-600'>
-                    {selectedReferences.length} referência{selectedReferences.length > 1 ? 's' : ''} adicionada
-                    {selectedReferences.length > 1 ? 's' : ''}
-                  </p>
-                </div>
-                <button
-                  onClick={handleSaveAllReferences}
-                  className='flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors'
-                >
-                  <Save className='h-4 w-4' />
-                  <span>Salvar Todas</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Selected References List */}
         <div className='space-y-4'>
           {loading ? (
