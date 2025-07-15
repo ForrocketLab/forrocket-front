@@ -1,4 +1,4 @@
-import { type FC, useState } from 'react';
+import { type FC, useState, useEffect } from 'react';
 import {
   Search,
   Filter,
@@ -11,6 +11,8 @@ import {
   CheckCircle,
   Clock,
   TrendingUp,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import {
   useCommitteeCollaborators,
@@ -57,7 +59,11 @@ const EqualizacoesPage: FC = () => {
     discrepancy: 'all', // 'all', 'high', 'moderate', 'low'
     scoreRange: 'all', // 'all', '1-2', '3', '4-5'
   });
-
+  
+  // Estados para paginação
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  
   const { data: collaboratorsData, loading, error, refetch } = useCommitteeCollaborators();
   const { data: metricsData, loading: metricsLoading } = useCommitteeMetrics();
   const {
@@ -167,6 +173,29 @@ const EqualizacoesPage: FC = () => {
 
     return matchesSearch && matchesStatus && matchesDiscrepancy && matchesScoreRange;
   });
+
+  // Lógica de paginação
+  const totalPages = Math.ceil(filteredCollaborators.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedCollaborators = filteredCollaborators.slice(startIndex, endIndex);
+
+  // Resetar página atual quando filtros mudarem
+  const resetPagination = () => {
+    setCurrentPage(1);
+  };
+
+  // Atualizar página atual quando houver mudanças nos filtros
+  useEffect(() => {
+    resetPagination();
+  }, [searchTerm, activeFilters.status, activeFilters.discrepancy, activeFilters.scoreRange]);
+
+  // Verificar se a página atual tem conteúdo válido após filtros
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   // Calcular métricas para os cards
   const totalCollaborators = processedCollaborators.length;
@@ -396,68 +425,68 @@ const EqualizacoesPage: FC = () => {
   }
 
   return (
-    <div className='p-6 bg-gray-50 min-h-screen'>
+    <div className='p-4 sm:p-6 bg-gray-50 min-h-screen'>
       {/* Header */}
-      <div className='mb-6'>
-        <h1 className='text-2xl font-semibold text-gray-900'>Equalizações</h1>
+      <div className='mb-4 sm:mb-6'>
+        <h1 className='text-xl sm:text-2xl font-semibold text-gray-900'>Equalizações</h1>
       </div>
 
       {/* Cards de Métricas */}
-      <div className='grid grid-cols-1 md:grid-cols-4 gap-6 mb-6'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-4 sm:mb-6'>
         {/* Total de Colaboradores */}
-        <div className='bg-white rounded-lg shadow-sm p-6 border border-gray-200'>
-          <div className='flex items-center gap-4'>
-            <div className='w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center'>
-              <Users className='w-6 h-6 text-blue-600' />
+        <div className='bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200'>
+          <div className='flex items-center gap-3 sm:gap-4'>
+            <div className='w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-lg flex items-center justify-center'>
+              <Users className='w-5 h-5 sm:w-6 sm:h-6 text-gray-600' />
             </div>
-            <div>
+            <div className='flex-1 min-w-0'>
               <h3 className='text-sm font-medium text-gray-600'>Total</h3>
               <p className='text-xs text-gray-500'>Colaboradores no ciclo</p>
-              <div className='text-2xl font-bold text-blue-600 mt-1'>{totalCollaborators}</div>
+              <div className='text-xl sm:text-2xl font-bold text-[#085F60] mt-1'>{totalCollaborators}</div>
             </div>
           </div>
         </div>
 
         {/* Equalizações Pendentes */}
-        <div className='bg-white rounded-lg shadow-sm p-6 border border-gray-200'>
-          <div className='flex items-center gap-4'>
-            <div className='w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center'>
-              <Clock className='w-6 h-6 text-yellow-600' />
+        <div className='bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200'>
+          <div className='flex items-center gap-3 sm:gap-4'>
+            <div className='w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-lg flex items-center justify-center'>
+              <Clock className='w-5 h-5 sm:w-6 sm:h-6 text-gray-600' />
             </div>
-            <div>
+            <div className='flex-1 min-w-0'>
               <h3 className='text-sm font-medium text-gray-600'>Pendentes</h3>
               <p className='text-xs text-gray-500'>Aguardando equalização</p>
-              <div className='text-2xl font-bold text-yellow-600 mt-1'>{pendingCount}</div>
+              <div className='text-xl sm:text-2xl font-bold text-[#085F60] mt-1'>{pendingCount}</div>
             </div>
           </div>
         </div>
 
         {/* Equalizações Finalizadas */}
-        <div className='bg-white rounded-lg shadow-sm p-6 border border-gray-200'>
-          <div className='flex items-center gap-4'>
-            <div className='w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center'>
-              <CheckCircle className='w-6 h-6 text-green-600' />
+        <div className='bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200'>
+          <div className='flex items-center gap-3 sm:gap-4'>
+            <div className='w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-lg flex items-center justify-center'>
+              <CheckCircle className='w-5 h-5 sm:w-6 sm:h-6 text-gray-600' />
             </div>
-            <div>
+            <div className='flex-1 min-w-0'>
               <h3 className='text-sm font-medium text-gray-600'>Finalizadas</h3>
               <p className='text-xs text-gray-500'>Equalizações concluídas</p>
-              <div className='text-2xl font-bold text-green-600 mt-1'>{completedCount}</div>
+              <div className='text-xl sm:text-2xl font-bold text-[#085F60] mt-1'>{completedCount}</div>
             </div>
           </div>
         </div>
 
         {/* Progresso Geral */}
-        <div className='bg-white rounded-lg shadow-sm p-6 border border-gray-200'>
-          <div className='flex items-center gap-4'>
-            <div className='w-12 h-12 bg-[#085F60] bg-opacity-10 rounded-lg flex items-center justify-center'>
-              <TrendingUp className='w-6 h-6 text-[#085F60]' />
+        <div className='bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200'>
+          <div className='flex items-center gap-3 sm:gap-4'>
+            <div className='w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-lg flex items-center justify-center'>
+              <TrendingUp className='w-5 h-5 sm:w-6 sm:h-6 text-gray-600' />
             </div>
-            <div>
+            <div className='flex-1 min-w-0'>
               <h3 className='text-sm font-medium text-gray-600'>Progresso</h3>
               <p className='text-xs text-gray-500'>Percentual concluído</p>
               <div className='flex items-center gap-2 mt-1'>
-                <div className='text-2xl font-bold text-[#085F60]'>{completionPercentage}%</div>
-                <div className='flex-1 bg-gray-200 rounded-full h-2 w-16'>
+                <div className='text-xl sm:text-2xl font-bold text-[#085F60]'>{completionPercentage}%</div>
+                <div className='flex-1 bg-gray-200 rounded-full h-2 min-w-0'>
                   <div
                     className='bg-[#085F60] h-2 rounded-full transition-all duration-300'
                     style={{ width: `${completionPercentage}%` }}
@@ -470,7 +499,7 @@ const EqualizacoesPage: FC = () => {
       </div>
 
       {/* Alertas e Prazos */}
-      <div className='space-y-4 mb-6'>
+      <div className='space-y-4 mb-4 sm:mb-6'>
         {/* Alerta de Prazo */}
         {daysRemaining !== null && (
           <div
@@ -534,8 +563,8 @@ const EqualizacoesPage: FC = () => {
       </div>
 
       {/* Barra de Busca e Filtros */}
-      <div className='mb-6'>
-        <div className='flex gap-4 items-start'>
+      <div className='mb-4 sm:mb-6'>
+        <div className='flex flex-col sm:flex-row gap-4 items-start'>
           <div className='flex-1 relative'>
             <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4' />
             <input
@@ -548,10 +577,10 @@ const EqualizacoesPage: FC = () => {
           </div>
 
           {/* Botão de Filtro */}
-          <div className='relative'>
+          <div className='relative w-full sm:w-auto'>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`p-3 rounded-lg transition-colors flex items-center gap-2 ${
+              className={`w-full sm:w-auto p-3 rounded-lg transition-colors flex items-center justify-center sm:justify-start gap-2 ${
                 hasActiveFilters
                   ? 'bg-[#085F60] text-white'
                   : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
@@ -565,7 +594,7 @@ const EqualizacoesPage: FC = () => {
 
             {/* Dropdown de Filtros */}
             {showFilters && (
-              <div className='absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50'>
+              <div className='absolute right-0 sm:right-0 top-full mt-2 w-full sm:w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50'>
                 <div className='p-4'>
                   <div className='flex items-center justify-between mb-4'>
                     <h3 className='text-lg font-semibold text-gray-900'>Filtros</h3>
@@ -679,7 +708,7 @@ const EqualizacoesPage: FC = () => {
 
         {/* Indicadores de Filtros Ativos */}
         {hasActiveFilters && (
-          <div className='mt-3 flex flex-wrap gap-2'>
+          <div className='mt-3 flex flex-wrap gap-2 text-sm'>
             <span className='text-sm text-gray-600'>Filtros ativos:</span>
             {activeFilters.status !== 'all' && (
               <span className='inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full'>
@@ -715,248 +744,360 @@ const EqualizacoesPage: FC = () => {
       </div>
 
       {/* Lista de Colaboradores */}
-      <div className='space-y-4'>
-        {filteredCollaborators.map(collaborator => (
-          <div key={collaborator.id} className='bg-white rounded-lg shadow-sm border border-gray-200'>
-            {/* Header do Card */}
-            <div
-              className='p-4 cursor-pointer hover:bg-gray-50 transition-colors'
-              onClick={() => toggleCardExpansion(collaborator.id)}
-            >
-              <div className='flex items-center justify-between'>
-                <div className='flex items-center gap-4'>
-                  <div className='w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-sm font-medium text-gray-700'>
-                    {collaborator.avatar}
-                  </div>
-                  <div>
-                    <h3 className='font-medium text-gray-900'>{collaborator.name}</h3>
-                    <p className='text-sm text-gray-500'>{collaborator.role}</p>
-                  </div>
-                  <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      editingCollaborators.includes(collaborator.id)
-                        ? 'bg-orange-100 text-orange-800'
-                        : collaborator.statusColor
-                    }`}
-                  >
-                    {editingCollaborators.includes(collaborator.id) ? 'Editando' : collaborator.status}
-                  </span>
-                </div>
-
-                {/* Notas resumidas */}
-                <div className='flex items-center gap-6 text-sm'>
-                  <div className='text-center'>
-                    <div className='text-xs text-gray-500'>Autoavaliação</div>
-                    <div className='font-medium'>{collaborator.selfAssessment || '--'}</div>
-                  </div>
-                  <div className='text-center'>
-                    <div className='text-xs text-gray-500'>Avaliação 360</div>
-                    <div className='font-medium'>{collaborator.assessment360 || '--'}</div>
-                  </div>
-                  <div className='text-center'>
-                    <div className='text-xs text-gray-500'>Nota gestor</div>
-                    <div className='font-medium'>{collaborator.managerAssessment || '--'}</div>
-                  </div>
-                  <div className='text-center'>
-                    <div className='text-xs text-gray-500'>Nota final</div>
-                    <div className='font-medium'>
-                      {collaborator.finalScore ? (
-                        <span className='inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#085F60] text-white'>
-                          {collaborator.finalScore}
-                        </span>
-                      ) : (
-                        <span className='text-gray-400'>-</span>
-                      )}
-                    </div>
-                  </div>
-                  <button className='text-gray-400 hover:text-gray-600'>
-                    <svg className='w-5 h-5' viewBox='0 0 20 20' fill='currentColor'>
-                      <path
-                        fillRule='evenodd'
-                        d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'
-                        clipRule='evenodd'
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Conteúdo Expandido */}
-            {expandedCards.includes(collaborator.id) && (
-              <div className='px-4 pb-4 border-t border-gray-100'>
-                <div className='pt-4'>
-                  {/* Botão para mostrar/ocultar GenAI */}
-                  <div className='mb-4 flex justify-between items-center'>
-                    <h4 className='text-lg font-semibold text-gray-900'>Análise Inteligente</h4>
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        toggleGenAI(collaborator.id);
-                      }}
-                      className='flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 text-sm'
-                    >
-                      <svg className='w-4 h-4' fill='currentColor' viewBox='0 0 20 20'>
-                        <path d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
-                      </svg>
-                      {showGenAI[collaborator.id] ? 'Ocultar IA' : '🤖 Análise Inteligente'}
-                    </button>
-                  </div>
-
-                  {/* Componente GenAI */}
-                  {showGenAI[collaborator.id] && (
-                    <div className='mb-6'>
-                      <GenAISummaryCard
-                        collaboratorId={collaborator.id}
-                        collaboratorName={collaborator.name}
-                        cycle={metricsData?.cycle || '2025.1'}
-                        onSummaryGenerated={summary => handleGenAISummaryGenerated(collaborator.id, summary)}
-                      />
-                    </div>
-                  )}
-
-                  {/* Barras de Progresso */}
-                  <div className='grid grid-cols-3 gap-6 mb-6'>
-                    <div>
-                      <div className='flex justify-between items-center mb-2'>
-                        <span className='text-sm text-gray-600'>Autoavaliação</span>
-                        <span className='text-sm font-medium text-[#085F60]'>{collaborator.selfAssessment || 0}</span>
-                      </div>
-                      <div className='h-2 bg-gray-200 rounded-full'>
-                        <div
-                          className='h-2 bg-[#085F60] rounded-full'
-                          style={{ width: `${((collaborator.selfAssessment || 0) / 5) * 100}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className='flex justify-between items-center mb-2'>
-                        <span className='text-sm text-gray-600'>Avaliação Gestor</span>
-                        <span className='text-sm font-medium text-[#085F60]'>
-                          {collaborator.managerAssessment || 0}
-                        </span>
-                      </div>
-                      <div className='h-2 bg-gray-200 rounded-full'>
-                        <div
-                          className='h-2 bg-[#085F60] rounded-full'
-                          style={{ width: `${((collaborator.managerAssessment || 0) / 5) * 100}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className='flex justify-between items-center mb-2'>
-                        <span className='text-sm text-gray-600'>Avaliação 360</span>
-                        <span className='text-sm font-medium text-[#085F60]'>{collaborator.assessment360 || 0}</span>
-                      </div>
-                      <div className='h-2 bg-gray-200 rounded-full'>
-                        <div
-                          className='h-2 bg-[#085F60] rounded-full'
-                          style={{ width: `${((collaborator.assessment360 || 0) / 5) * 100}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {collaborator.status === 'Pendente' || editingCollaborators.includes(collaborator.id) ? (
-                    <>
-                      {/* Sistema de Avaliação */}
-                      <div className='mb-6'>
-                        <p className='text-sm text-gray-600 mb-3'>Dê uma avaliação de 1 a 5</p>
-                        <StarRating
-                          rating={ratings[collaborator.id] || 0}
-                          onRatingChange={rating => handleRatingChange(collaborator.id, rating)}
-                        />
-                      </div>
-
-                      {/* Campo de Justificativa */}
-                      <div className='mb-6'>
-                        <label className='block text-sm font-medium text-gray-700 mb-2'>Justifique sua nota</label>
-                        <textarea
-                          rows={3}
-                          placeholder='Justifique sua nota'
-                          value={justifications[collaborator.id] || ''}
-                          onChange={e => handleJustificationChange(collaborator.id, e.target.value)}
-                          className='w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#085F60] focus:border-transparent resize-none'
-                        />
-                      </div>
-
-                      {/* Botões de Ação */}
-                      <div className='flex justify-end gap-3'>
-                        {editingCollaborators.includes(collaborator.id) && (
-                          <button
-                            onClick={() => handleCancelEdit(collaborator.id)}
-                            disabled={actionLoading}
-                            className='px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors'
-                          >
-                            Cancelar
-                          </button>
-                        )}
-                        <button
-                          onClick={() => handleSubmit(collaborator)}
-                          disabled={actionLoading}
-                          className={`px-6 py-2 rounded-lg transition-colors ${
-                            actionLoading
-                              ? 'bg-gray-400 text-white cursor-not-allowed'
-                              : 'bg-[#085F60] text-white hover:bg-[#064b4c]'
-                          }`}
-                        >
-                          {actionLoading
-                            ? 'Salvando...'
-                            : editingCollaborators.includes(collaborator.id)
-                              ? 'Salvar Alterações'
-                              : 'Concluir'}
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    /* Colaborador Finalizado */
-                    <div className='flex justify-between items-center'>
-                      <div className='flex items-center gap-3'>
-                        <div className='w-8 h-8 bg-green-100 rounded-full flex items-center justify-center'>
-                          <svg className='w-4 h-4 text-green-600' fill='currentColor' viewBox='0 0 20 20'>
-                            <path
-                              fillRule='evenodd'
-                              d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
-                              clipRule='evenodd'
-                            />
-                          </svg>
-                        </div>
-                        <div className='text-sm'>
-                          <span className='text-gray-600'>Avaliação concluída com nota </span>
-                          <span className='font-semibold text-[#085F60]'>{collaborator.finalScore}</span>
-                        </div>
-                      </div>
-                      <div className='flex gap-2'>
-                        <button
-                          onClick={() => handleCopyResult(collaborator)}
-                          className='flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors'
-                          title='Copiar resultado'
-                        >
-                          <Copy className='w-4 h-4' />
-                        </button>
-                        <ExportButton
-                          collaboratorId={collaborator.id}
-                          collaboratorName={collaborator.name}
-                          hasCommitteeAssessment={collaborator.status === 'Finalizado'}
-                          variant='button'
-                        />
-                        <button
-                          onClick={() => handleEditResult(collaborator)}
-                          className='flex items-center gap-2 px-4 py-2 border border-[#085F60] text-[#085F60] rounded-lg hover:bg-[#085F60] hover:text-white transition-colors'
-                          title='Editar resultado'
-                        >
-                          <Edit3 className='w-4 h-4' />
-                          Editar resultado
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
+      {filteredCollaborators.length > 0 && (
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div className="text-sm text-gray-600">
+            {totalPages > 1 ? (
+              <>
+                Página {currentPage} de {totalPages} • 
+                Mostrando {paginatedCollaborators.length} de {filteredCollaborators.length} colaboradores
+              </>
+            ) : (
+              `${filteredCollaborators.length} colaborador${filteredCollaborators.length !== 1 ? 'es' : ''} encontrado${filteredCollaborators.length !== 1 ? 's' : ''}`
             )}
           </div>
-        ))}
+        </div>
+      )}
+      <div className="space-y-4">
+        {paginatedCollaborators.length === 0 && filteredCollaborators.length === 0 ? (
+          <div className="text-center py-8 sm:py-12">
+            <div className="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+              <Users className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum colaborador encontrado</h3>
+            <p className="text-gray-500">Tente ajustar os filtros ou a busca para ver os colaboradores.</p>
+          </div>
+        ) : paginatedCollaborators.length === 0 ? (
+          <div className="text-center py-8 sm:py-12">
+            <div className="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+              <Users className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum colaborador nesta página</h3>
+            <p className="text-gray-500">Navegue para outras páginas para ver mais colaboradores.</p>
+          </div>
+        ) : (
+          paginatedCollaborators.map((collaborator) => (
+            <div key={collaborator.id} className="bg-white rounded-lg shadow-sm border border-gray-200">
+              {/* Header do Card */}
+              <div
+                className='p-4 cursor-pointer hover:bg-gray-50 transition-colors'
+                onClick={() => toggleCardExpansion(collaborator.id)}
+              >
+                <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3'>
+                  <div className='flex items-center gap-3 sm:gap-4'>
+                    <div className='w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-sm font-medium text-gray-700'>
+                      {collaborator.avatar}
+                    </div>
+                    <div className='flex-1 min-w-0'>
+                      <h3 className='font-medium text-gray-900 truncate'>{collaborator.name}</h3>
+                      <p className='text-sm text-gray-500 truncate'>{collaborator.role}</p>
+                    </div>
+                    <span
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        editingCollaborators.includes(collaborator.id)
+                          ? 'bg-orange-100 text-orange-800'
+                          : collaborator.statusColor
+                      }`}
+                    >
+                      {editingCollaborators.includes(collaborator.id) ? 'Editando' : collaborator.status}
+                    </span>
+                  </div>
+
+                  {/* Notas resumidas */}
+                  <div className='flex items-center justify-between sm:justify-end gap-4 sm:gap-6 text-sm'>
+                    <div className='text-center'>
+                      <div className='text-xs text-gray-500'>Auto</div>
+                      <div className='font-medium'>{collaborator.selfAssessment || '--'}</div>
+                    </div>
+                    <div className='text-center hidden sm:block'>
+                      <div className='text-xs text-gray-500'>360°</div>
+                      <div className='font-medium'>{collaborator.assessment360 || '--'}</div>
+                    </div>
+                    <div className='text-center hidden md:block'>
+                      <div className='text-xs text-gray-500'>Gestor</div>
+                      <div className='font-medium'>{collaborator.managerAssessment || '--'}</div>
+                    </div>
+                    <div className='text-center'>
+                      <div className='text-xs text-gray-500'>Final</div>
+                      <div className='font-medium'>
+                        {collaborator.finalScore ? (
+                          <span className='inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#085F60] text-white'>
+                            {collaborator.finalScore}
+                          </span>
+                        ) : (
+                          <span className='text-gray-400'>-</span>
+                        )}
+                      </div>
+                    </div>
+                    <button className='text-gray-400 hover:text-gray-600'>
+                      <svg className='w-5 h-5' viewBox='0 0 20 20' fill='currentColor'>
+                        <path
+                          fillRule='evenodd'
+                          d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'
+                          clipRule='evenodd'
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Conteúdo Expandido */}
+              {expandedCards.includes(collaborator.id) && (
+                <div className='px-4 pb-4 border-t border-gray-100'>
+                  <div className='pt-4'>
+                    {/* Botão para mostrar/ocultar GenAI */}
+                    <div className='mb-4 flex justify-between items-center'>
+                      <h4 className='text-lg font-semibold text-gray-900'>Análise Inteligente</h4>
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          toggleGenAI(collaborator.id);
+                        }}
+                        className='flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 text-sm'
+                      >
+                        <svg className='w-4 h-4' fill='currentColor' viewBox='0 0 20 20'>
+                          <path d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                        </svg>
+                        {showGenAI[collaborator.id] ? 'Ocultar IA' : '🤖 Análise Inteligente'}
+                      </button>
+                    </div>
+
+                    {/* Componente GenAI */}
+                    {showGenAI[collaborator.id] && (
+                      <div className='mb-6'>
+                        <GenAISummaryCard
+                          collaboratorId={collaborator.id}
+                          collaboratorName={collaborator.name}
+                          cycle={metricsData?.cycle || '2025.1'}
+                          onSummaryGenerated={summary => handleGenAISummaryGenerated(collaborator.id, summary)}
+                        />
+                      </div>
+                    )}
+
+                    {/* Barras de Progresso */}
+                    <div className='grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6'>
+                      <div>
+                        <div className='flex justify-between items-center mb-2'>
+                          <span className='text-sm text-gray-600'>Autoavaliação</span>
+                          <span className='text-sm font-medium text-[#085F60]'>{collaborator.selfAssessment || 0}</span>
+                        </div>
+                        <div className='h-2 bg-gray-200 rounded-full'>
+                          <div
+                            className='h-2 bg-[#085F60] rounded-full'
+                            style={{ width: `${((collaborator.selfAssessment || 0) / 5) * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                      <div>
+                        <div className='flex justify-between items-center mb-2'>
+                          <span className='text-sm text-gray-600'>Avaliação Gestor</span>
+                          <span className='text-sm font-medium text-[#085F60]'>
+                            {collaborator.managerAssessment || 0}
+                          </span>
+                        </div>
+                        <div className='h-2 bg-gray-200 rounded-full'>
+                          <div
+                            className='h-2 bg-[#085F60] rounded-full'
+                            style={{ width: `${((collaborator.managerAssessment || 0) / 5) * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                      <div>
+                        <div className='flex justify-between items-center mb-2'>
+                          <span className='text-sm text-gray-600'>Avaliação 360</span>
+                          <span className='text-sm font-medium text-[#085F60]'>{collaborator.assessment360 || 0}</span>
+                        </div>
+                        <div className='h-2 bg-gray-200 rounded-full'>
+                          <div
+                            className='h-2 bg-[#085F60] rounded-full'
+                            style={{ width: `${((collaborator.assessment360 || 0) / 5) * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {collaborator.status === 'Pendente' || editingCollaborators.includes(collaborator.id) ? (
+                      <>
+                        {/* Sistema de Avaliação */}
+                        <div className='mb-6'>
+                          <p className='text-sm text-gray-600 mb-3'>Dê uma avaliação de 1 a 5</p>
+                          <StarRating
+                            rating={ratings[collaborator.id] || 0}
+                            onRatingChange={rating => handleRatingChange(collaborator.id, rating)}
+                          />
+                        </div>
+
+                        {/* Campo de Justificativa */}
+                        <div className='mb-6'>
+                          <label className='block text-sm font-medium text-gray-700 mb-2'>Justifique sua nota</label>
+                          <textarea
+                            rows={3}
+                            placeholder='Justifique sua nota'
+                            value={justifications[collaborator.id] || ''}
+                            onChange={e => handleJustificationChange(collaborator.id, e.target.value)}
+                            className='w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#085F60] focus:border-transparent resize-none'
+                          />
+                        </div>
+
+                        {/* Botões de Ação */}
+                        <div className='flex flex-col sm:flex-row justify-end gap-3'>
+                          {editingCollaborators.includes(collaborator.id) && (
+                            <button
+                              onClick={() => handleCancelEdit(collaborator.id)}
+                              disabled={actionLoading}
+                              className='px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors'
+                            >
+                              Cancelar
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleSubmit(collaborator)}
+                            disabled={actionLoading}
+                            className={`px-6 py-2 rounded-lg transition-colors ${
+                              actionLoading
+                                ? 'bg-gray-400 text-white cursor-not-allowed'
+                                : 'bg-[#085F60] text-white hover:bg-[#064b4c]'
+                            }`}
+                          >
+                            {actionLoading
+                              ? 'Salvando...'
+                              : editingCollaborators.includes(collaborator.id)
+                                ? 'Salvar Alterações'
+                                : 'Concluir'}
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      /* Colaborador Finalizado */
+                      <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3'>
+                        <div className='flex items-center gap-3'>
+                          <div className='w-8 h-8 bg-green-100 rounded-full flex items-center justify-center'>
+                            <svg className='w-4 h-4 text-green-600' fill='currentColor' viewBox='0 0 20 20'>
+                              <path
+                                fillRule='evenodd'
+                                d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
+                                clipRule='evenodd'
+                              />
+                            </svg>
+                          </div>
+                          <div className='text-sm'>
+                            <span className='text-gray-600'>Avaliação concluída com nota </span>
+                            <span className='font-semibold text-[#085F60]'>{collaborator.finalScore}</span>
+                          </div>
+                        </div>
+                        <div className='flex flex-wrap gap-2'>
+                          <button
+                            onClick={() => handleCopyResult(collaborator)}
+                            className='flex items-center gap-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm'
+                            title='Copiar resultado'
+                          >
+                            <Copy className='w-4 h-4' />
+                            <span className='hidden sm:inline'>Copiar</span>
+                          </button>
+                          <ExportButton
+                            collaboratorId={collaborator.id}
+                            collaboratorName={collaborator.name}
+                            hasCommitteeAssessment={collaborator.status === 'Finalizado'}
+                            variant='button'
+                          />
+                          <button
+                            onClick={() => handleEditResult(collaborator)}
+                            className='flex items-center gap-2 px-3 sm:px-4 py-2 border border-[#085F60] text-[#085F60] rounded-lg hover:bg-[#085F60] hover:text-white transition-colors text-sm'
+                            title='Editar resultado'
+                          >
+                            <Edit3 className='w-4 h-4' />
+                            <span className='hidden sm:inline'>Editar resultado</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )))}
       </div>
+
+      {/* Paginação */}
+      {totalPages > 1 && (
+        <div className="mt-6 sm:mt-8 flex items-center justify-between">
+          <div className="flex-1 flex justify-between sm:hidden">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                currentPage === 1 
+                  ? 'text-gray-400 cursor-not-allowed' 
+                  : 'text-gray-700 bg-white hover:bg-gray-50'
+              }`}
+            >
+              Anterior
+            </button>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                currentPage === totalPages 
+                  ? 'text-gray-400 cursor-not-allowed' 
+                  : 'text-gray-700 bg-white hover:bg-gray-50'
+              }`}
+            >
+              Próximo
+            </button>
+          </div>
+          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-gray-700">
+                Mostrando <span className="font-medium">{startIndex + 1}</span> a{' '}
+                <span className="font-medium">{Math.min(endIndex, filteredCollaborators.length)}</span> de{' '}
+                <span className="font-medium">{filteredCollaborators.length}</span> colaboradores
+              </p>
+            </div>
+            <div>
+              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
+                    currentPage === 1 
+                      ? 'text-gray-400 cursor-not-allowed' 
+                      : 'text-gray-500 hover:bg-gray-50'
+                  }`}
+                >
+                  <span className="sr-only">Anterior</span>
+                  <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                      page === currentPage
+                        ? 'z-10 bg-[#085F60] border-[#085F60] text-white'
+                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
+                    currentPage === totalPages 
+                      ? 'text-gray-400 cursor-not-allowed' 
+                      : 'text-gray-500 hover:bg-gray-50'
+                  }`}
+                >
+                  <span className="sr-only">Próximo</span>
+                  <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                </button>
+              </nav>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

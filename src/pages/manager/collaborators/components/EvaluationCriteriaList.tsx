@@ -1,8 +1,6 @@
-// src/pages/manager/collaboratorEvaluations/components/EvaluationCriteriaList.tsx
-
 import type { SelfAssessmentAnswer, ManagerCriterionState } from '../../../../types/evaluations';
 import { Star, CheckCircle, ChevronUp, ChevronDown } from 'lucide-react';
-import { ALLOWED_CRITERIA_IDS } from '../CollaboratorEvaluationDetails';
+import { POSTURE_CRITERIA_IDS } from '../../../../config/evaluationCriteria';
 
 interface EvaluationCriteriaListProps {
   isAssessmentSubmitted: boolean;
@@ -39,7 +37,7 @@ const EvaluationCriteriaList = ({
       </div>
 
       <div className='divide-y divide-gray-200'>
-        {ALLOWED_CRITERIA_IDS.map((criterionId, index) => {
+        {POSTURE_CRITERIA_IDS.map((criterionId, index) => {
           const isExpanded = expandedCriterion.has(criterionId);
           const managerScore = managerAssessments[criterionId]?.score || 0;
           const selfAnswer = answers.find(a => a.criterionId === criterionId);

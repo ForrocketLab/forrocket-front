@@ -25,23 +25,31 @@ const RefCollaborator = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCollaborator, setSelectedCollaborator] = useState<Collaborator | null>(null);
   const [justification, setJustification] = useState('');
-  const totalEvaluations = 1;    const { state, dispatch } = useEvaluation();
-    const referenceFeedbackData = state.references;
+  const totalEvaluations = 1;
+  const { state, dispatch } = useEvaluation();
+  const referenceFeedbackData = state.references;
 
-    const addReferenceFeedback = (feedback: { referencedUserId: string; referencedUserName: string; justification: string }) => {
-        const newReference = {
-            id: feedback.referencedUserId,
-            referenceName: feedback.referencedUserName,
-            referenceRole: selectedCollaborator?.role || '',
-            referenceInitials: feedback.referencedUserName.split(' ').map(n => n[0]).join(''),
-            justification: feedback.justification
-        };
-        dispatch({ type: 'ADD_REFERENCE', payload: newReference });
+  const addReferenceFeedback = (feedback: {
+    referencedUserId: string;
+    referencedUserName: string;
+    justification: string;
+  }) => {
+    const newReference = {
+      id: feedback.referencedUserId,
+      referenceName: feedback.referencedUserName,
+      referenceRole: selectedCollaborator?.role || '',
+      referenceInitials: feedback.referencedUserName
+        .split(' ')
+        .map(n => n[0])
+        .join(''),
+      justification: feedback.justification,
     };
+    dispatch({ type: 'ADD_REFERENCE', payload: newReference });
+  };
 
-    const removeReferenceFeedback = (referencedUserId: string) => {
-        dispatch({ type: 'REMOVE_REFERENCE', payload: referencedUserId });
-    };
+  const removeReferenceFeedback = (referencedUserId: string) => {
+    dispatch({ type: 'REMOVE_REFERENCE', payload: referencedUserId });
+  };
 
   useEffect(() => {
     const fetchAllTeammates = async () => {
@@ -177,10 +185,7 @@ const RefCollaborator = () => {
         <div className='space-y-4'>
           {referenceFeedbackData.length > 0 ? (
             referenceFeedbackData.map(feedback => (
-              <div
-                key={feedback.id}
-                className='bg-white p-4 rounded-lg shadow flex justify-between items-center'
-              >
+              <div key={feedback.id} className='bg-white p-4 rounded-lg shadow flex justify-between items-center'>
                 <div>
                   <p className='font-semibold'>{feedback.referenceName}</p>
                   <p className='text-sm text-gray-600 mt-1 italic'>&quot;{feedback.justification}&quot;</p>

@@ -88,8 +88,8 @@ ${summary.summary}
   }
 
   return (
-    <div className='bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-6'>
-      <div className='flex items-center justify-between mb-4'>
+    <div className='bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4 sm:p-6'>
+      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4'>
         <div className='flex items-center gap-3'>
           <div className='w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center'>
             <Brain className='w-5 h-5 text-white' />
@@ -104,7 +104,7 @@ ${summary.summary}
           <button
             onClick={handleGenerateSummary}
             disabled={loading}
-            className='flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
+            className='w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm'
           >
             <Sparkles className='w-4 h-4' />
             🚀 Iniciar Análise IA
@@ -112,7 +112,7 @@ ${summary.summary}
         )}
 
         {summary && !loading && (
-          <div className='flex items-center gap-2'>
+          <div className='flex items-center justify-center sm:justify-end gap-2'>
             <div className='flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm'>
               <CheckCircle className='w-4 h-4' />
               Já Gerado
@@ -163,21 +163,21 @@ ${summary.summary}
         <div className='space-y-4'>
           {/* Header Info */}
           <div className='bg-white rounded-lg p-4 border border-blue-100'>
-            <div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-center'>
+            <div className='grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-center'>
               <div>
-                <div className='text-2xl font-bold text-blue-600'>{summary.averageScore.toFixed(2)}</div>
+                <div className='text-xl sm:text-2xl font-bold text-blue-600'>{summary.averageScore.toFixed(2)}</div>
                 <div className='text-xs text-gray-600'>Média Geral</div>
               </div>
               <div>
-                <div className='text-2xl font-bold text-green-600'>{summary.totalEvaluations}</div>
+                <div className='text-xl sm:text-2xl font-bold text-green-600'>{summary.totalEvaluations}</div>
                 <div className='text-xs text-gray-600'>Total Avaliações</div>
               </div>
               <div>
-                <div className='text-2xl font-bold text-purple-600'>{summary.cycle}</div>
+                <div className='text-xl sm:text-2xl font-bold text-purple-600'>{summary.cycle}</div>
                 <div className='text-xs text-gray-600'>Ciclo</div>
               </div>
               <div>
-                <div className='text-2xl font-bold text-orange-600'>
+                <div className='text-xl sm:text-2xl font-bold text-orange-600'>
                   {summary.averageScore >= 4.0 ? 'Alto' : summary.averageScore >= 3.0 ? 'Médio' : 'Baixo'}
                 </div>
                 <div className='text-xs text-gray-600'>Performance</div>
@@ -187,12 +187,12 @@ ${summary.summary}
 
           {/* AI Summary */}
           <div className='bg-white rounded-lg p-4 border border-blue-100'>
-            <div className='flex items-center justify-between mb-3'>
+            <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3'>
               <h4 className='text-md font-semibold text-gray-900 flex items-center gap-2'>
                 <Brain className='w-4 h-4 text-blue-600' />
                 Análise da Inteligência Artificial
               </h4>
-              <div className='flex items-center gap-2'>
+              <div className='flex items-center justify-center sm:justify-end gap-2'>
                 <button
                   onClick={handleCopySummary}
                   className='p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors'
@@ -204,7 +204,7 @@ ${summary.summary}
             </div>
 
             <div className='prose prose-sm max-w-none'>
-              <div className='bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border-l-4 border-blue-400'>
+              <div className='bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3 sm:p-4 border-l-4 border-blue-400'>
                 <MarkdownRenderer content={summary.summary} />
               </div>
             </div>
@@ -215,9 +215,9 @@ ${summary.summary}
       {/* Info Card - Mostra quando não há resumo */}
       {!summary && !loading && !error && (
         <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
-          <div className='flex items-start gap-3'>
+          <div className='flex flex-col sm:flex-row sm:items-start gap-3'>
             <Clock className='w-5 h-5 text-blue-600 mt-0.5' />
-            <div>
+            <div className='flex-1'>
               <h4 className='text-sm font-medium text-blue-900 mb-1'>⏳ Resumo não gerado ainda</h4>
               <p className='text-sm text-blue-800 mb-3'>
                 Clique em "🚀 Iniciar Análise IA" para criar uma análise inteligente das avaliações deste colaborador.

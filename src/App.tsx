@@ -28,6 +28,7 @@ import AuditLogPage from './pages/admin/AuditLog';
 import TalentMatrixPage from './pages/hr/TalentMatrixPage';
 import TalentMatrixMethodology from './pages/hr/TalentMatrixMethodology';
 import HistoricalEvolution from './pages/hr/HistoricalEvolution';
+import ClimateAssessmentConfig from './components/hr/ClimateAssessmentConfig';
 import ManagerBrutalFacts from './pages/manager/brutal-facts/ManagerBrutalFacts';
 import OKRsPage from './pages/okrs/OKRsPage';
 import OKRDetailsPage from './pages/okrs/OKRDetailsPage';
@@ -40,6 +41,7 @@ import SimpleMarkdownTest from './components/SimpleMarkdownTest';
 import MentorDashboardPage from './pages/mentor/dashboard/MentorDashboard';
 import MentorMentees from './pages/mentor/mentees/MentorMentees';
 import MenteeEvaluationDetails from './pages/mentor/mentees/MenteeEvaluationDetails';
+import ProjectPage from './pages/leader/projects/ProjectPage';
 
 function App() {
   const { toasts, removeToast } = useToastSubscription();
@@ -79,6 +81,7 @@ function App() {
                 <Route path='/rh/colaboradores' element={<CollaboratorManagement />} />
                 <Route path='/rh/evolucao-historica' element={<HistoricalEvolution />} />
                 <Route path='/rh/criterios' element={<CriteriaManagement />} />
+                <Route path='/rh/clima-organizacional' element={<ClimateAssessmentConfig />} />
                 <Route path='/rh/importar-historicos' element={<RHImport />} />
                 <Route path='/rh/matriz-talento' element={<TalentMatrixPage />} />
                 <Route path='/rh/matriz-talento/metodologia' element={<TalentMatrixMethodology />} />
@@ -110,6 +113,10 @@ function App() {
                 <Route path='/pdis' element={<PDIsPage />} />
                 <Route path='/pdis/:id' element={<PDIDetailsPage />} />
                 <Route path='/pdis/:id/edit' element={<PDIForm />} />
+              </Route>
+
+              <Route element={<ProtectedRoute allowedRoles={[ROLES.LEADER]} />}>
+                <Route path='/leader/projects' element={<ProjectPage />} />
               </Route>
 
               {/* ROTA DE FALLBACK (404) */}

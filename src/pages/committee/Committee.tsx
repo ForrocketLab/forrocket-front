@@ -1,7 +1,7 @@
-import React, { type FC, useState } from 'react';
+import React, { type FC, useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Users, CheckCircle, ChevronDown, ChevronUp, AlertCircle, Download, Copy } from 'lucide-react';
+import { Calendar, Users, CheckCircle, ChevronDown, ChevronUp, AlertCircle, Download, Copy, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCommitteeCollaborators, useCommitteeMetrics, useCollaboratorEvaluationSummary } from '../../hooks/useCommittee';
 import ExportButton from '../../components/ExportButton';
 import CommitteeService from '../../services/CommitteeService';
@@ -13,6 +13,10 @@ const CommitteePage: FC = () => {
   const toast = useGlobalToast();
   const [expandedCollaborators, setExpandedCollaborators] = useState<string[]>([]);
   const [collaboratorSummaries, setCollaboratorSummaries] = useState<{[key: string]: any}>({});
+  
+  // Estados para paginação
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
   const { data: collaboratorsData, loading: collaboratorsLoading, error: collaboratorsError } = useCommitteeCollaborators();
   const { data: metricsData, loading: metricsLoading, error: metricsError } = useCommitteeMetrics();
 
@@ -56,8 +60,8 @@ const CommitteePage: FC = () => {
   const daysRemaining = metricsData?.deadlines.daysRemaining || null;
   const assessmentCompletion = metricsData?.metrics.selfAssessmentCompletion || 0;
 
-  // Mapear colaboradores para exibição na tabela (primeiros 5)
-  const displayCollaborators = collaborators.slice(0, 5).map(collaborator => {
+  // Mapear todos os colaboradores
+  const allCollaborators = collaborators.map(collaborator => {
     const summary = collaboratorSummaries[collaborator.id];
     const evaluationScores = summary?.evaluationScores;
     
@@ -74,6 +78,19 @@ const CommitteePage: FC = () => {
       managerAssessment: evaluationScores?.managerAssessment || null,
     };
   });
+
+  // Lógica de paginação
+  const totalPages = Math.ceil(allCollaborators.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const displayCollaborators = allCollaborators.slice(startIndex, endIndex);
+
+  // Resetar página se não há mais dados
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   // Componente inline para detalhes do colaborador
   const CollaboratorDetails: FC<{collaboratorId: string, collaboratorName: string, summary: any}> = ({ 
@@ -138,9 +155,9 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
     }
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header com ações */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-[#085F60] rounded-full flex items-center justify-center text-white font-bold">
               {collaboratorName.split(' ').map(n => n[0]).join('').slice(0, 2)}
@@ -167,14 +184,14 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Informações do Colaborador */}
           <div className="bg-white rounded-lg p-4 border border-gray-200">
             <h4 className="text-md font-semibold text-gray-900 mb-3">Informações do Colaborador</h4>
             <div className="space-y-2">
               <div>
                 <span className="text-sm text-gray-600">Email:</span>
-                <p className="font-medium">{summary.collaborator.email}</p>
+                <p className="font-medium break-all">{summary.collaborator.email}</p>
               </div>
               <div>
                 <span className="text-sm text-gray-600">Cargo:</span>
@@ -201,8 +218,8 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
               <div className="space-y-3">
                 {/* Autoavaliação */}
                 {summary.evaluationScores.selfAssessment && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-24 text-sm font-medium text-gray-700">Autoavaliação</div>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                    <div className="w-full sm:w-24 text-sm font-medium text-gray-700">Autoavaliação</div>
                     <div className="flex-1 flex items-center gap-2">
                       <div className="w-full bg-gray-200 rounded h-6 relative">
                         <div 
@@ -218,8 +235,8 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
 
                 {/* Avaliação 360 */}
                 {summary.evaluationScores.assessment360 && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-24 text-sm font-medium text-gray-700">360° (média)</div>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                    <div className="w-full sm:w-24 text-sm font-medium text-gray-700">360° (média)</div>
                     <div className="flex-1 flex items-center gap-2">
                       <div className="w-full bg-gray-200 rounded h-6 relative">
                         <div 
@@ -235,8 +252,8 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
 
                 {/* Avaliação Gestor */}
                 {summary.evaluationScores.managerAssessment && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-24 text-sm font-medium text-gray-700">Gestor</div>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                    <div className="w-full sm:w-24 text-sm font-medium text-gray-700">Gestor</div>
                     <div className="flex-1 flex items-center gap-2">
                       <div className="w-full bg-gray-200 rounded h-6 relative">
                         <div 
@@ -252,8 +269,8 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
 
                 {/* Mentoring */}
                 {summary.evaluationScores.mentoring && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-24 text-sm font-medium text-gray-700">Mentoring</div>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                    <div className="w-full sm:w-24 text-sm font-medium text-gray-700">Mentoring</div>
                     <div className="flex-1 flex items-center gap-2">
                       <div className="w-full bg-gray-200 rounded h-6 relative">
                         <div 
@@ -424,7 +441,7 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
   // Loading state
   if (collaboratorsLoading || metricsLoading) {
     return (
-      <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#085F60]"></div>
         </div>
@@ -436,7 +453,7 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
   if (collaboratorsError || metricsError) {
     const errorMessage = collaboratorsError || metricsError;
     return (
-      <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
@@ -455,11 +472,11 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-gray-900">
+      <div className="mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">
             Olá, <span className="text-[#085F60]">{user?.name?.split(' ')[0] || 'Comitê'}</span>
           </h1>
           <div className="flex items-center gap-2">
@@ -471,14 +488,14 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
       </div>
 
       {/* Cards de Métricas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
         {/* Card Prazo */}
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-              <Calendar className="w-6 h-6 text-gray-600" />
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+              <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <h3 className="text-sm font-medium text-gray-600">Prazo para Equalização</h3>
               <p className="text-xs text-gray-500">
                 {daysRemaining !== null 
@@ -486,7 +503,7 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
                   : 'Prazo não definido'
                 }
               </p>
-              <div className="text-2xl font-bold text-[#085F60] mt-2">
+              <div className="text-xl sm:text-2xl font-bold text-[#085F60] mt-2">
                 {daysRemaining !== null ? daysRemaining : '--'} 
                 <span className="text-sm text-gray-500"> dias</span>
               </div>
@@ -495,16 +512,16 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
         </div>
 
         {/* Card Preenchimento */}
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-              <CheckCircle className="w-6 h-6 text-gray-600" />
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+              <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <h3 className="text-sm font-medium text-gray-600">Progresso de Equalizações</h3>
               <p className="text-xs text-gray-500">{completionPercentage}% das avaliações foram equalizadas</p>
               <div className="flex items-center gap-2 mt-2">
-                <div className="text-2xl font-bold text-[#085F60]">{completionPercentage}%</div>
+                <div className="text-xl sm:text-2xl font-bold text-[#085F60]">{completionPercentage}%</div>
                 <div className="flex-1 bg-gray-200 rounded-full h-2">
                   <div 
                     className="bg-[#085F60] h-2 rounded-full transition-all duration-300"
@@ -518,17 +535,17 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
 
         {/* Card Equalizações Pendentes */}
         <div 
-          className="bg-[#085F60] rounded-lg shadow-sm p-6 text-white cursor-pointer hover:bg-[#064b4c] transition-colors"
+          className="bg-[#085F60] rounded-lg shadow-sm p-4 sm:p-6 text-white cursor-pointer hover:bg-[#064b4c] transition-colors sm:col-span-2 lg:col-span-1"
           onClick={() => navigate('/committee/equalizacoes')}
         >
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-              <Users className="w-6 h-6 text-white" />
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-lg flex items-center justify-center">
+              <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <h3 className="text-sm font-medium text-white/90">Equalizações pendentes</h3>
               <p className="text-xs text-white/80">Confira suas revisões de nota</p>
-              <div className="text-2xl font-bold text-white mt-2">{pendingCount}</div>
+              <div className="text-xl sm:text-2xl font-bold text-white mt-2">{pendingCount}</div>
             </div>
           </div>
         </div>
@@ -536,15 +553,21 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
 
       {/* Tabela de Colaboradores */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <h2 className="text-lg font-medium text-gray-900">Resumo de equalizações</h2>
-            <button 
-              onClick={() => navigate('/committee/equalizacoes')}
-              className="text-sm text-[#085F60] hover:text-[#064b4c] font-medium"
-            >
-              Ver mais
-            </button>
+            {allCollaborators.length > 0 && (
+              <div className="text-sm text-gray-600">
+                {totalPages > 1 ? (
+                  <>
+                    Página {currentPage} de {totalPages} • 
+                    Mostrando {displayCollaborators.length} de {allCollaborators.length} colaboradores
+                  </>
+                ) : (
+                  `${allCollaborators.length} colaborador${allCollaborators.length !== 1 ? 'es' : ''}`
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -552,28 +575,49 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Colaborador
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                   Autoavaliação
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                   Avaliação 360
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                   Nota gestor
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Nota final
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Ações
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {displayCollaborators.map((collaborator) => (
+              {displayCollaborators.length === 0 && allCollaborators.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-4 sm:px-6 py-12 text-center">
+                    <div className="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                      <Users className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum colaborador encontrado</h3>
+                    <p className="text-gray-500">Não há colaboradores para exibir no momento.</p>
+                  </td>
+                </tr>
+              ) : displayCollaborators.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-4 sm:px-6 py-12 text-center">
+                    <div className="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                      <Users className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum colaborador nesta página</h3>
+                    <p className="text-gray-500">Navegue para outras páginas para ver mais colaboradores.</p>
+                  </td>
+                </tr>
+              ) : (
+                displayCollaborators.map((collaborator) => (
                 <React.Fragment key={collaborator.id}>
                   <tr 
                     className={`cursor-pointer transition-all duration-200 ${
@@ -584,30 +628,38 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
                     onClick={() => toggleCollaboratorExpansion(collaborator.id)}
                     title={expandedCollaborators.includes(collaborator.id) ? "Clique para recolher detalhes" : "Clique para ver detalhes"}
                   >
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-sm font-medium text-gray-700">
                           {collaborator.avatar}
                         </div>
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{collaborator.name}</div>
-                          <div className="text-sm text-gray-500">{collaborator.role}</div>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-medium text-gray-900 truncate">{collaborator.name}</div>
+                          <div className="text-sm text-gray-500 truncate">{collaborator.role}</div>
+                          {/* Informações móveis */}
+                          <div className="sm:hidden mt-1 space-y-1">
+                            <div className="text-xs text-gray-600">
+                              Auto: {collaborator.selfAssessment || '--'} | 
+                              360°: {collaborator.assessment360 || '--'} | 
+                              Gestor: {collaborator.managerAssessment || '--'}
+                            </div>
+                          </div>
                         </div>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${collaborator.statusColor}`}>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${collaborator.statusColor} hidden sm:inline-block`}>
                           {collaborator.status}
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-center hidden sm:table-cell">
                       <span className="text-sm font-medium text-gray-900">{collaborator.selfAssessment || '--'}</span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-center hidden lg:table-cell">
                       <span className="text-sm font-medium text-gray-900">{collaborator.assessment360 || '--'}</span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-center hidden md:table-cell">
                       <span className="text-sm font-medium text-gray-900">{collaborator.managerAssessment || '--'}</span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-center">
                       {collaborator.finalScore ? (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#085F60] text-white">
                           {collaborator.finalScore}
@@ -616,7 +668,7 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
                         <span className="text-gray-400">-</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex items-center justify-center">
                         {expandedCollaborators.includes(collaborator.id) ? (
                           <ChevronUp className="w-5 h-5 text-[#085F60] transform transition-transform" />
@@ -630,7 +682,7 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
                   {/* Linha expandida com detalhes */}
                   {expandedCollaborators.includes(collaborator.id) && (
                     <tr key={`${collaborator.id}-details`}>
-                      <td colSpan={6} className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                      <td colSpan={6} className="px-4 sm:px-6 py-4 bg-gray-50 border-t border-gray-200">
                         <CollaboratorDetails 
                           collaboratorId={collaborator.id}
                           collaboratorName={collaborator.name}
@@ -640,10 +692,92 @@ STATUS COMITÊ: ${summary.summary.hasCommitteeAssessment ? 'Finalizado' : 'Pende
                     </tr>
                   )}
                 </React.Fragment>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>
+
+        {/* Paginação */}
+        {totalPages > 1 && (
+          <div className="px-4 sm:px-6 py-4 border-t border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 flex justify-between sm:hidden">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                    currentPage === 1 
+                      ? 'text-gray-400 cursor-not-allowed' 
+                      : 'text-gray-700 bg-white hover:bg-gray-50'
+                  }`}
+                >
+                  Anterior
+                </button>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                    currentPage === totalPages 
+                      ? 'text-gray-400 cursor-not-allowed' 
+                      : 'text-gray-700 bg-white hover:bg-gray-50'
+                  }`}
+                >
+                  Próximo
+                </button>
+              </div>
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-gray-700">
+                    Mostrando <span className="font-medium">{startIndex + 1}</span> a{' '}
+                    <span className="font-medium">{Math.min(endIndex, allCollaborators.length)}</span> de{' '}
+                    <span className="font-medium">{allCollaborators.length}</span> colaboradores
+                  </p>
+                </div>
+                <div>
+                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
+                        currentPage === 1 
+                          ? 'text-gray-400 cursor-not-allowed' 
+                          : 'text-gray-500 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="sr-only">Anterior</span>
+                      <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                    </button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                          page === currentPage
+                            ? 'z-10 bg-[#085F60] border-[#085F60] text-white'
+                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
+                        currentPage === totalPages 
+                          ? 'text-gray-400 cursor-not-allowed' 
+                          : 'text-gray-500 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="sr-only">Próximo</span>
+                      <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                    </button>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
