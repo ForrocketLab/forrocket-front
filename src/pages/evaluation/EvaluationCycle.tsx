@@ -8,7 +8,7 @@ import MentoringEvaluation from './MentoringEvaluation';
 import ReferencesEvaluation from './ReferenceAssessment';
 import EvaluationService from '../../services/EvaluationService';
 import { EvaluationProvider } from '../../contexts/EvaluationContext';
-import { useEvaluationCompletion } from '../../hooks/useEvaluation';
+import { useEvaluation, useEvaluationCompletion } from '../../hooks/useEvaluation';
 
 const TABS: TabItem[] = [
   { id: 'self-assessment', label: 'Autoavaliação' },
@@ -21,6 +21,8 @@ const EvaluationPageContent = () => {
   const toast = useGlobalToast();
   const [activeTab, setActiveTab] = useState('self-assessment');
   const [currentCycle, setCurrentCycle] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { state } = useEvaluation();
   const completionStatus = useEvaluationCompletion();
 
   // Função para submeter avaliação final
@@ -32,14 +34,84 @@ const EvaluationPageContent = () => {
       return;
     }
 
-    try {
-      // Como já há auto-save, aqui apenas mudamos o status para "SUBMITTED"
-      // Os dados já estão salvos como DRAFT pelo auto-save
+    if (isSubmitting) {
+      return; // Prevenir múltiplos cliques
+    }
 
+    setIsSubmitting(true);
+
+    try {
+      console.log('🚀 Iniciando envio de todas as avaliações...');
+
+      // 1. Salvar autoavaliação
+      if (Object.keys(state.selfAssessment).length > 0) {
+        console.log('📝 Salvando autoavaliação:', state.selfAssessment);
+        await EvaluationService.saveSelfAssessment(state.selfAssessment);
+        console.log('✅ Autoavaliação salva com sucesso');
+      }
+
+      // 2. Salvar avaliações 360
+      if (Object.keys(state.evaluation360).length > 0) {
+        console.log('🎯 Salvando avaliações 360:', state.evaluation360);
+
+        // Filtrar apenas avaliações com dados válidos e preparar array para batch
+        const validEvaluations360 = Object.entries(state.evaluation360)
+          .filter(([, data]) => data.rating > 0 && data.strengths && data.improvements)
+          .map(([evaluatedUserId, data]) => ({
+            id: evaluatedUserId,
+            rating: data.rating,
+            strengths: data.strengths,
+            improvements: data.improvements,
+            workAgainMotivation: data.workAgainMotivation || '',
+          }));
+
+        if (validEvaluations360.length > 0) {
+          // Salvar todas as avaliações 360 em uma única requisição batch
+          await EvaluationService.saveEvaluations360Batch(validEvaluations360);
+          console.log('✅ Avaliações 360 salvas com sucesso');
+        }
+      }
+
+      // 3. Salvar avaliações de mentoria
+      if (Object.keys(state.mentoring).length > 0) {
+        console.log('🎓 Salvando avaliações de mentoria:', state.mentoring);
+
+        // Filtrar apenas avaliações com dados válidos
+        const validMentoringEvaluations = Object.entries(state.mentoring).filter(
+          ([, data]) => data.rating > 0 && data.justification.trim(),
+        );
+
+        if (validMentoringEvaluations.length > 0) {
+          // Como há apenas uma avaliação de mentoria, pegar a primeira
+          const [, mentorData] = validMentoringEvaluations[0];
+          await EvaluationService.updateMentorAssessment({
+            rating: mentorData.rating,
+            justification: mentorData.justification,
+          });
+          console.log('✅ Avaliações de mentoria salvas com sucesso');
+        }
+      }
+
+      // 4. Salvar referências
+      if (state.references.length > 0) {
+        console.log('📋 Salvando referências:', state.references);
+
+        // Filtrar apenas referências com justificação preenchida
+        const validReferences = state.references.filter(ref => ref.justification.trim());
+
+        if (validReferences.length > 0) {
+          await EvaluationService.saveAllReferenceFeedbacks(validReferences);
+          console.log('✅ Referências salvas com sucesso');
+        }
+      }
+
+      console.log('🎉 Todas as avaliações foram enviadas com sucesso!');
       toast.success('Avaliações enviadas', 'Todas as suas avaliações foram enviadas para análise.');
     } catch (error) {
       console.error('Erro ao enviar avaliações:', error);
-      toast.error('Erro ao enviar', 'Não foi possível enviar as avaliações.');
+      toast.error('Erro ao enviar', 'Não foi possível enviar as avaliações. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

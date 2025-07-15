@@ -3,6 +3,7 @@ import { Search, Users, Save } from 'lucide-react';
 import { ReferenceEvaluation } from './ReferenceEvaluation';
 import EvaluationService, { ReferenceAssessmentDto } from '../../services/EvaluationService';
 import { useEvaluation } from '../../hooks/useEvaluation';
+import { useGlobalToast } from '../../hooks/useGlobalToast';
 
 // Interface para colaborador disponível
 interface AvailableCollaborator {
@@ -18,7 +19,9 @@ const ReferenceAssessment = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const { state, dispatch } = useEvaluation();
+  const toast = useGlobalToast();
 
   // Derivar referências selecionadas e colaboradores disponíveis a partir do contexto
   const selectedReferences = useMemo(() => state.references, [state.references]);
@@ -98,9 +101,23 @@ const ReferenceAssessment = () => {
     dispatch({ type: 'UPDATE_REFERENCE_JUSTIFICATION', payload: { id: referenceId, justification } });
   };
 
-  // Remover função de salvar todas as referências automaticamente
+  // Função para salvar todas as referências no backend
   const handleSaveAllReferences = async () => {
-    console.log('Salvando referências localmente apenas');
+    if (selectedReferences.length === 0) {
+      toast.error('Nenhuma referência', 'Adicione pelo menos uma referência para salvar.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await EvaluationService.saveAllReferenceFeedbacks(selectedReferences);
+      toast.success('Referências salvas', 'Todas as referências foram salvas com sucesso.');
+    } catch (error) {
+      console.error('Erro ao salvar referências:', error);
+      toast.error('Erro ao salvar', 'Não foi possível salvar as referências. Tente novamente.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleRemoveReference = (referenceId: string) => {
