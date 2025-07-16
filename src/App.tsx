@@ -42,6 +42,9 @@ import MentorDashboardPage from './pages/mentor/dashboard/MentorDashboard';
 import MentorMentees from './pages/mentor/mentees/MentorMentees';
 import MenteeEvaluationDetails from './pages/mentor/mentees/MenteeEvaluationDetails';
 import ProjectPage from './pages/leader/projects/ProjectPage';
+import VerifyCodePage from './pages/auth/VerifyCodePage';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 
 function App() {
   const { toasts, removeToast } = useToastSubscription();
@@ -53,6 +56,9 @@ function App() {
           <Routes>
             {/* Rotas Públicas */}
             <Route path='/login' element={<LoginPage />} />
+            <Route path='/forgot-password' element={<ForgotPasswordPage />} /> 
+            <Route path='/verify-code' element={<VerifyCodePage />} /> 
+            <Route path='/reset-password' element={<ResetPasswordPage />} />
             <Route path='/unauthorized' element={<h1>Não autorizado</h1>} />
 
             {/* Rotas protegidas com layout padrão (SideMenu incluso) */}
