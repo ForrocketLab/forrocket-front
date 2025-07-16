@@ -30,8 +30,12 @@ export const PillarSection = ({
 }: PillarSectionProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
-  const completedCriteria = criteria.filter(c => c.rating > 0).length;
-  const averageRating = criteria.length > 0 ? criteria.reduce((sum, c) => sum + c.rating, 0) / criteria.length : 0;
+  const completedCriteria = criteria.filter(c => c.rating > 0 && c.justification.trim() !== '').length;
+  const averageRating =
+    completedCriteria > 0
+      ? criteria.filter(c => c.rating > 0 && c.justification.trim() !== '').reduce((sum, c) => sum + c.rating, 0) /
+        completedCriteria
+      : 0;
 
   const progressPercentage = criteria.length > 0 ? (completedCriteria / criteria.length) * 100 : 0;
 
