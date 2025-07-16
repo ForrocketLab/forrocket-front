@@ -181,6 +181,23 @@ export const getActionStatusOptions = (): Array<{ value: PDIActionStatus; label:
 
 // Funções utilitárias para deadline e atraso
 /**
+ * Verifica se uma data é válida
+ */
+const isValidDate = (dateString: string): boolean => {
+  if (!dateString) return false;
+  const date = new Date(dateString);
+  return !isNaN(date.getTime());
+};
+
+/**
+ * Converte string para Date de forma segura
+ */
+const safeParseDate = (dateString: string): Date | null => {
+  if (!isValidDate(dateString)) return null;
+  return new Date(dateString);
+};
+
+/**
  * Verifica se um PDI está próximo do vencimento (últimos 7 dias)
  */
 export const isPDINearDeadline = (pdi: PDISummary): boolean => {
@@ -188,7 +205,9 @@ export const isPDINearDeadline = (pdi: PDISummary): boolean => {
     return false;
   }
 
-  const endDate = new Date(pdi.endDate);
+  const endDate = safeParseDate(pdi.endDate);
+  if (!endDate) return false;
+
   const today = new Date();
   const diffTime = endDate.getTime() - today.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -204,7 +223,9 @@ export const isPDIOverdue = (pdi: PDISummary): boolean => {
     return false;
   }
 
-  const endDate = new Date(pdi.endDate);
+  const endDate = safeParseDate(pdi.endDate);
+  if (!endDate) return false;
+
   const today = new Date();
   
   // Remove as horas para comparar apenas datas
@@ -220,7 +241,9 @@ export const isPDIOverdue = (pdi: PDISummary): boolean => {
 export const getPDIOverdueDays = (pdi: PDISummary): number => {
   if (!isPDIOverdue(pdi)) return 0;
 
-  const endDate = new Date(pdi.endDate);
+  const endDate = safeParseDate(pdi.endDate);
+  if (!endDate) return 0;
+
   const today = new Date();
   
   // Remove as horas para comparar apenas datas
@@ -253,7 +276,9 @@ export const getPDIDeadlineStatus = (pdi: PDISummary): string => {
     return `Atrasado há ${days} dia${days > 1 ? 's' : ''}`;
   }
   if (isPDINearDeadline(pdi)) {
-    const endDate = new Date(pdi.endDate);
+    const endDate = safeParseDate(pdi.endDate);
+    if (!endDate) return 'Data inválida';
+
     const today = new Date();
     const diffTime = endDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));

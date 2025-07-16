@@ -447,10 +447,10 @@ const CollaboratorManagement: React.FC = () => {
     <div className="bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Gestão de Colaboradores</h1>
-            <p className="text-gray-600 mt-1">Gerencie colaboradores e acompanhe o progresso das avaliações</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Gestão de Colaboradores</h1>
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">Gerencie colaboradores e acompanhe o progresso das avaliações</p>
             
             {/* Indicador da Fase Atual do Ciclo */}
             {currentCyclePhase && (
@@ -470,14 +470,15 @@ const CollaboratorManagement: React.FC = () => {
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             {/* Botão Filtros Avançados */}
             <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors"
+              className="px-4 sm:px-6 py-2.5 border border-gray-300 rounded-lg font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
             >
               <Filter className="w-4 h-4" />
-              Filtros Avançados
+              <span className="hidden sm:inline">Filtros Avançados</span>
+              <span className="sm:hidden">Filtros</span>
               {getActiveFiltersCount() > 0 && (
                 <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-medium text-white bg-teal-600 rounded-full">
                   {getActiveFiltersCount()}
@@ -490,10 +491,9 @@ const CollaboratorManagement: React.FC = () => {
             <button
               onClick={handleRefresh}
               disabled={loading}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors flex items-center justify-center"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              Atualizar
             </button>
           </div>
         </div>
@@ -715,158 +715,156 @@ const CollaboratorManagement: React.FC = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <div className="min-w-full">
-                <table className="w-full table-fixed">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="w-1/5 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Colaborador
-                      </th>
-                      <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Cargo / Senioridade
-                      </th>
-                      <th className="w-1/8 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
-                        Área / Trilha
-                      </th>
-                      <th className="w-1/6 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden xl:table-cell">
-                        Projetos
-                      </th>
-                      <th className="w-1/5 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Progresso
-                      </th>
-                      <th className="w-1/8 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                        Status
-                      </th>
-                      <th className="w-1/8 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Ações
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {collaborators && collaborators.length > 0 ? collaborators.map((collaborator, index) => {
-                      // Verificar se collaborator existe e tem dados válidos
-                      if (!collaborator || !collaborator.id) {
-                        return null;
-                      }
+              <table className="min-w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[200px]">
+                      Colaborador
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[180px]">
+                      Cargo / Senioridade
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[150px] hidden lg:table-cell">
+                      Área / Trilha
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[200px] hidden xl:table-cell">
+                      Projetos
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[200px]">
+                      Progresso
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[120px] hidden md:table-cell">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[120px]">
+                      Ações
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {collaborators && collaborators.length > 0 ? collaborators.map((collaborator, index) => {
+                    // Verificar se collaborator existe e tem dados válidos
+                    if (!collaborator || !collaborator.id) {
+                      return null;
+                    }
 
-                      return (
-                        <tr key={collaborator.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-4">
-                            <div className="flex items-center">
-                              <div className="h-10 w-10 flex-shrink-0">
-                                <div className="h-10 w-10 rounded-full bg-teal-100 flex items-center justify-center">
-                                  <span className="text-sm font-medium text-teal-800">
-                                    {collaborator.name ? collaborator.name.charAt(0).toUpperCase() : '?'}
+                    return (
+                      <tr key={collaborator.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-4">
+                          <div className="flex items-center">
+                            <div className="h-10 w-10 flex-shrink-0">
+                              <div className="h-10 w-10 rounded-full bg-teal-100 flex items-center justify-center">
+                                <span className="text-sm font-medium text-teal-800">
+                                  {collaborator.name ? collaborator.name.charAt(0).toUpperCase() : '?'}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="ml-3 overflow-hidden">
+                              <div className="text-sm font-medium text-gray-900 truncate">
+                                {collaborator.name || 'Nome não disponível'}
+                              </div>
+                              <div className="text-sm text-gray-500 truncate">
+                                {collaborator.email || 'Email não disponível'}
+                              </div>
+                              {/* Mostrar funções em telas pequenas */}
+                              <div className="flex flex-wrap gap-1 mt-1 md:hidden">
+                                {collaborator.roles && collaborator.roles.slice(0, 2).map((role) => (
+                                  <span
+                                    key={role}
+                                    className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
+                                  >
+                                    {getRoleDisplayName(role)}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        
+                        <td className="px-4 py-4">
+                          <div className="text-sm text-gray-900 truncate">{collaborator.jobTitle || 'Cargo não definido'}</div>
+                          <div className="text-sm text-gray-500 truncate">{getSeniorityDisplayName(collaborator.seniority || '')}</div>
+                          {/* Mostrar área em telas pequenas */}
+                          <div className="text-xs text-gray-400 truncate lg:hidden mt-1">
+                            {getBusinessUnitDisplayName(collaborator.businessUnit || '')}
+                          </div>
+                        </td>
+                        
+                        <td className="px-4 py-4 hidden lg:table-cell">
+                          <div className="text-sm text-gray-900 truncate">{getBusinessUnitDisplayName(collaborator.businessUnit || '')}</div>
+                          <div className="text-sm text-gray-500 truncate">{getCareerTrackDisplayName(collaborator.careerTrack || '')}</div>
+                        </td>
+                        
+                        <td className="px-4 py-4 text-sm text-gray-900 hidden xl:table-cell">
+                          <div className="space-y-1">
+                            {collaborator.projects && collaborator.projects.length > 0 ? (
+                              collaborator.projects.slice(0, 2).map((project, idx) => (
+                                <div key={idx} className="flex items-center gap-2">
+                                  <span className="truncate flex-1">{project.name || 'Projeto sem nome'}</span>
+                                  <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                                    project.roleInProject === 'MANAGER' 
+                                      ? 'bg-blue-100 text-blue-800' 
+                                      : project.roleInProject === 'LEADER'
+                                      ? 'bg-purple-100 text-purple-800'
+                                      : 'bg-gray-100 text-gray-800'
+                                  }`}>
+                                    {project.roleInProject === 'MANAGER' 
+                                      ? 'Gestor' 
+                                      : project.roleInProject === 'LEADER' 
+                                      ? 'Líder' 
+                                      : 'Membro'}
                                   </span>
                                 </div>
+                              ))
+                            ) : (
+                              <span className="text-gray-400 italic">Nenhum projeto</span>
+                            )}
+                            {collaborator.projects && collaborator.projects.length > 2 && (
+                              <div className="text-xs text-gray-500">
+                                +{collaborator.projects.length - 2} mais
                               </div>
-                              <div className="ml-3 overflow-hidden">
-                                <div className="text-sm font-medium text-gray-900 truncate">
-                                  {collaborator.name || 'Nome não disponível'}
-                                </div>
-                                <div className="text-sm text-gray-500 truncate">
-                                  {collaborator.email || 'Email não disponível'}
-                                </div>
-                                {/* Mostrar funções em telas pequenas */}
-                                <div className="flex flex-wrap gap-1 mt-1 md:hidden">
-                                  {collaborator.roles && collaborator.roles.slice(0, 2).map((role) => (
-                                    <span
-                                      key={role}
-                                      className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
-                                    >
-                                      {getRoleDisplayName(role)}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-                          
-                          <td className="px-4 py-4">
-                            <div className="text-sm text-gray-900 truncate">{collaborator.jobTitle || 'Cargo não definido'}</div>
-                            <div className="text-sm text-gray-500 truncate">{getSeniorityDisplayName(collaborator.seniority || '')}</div>
-                            {/* Mostrar área em telas pequenas */}
-                            <div className="text-xs text-gray-400 truncate lg:hidden mt-1">
-                              {getBusinessUnitDisplayName(collaborator.businessUnit || '')}
-                            </div>
-                          </td>
-                          
-                          <td className="px-4 py-4 hidden lg:table-cell">
-                            <div className="text-sm text-gray-900 truncate">{getBusinessUnitDisplayName(collaborator.businessUnit || '')}</div>
-                            <div className="text-sm text-gray-500 truncate">{getCareerTrackDisplayName(collaborator.careerTrack || '')}</div>
-                          </td>
-                          
-                          <td className="px-4 py-4 text-sm text-gray-900 hidden xl:table-cell">
-                            <div className="space-y-1">
-                              {collaborator.projects && collaborator.projects.length > 0 ? (
-                                collaborator.projects.slice(0, 2).map((project, idx) => (
-                                  <div key={idx} className="flex items-center gap-2">
-                                    <span className="truncate flex-1">{project.name || 'Projeto sem nome'}</span>
-                                    <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
-                                      project.roleInProject === 'MANAGER' 
-                                        ? 'bg-blue-100 text-blue-800' 
-                                        : project.roleInProject === 'LEADER'
-                                        ? 'bg-purple-100 text-purple-800'
-                                        : 'bg-gray-100 text-gray-800'
-                                    }`}>
-                                      {project.roleInProject === 'MANAGER' 
-                                        ? 'Gestor' 
-                                        : project.roleInProject === 'LEADER' 
-                                        ? 'Líder' 
-                                        : 'Membro'}
-                                    </span>
-                                  </div>
-                                ))
-                              ) : (
-                                <span className="text-gray-400 italic">Nenhum projeto</span>
-                              )}
-                              {collaborator.projects && collaborator.projects.length > 2 && (
-                                <div className="text-xs text-gray-500">
-                                  +{collaborator.projects.length - 2} mais
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                          
-                          <td className="px-4 py-4">
-                            <div className="w-full">
-                              {renderProgressBar(getRealEvaluationProgress(collaborator), index)}
-                            </div>
-                          </td>
-                          
-                          <td className="px-4 py-4 hidden md:table-cell">
+                            )}
+                          </div>
+                        </td>
+                        
+                        <td className="px-4 py-4">
+                          <div className="w-full">
+                            {renderProgressBar(getRealEvaluationProgress(collaborator), index)}
+                          </div>
+                        </td>
+                        
+                        <td className="px-4 py-4 hidden md:table-cell">
+                          {getStatusBadge(collaborator.isActive || false)}
+                          {/* Mostrar gestor e mentor em telas médias */}
+                          <div className="text-xs text-gray-500 mt-1 xl:hidden truncate">
+                            Gestor: {collaborator.managerName || 'N/A'}
+                          </div>
+                          <div className="text-xs text-gray-500 xl:hidden truncate">
+                            Mentor: {collaborator.mentorName || 'N/A'}
+                          </div>
+                        </td>
+                        
+                        <td className="px-4 py-4">
+                          <button
+                            onClick={() => handleViewScores(collaborator.id)}
+                            className="inline-flex items-center gap-1 px-2 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-colors"
+                            title="Ver notas detalhadas"
+                          >
+                            <Eye className="w-3 h-3" />
+                            <span className="hidden sm:inline">Ver Notas</span>
+                            <span className="sm:hidden">Notas</span>
+                          </button>
+                          {/* Mostrar status em telas pequenas */}
+                          <div className="mt-1 md:hidden">
                             {getStatusBadge(collaborator.isActive || false)}
-                            {/* Mostrar gestor e mentor em telas médias */}
-                            <div className="text-xs text-gray-500 mt-1 xl:hidden truncate">
-                              Gestor: {collaborator.managerName || 'N/A'}
-                            </div>
-                            <div className="text-xs text-gray-500 xl:hidden truncate">
-                              Mentor: {collaborator.mentorName || 'N/A'}
-                            </div>
-                          </td>
-                          
-                          <td className="px-4 py-4">
-                            <button
-                              onClick={() => handleViewScores(collaborator.id)}
-                              className="inline-flex items-center gap-1 px-2 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-colors"
-                              title="Ver notas detalhadas"
-                            >
-                              <Eye className="w-3 h-3" />
-                              <span className="hidden sm:inline">Ver Notas</span>
-                              <span className="sm:hidden">Notas</span>
-                            </button>
-                            {/* Mostrar status em telas pequenas */}
-                            <div className="mt-1 md:hidden">
-                              {getStatusBadge(collaborator.isActive || false)}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    }).filter(Boolean) : null}
-                  </tbody>
-                </table>
-              </div>
-
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }).filter(Boolean) : null}
+                </tbody>
+              </table>
+              {/* MOVER O BLOCO DE NENHUM COLABORADOR ENCONTRADO PARA DENTRO DESTE DIV */}
               {collaborators.length === 0 && (
                 <div className="text-center py-12">
                   <div className="text-gray-500 text-lg mb-2">Nenhum colaborador encontrado</div>

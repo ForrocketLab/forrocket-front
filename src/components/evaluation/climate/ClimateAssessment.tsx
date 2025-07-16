@@ -6,6 +6,7 @@ import ClimateService, {
   UpdateClimateAssessmentRequest 
 } from '../../../services/ClimateService';
 import { useAuth } from '../../../hooks/useAuth';
+import { formatDate } from '../../../utils/dateUtils';
 
 interface ClimateAssessmentProps {
   onComplete?: () => void;
@@ -190,14 +191,14 @@ const ClimateAssessment: React.FC<ClimateAssessmentProps> = ({ onComplete }) => 
   }
 
   return (
-    <div className="min-h-screen px-2 md:px-4 lg:px-8">
+    <div className="min-h-screen px-2 sm:px-4 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-xl p-6 mb-6 shadow-sm">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+        <div className="bg-white rounded-xl p-4 sm:p-6 mb-4 sm:mb-6 shadow-sm">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
             Avaliação de Clima Organizacional
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 text-sm sm:text-base">
             Esta avaliação rápida nos ajuda a entender melhor o clima organizacional da empresa.
             Suas respostas são confidenciais e nos ajudarão a melhorar continuamente.
           </p>
@@ -208,7 +209,7 @@ const ClimateAssessment: React.FC<ClimateAssessmentProps> = ({ onComplete }) => 
                 <strong>Status:</strong> {assessment.status === 'SUBMITTED' ? 'Submetida' : 'Rascunho'}
                 {assessment.submittedAt && (
                   <span className="ml-2">
-                    • Submetida em: {new Date(assessment.submittedAt).toLocaleDateString('pt-BR')}
+                    • Submetida em: {formatDate(assessment.submittedAt)}
                   </span>
                 )}
               </p>
@@ -217,13 +218,13 @@ const ClimateAssessment: React.FC<ClimateAssessmentProps> = ({ onComplete }) => 
         </div>
 
         {/* Critérios */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Relacionamento com a Liderança */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
               1. Relacionamento com a Liderança
             </h2>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 mb-4 text-sm sm:text-base">
               Avalie o quanto você se sente respeitado(a), apoiado(a) e ouvido(a) pela sua liderança direta.
             </p>
             
@@ -232,7 +233,7 @@ const ClimateAssessment: React.FC<ClimateAssessmentProps> = ({ onComplete }) => 
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Nota (1 a 5)
                 </label>
-                <div className="flex gap-2">
+                <div className="flex gap-1 sm:gap-2">
                   {[1, 2, 3, 4, 5].map((star) => {
                     const StarIcon = star <= criteria.relacionamentoLideranca.score ? FaStar : FaRegStar;
                     return (
@@ -243,7 +244,7 @@ const ClimateAssessment: React.FC<ClimateAssessmentProps> = ({ onComplete }) => 
                         disabled={isSubmitted}
                         className={`transition-colors hover:scale-110 ${isSubmitted ? 'cursor-not-allowed opacity-50' : ''}`}
                       >
-                        <StarIcon className="w-6 h-6 text-[#085F60]" />
+                        <StarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-[#085F60]" />
                       </button>
                     );
                   })}
@@ -267,11 +268,11 @@ const ClimateAssessment: React.FC<ClimateAssessmentProps> = ({ onComplete }) => 
           </div>
 
           {/* Relacionamento com Colegas */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
               2. Relacionamento com Colegas
             </h2>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 mb-4 text-sm sm:text-base">
               Como você avalia a colaboração, respeito e convivência com seus colegas de equipe?
             </p>
             
@@ -280,7 +281,7 @@ const ClimateAssessment: React.FC<ClimateAssessmentProps> = ({ onComplete }) => 
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Nota (1 a 5)
                 </label>
-                <div className="flex gap-2">
+                <div className="flex gap-1 sm:gap-2">
                   {[1, 2, 3, 4, 5].map((star) => {
                     const StarIcon = star <= criteria.relacionamentoColegas.score ? FaStar : FaRegStar;
                     return (
@@ -291,7 +292,7 @@ const ClimateAssessment: React.FC<ClimateAssessmentProps> = ({ onComplete }) => 
                         disabled={isSubmitted}
                         className={`transition-colors hover:scale-110 ${isSubmitted ? 'cursor-not-allowed opacity-50' : ''}`}
                       >
-                        <StarIcon className="w-6 h-6 text-[#085F60]" />
+                        <StarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-[#085F60]" />
                       </button>
                     );
                   })}
@@ -315,11 +316,11 @@ const ClimateAssessment: React.FC<ClimateAssessmentProps> = ({ onComplete }) => 
           </div>
 
           {/* Reconhecimento e Valorização */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
               3. Reconhecimento e Valorização
             </h2>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 mb-4 text-sm sm:text-base">
               Você sente que seu trabalho é reconhecido e valorizado pela empresa?
             </p>
             
@@ -328,7 +329,7 @@ const ClimateAssessment: React.FC<ClimateAssessmentProps> = ({ onComplete }) => 
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Nota (1 a 5)
                 </label>
-                <div className="flex gap-2">
+                <div className="flex gap-1 sm:gap-2">
                   {[1, 2, 3, 4, 5].map((star) => {
                     const StarIcon = star <= criteria.reconhecimentoValorizacao.score ? FaStar : FaRegStar;
                     return (
@@ -339,7 +340,7 @@ const ClimateAssessment: React.FC<ClimateAssessmentProps> = ({ onComplete }) => 
                         disabled={isSubmitted}
                         className={`transition-colors hover:scale-110 ${isSubmitted ? 'cursor-not-allowed opacity-50' : ''}`}
                       >
-                        <StarIcon className="w-6 h-6 text-[#085F60]" />
+                        <StarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-[#085F60]" />
                       </button>
                     );
                   })}
@@ -363,11 +364,11 @@ const ClimateAssessment: React.FC<ClimateAssessmentProps> = ({ onComplete }) => 
           </div>
 
           {/* Carga de Trabalho e Equilíbrio */}
-          <div className="bg-white rounded-xl p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
               4. Carga de Trabalho e Equilíbrio
             </h2>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 mb-4 text-sm sm:text-base">
               Como você avalia sua carga de trabalho em relação ao equilíbrio com sua vida pessoal?
             </p>
             
@@ -376,7 +377,7 @@ const ClimateAssessment: React.FC<ClimateAssessmentProps> = ({ onComplete }) => 
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Nota (1 a 5)
                 </label>
-                <div className="flex gap-2">
+                <div className="flex gap-1 sm:gap-2">
                   {[1, 2, 3, 4, 5].map((star) => {
                     const StarIcon = star <= criteria.cargaTrabalhoEquilibrio.score ? FaStar : FaRegStar;
                     return (
@@ -387,7 +388,7 @@ const ClimateAssessment: React.FC<ClimateAssessmentProps> = ({ onComplete }) => 
                         disabled={isSubmitted}
                         className={`transition-colors hover:scale-110 ${isSubmitted ? 'cursor-not-allowed opacity-50' : ''}`}
                       >
-                        <StarIcon className="w-6 h-6 text-[#085F60]" />
+                        <StarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-[#085F60]" />
                       </button>
                     );
                   })}
@@ -413,11 +414,11 @@ const ClimateAssessment: React.FC<ClimateAssessmentProps> = ({ onComplete }) => 
 
         {/* Botões de Ação */}
         {!isSubmitted && (
-          <div className="mt-8 flex gap-4 justify-end">
+          <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-end">
             <button
               onClick={saveAssessment}
               disabled={saving}
-              className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 sm:px-6 py-2.5 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? 'Salvando...' : 'Salvar Rascunho'}
             </button>
@@ -425,7 +426,7 @@ const ClimateAssessment: React.FC<ClimateAssessmentProps> = ({ onComplete }) => 
             <button
               onClick={submitAssessment}
               disabled={saving || !isComplete}
-              className="px-6 py-2 bg-[#085F60] text-white rounded-lg hover:bg-[#064A4B] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 sm:px-6 py-2.5 bg-[#085F60] text-white rounded-lg hover:bg-[#064A4B] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? 'Submetendo...' : 'Submeter Avaliação'}
             </button>
@@ -433,7 +434,7 @@ const ClimateAssessment: React.FC<ClimateAssessmentProps> = ({ onComplete }) => 
         )}
 
         {isSubmitted && (
-          <div className="mt-8 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="mt-6 sm:mt-8 p-4 bg-green-50 border border-green-200 rounded-lg">
             <p className="text-green-800 text-center">
               ✅ Avaliação de clima organizacional submetida com sucesso!
             </p>

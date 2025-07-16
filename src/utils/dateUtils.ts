@@ -13,6 +13,11 @@ export const formatDate = (dateValue: any): string => {
     return 'Não informado';
   }
   
+  // Se for um objeto vazio {}, retornar Não informado
+  if (typeof dateValue === 'object' && dateValue !== null && Object.keys(dateValue).length === 0) {
+    return 'Não informado';
+  }
+  
   try {
     let date: Date;
     
