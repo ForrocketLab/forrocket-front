@@ -1,10 +1,31 @@
 import { useState } from 'react';
 import { Brain, ChevronDown, ChevronUp } from 'lucide-react';
-import ScoreProgressBar from './ScoreProgressBar';
 import PersonalInsightsCard from '../../../../components/cards/PersonalInsightsCard';
 import { useAuth } from '../../../../hooks/useAuth';
 
-const CycleEvaluationCard = ({ cycle, selfScore, managerScore, finalScore }: PerformanceDataDto) => {
+interface CycleEvaluationCardProps {
+  cycle: string;
+  selfScore: {
+    BEHAVIOR: number | null;
+    EXECUTION: number | null;
+    MANAGEMENT: number | null;
+  };
+  managerScore: {
+    BEHAVIOR: number | null;
+    EXECUTION: number | null;
+    MANAGEMENT: number | null;
+  };
+  finalScore: number | null;
+  assessments360Mean: number | null;
+}
+
+const CycleEvaluationCard = ({
+  cycle,
+  selfScore,
+  managerScore,
+  finalScore,
+  assessments360Mean,
+}: CycleEvaluationCardProps) => {
   const { user } = useAuth();
   const [showInsights, setShowInsights] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -21,7 +42,9 @@ const CycleEvaluationCard = ({ cycle, selfScore, managerScore, finalScore }: Per
   const status = isComplete ? 'Concluído' : 'Em andamento';
 
   const selfScoreAverage =
-    selfScore?.BEHAVIOR && selfScore?.EXECUTION ? (selfScore.BEHAVIOR + selfScore.EXECUTION) / 2 : null;
+    selfScore?.BEHAVIOR && selfScore?.EXECUTION && selfScore?.MANAGEMENT
+      ? (selfScore.BEHAVIOR + selfScore.EXECUTION + selfScore.MANAGEMENT) / 3
+      : null;
 
   const toggleInsights = () => {
     setShowInsights(prev => !prev);
@@ -53,7 +76,7 @@ const CycleEvaluationCard = ({ cycle, selfScore, managerScore, finalScore }: Per
           <div className='flex items-center gap-2'>
             <span className='text-sm text-gray-600'>Nota</span>
             <div className='flex items-center justify-center w-12 h-7 bg-[#E6E6E6] text-black font-bold text-sm rounded-md'>
-              {finalScore ?? '-'}
+              {finalScore ? finalScore.toFixed(2) : '-'}
             </div>
           </div>
           <button className='text-gray-400 hover:text-gray-600'>
@@ -91,11 +114,11 @@ const CycleEvaluationCard = ({ cycle, selfScore, managerScore, finalScore }: Per
             )}
 
             {/* Barras de Progresso */}
-            <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-6'>
+            <div className='grid grid-cols-1 md:grid-cols-4 gap-6 mb-6'>
               <div>
                 <div className='flex justify-between items-center mb-2'>
                   <span className='text-sm text-gray-600'>Autoavaliação</span>
-                  <span className='text-sm font-medium text-[#24A19F]'>{selfScoreAverage?.toFixed(1) || '-'}</span>
+                  <span className='text-sm font-medium text-[#24A19F]'>{selfScoreAverage?.toFixed(2) || '-'}</span>
                 </div>
                 <div className='h-2 bg-gray-200 rounded-full'>
                   <div
@@ -108,7 +131,9 @@ const CycleEvaluationCard = ({ cycle, selfScore, managerScore, finalScore }: Per
               <div>
                 <div className='flex justify-between items-center mb-2'>
                   <span className='text-sm text-gray-600'>Avaliação do Gestor - Execução</span>
-                  <span className='text-sm font-medium text-[#419958]'>{managerScore?.EXECUTION || '-'}</span>
+                  <span className='text-sm font-medium text-[#419958]'>
+                    {managerScore?.EXECUTION ? managerScore.EXECUTION.toFixed(2) : '-'}
+                  </span>
                 </div>
                 <div className='h-2 bg-gray-200 rounded-full'>
                   <div
@@ -121,12 +146,29 @@ const CycleEvaluationCard = ({ cycle, selfScore, managerScore, finalScore }: Per
               <div>
                 <div className='flex justify-between items-center mb-2'>
                   <span className='text-sm text-gray-600'>Avaliação do Gestor - Postura</span>
-                  <span className='text-sm font-medium text-[#F5B030]'>{managerScore?.BEHAVIOR || '-'}</span>
+                  <span className='text-sm font-medium text-[#F5B030]'>
+                    {managerScore?.BEHAVIOR ? managerScore.BEHAVIOR.toFixed(2) : '-'}
+                  </span>
                 </div>
                 <div className='h-2 bg-gray-200 rounded-full'>
                   <div
                     className='h-2 bg-[#F5B030] rounded-full transition-all duration-300'
                     style={{ width: `${managerScore?.BEHAVIOR ? (managerScore.BEHAVIOR / 5) * 100 : 0}%` }}
+                  ></div>
+                </div>
+              </div>
+
+              <div>
+                <div className='flex justify-between items-center mb-2'>
+                  <span className='text-sm text-gray-600'>Média do 360</span>
+                  <span className='text-sm font-medium text-[#8B5CF6]'>
+                    {assessments360Mean ? assessments360Mean.toFixed(2) : '-'}
+                  </span>
+                </div>
+                <div className='h-2 bg-gray-200 rounded-full'>
+                  <div
+                    className='h-2 bg-[#8B5CF6] rounded-full transition-all duration-300'
+                    style={{ width: `${assessments360Mean ? (assessments360Mean / 5) * 100 : 0}%` }}
                   ></div>
                 </div>
               </div>
@@ -157,7 +199,7 @@ const CycleEvaluationCard = ({ cycle, selfScore, managerScore, finalScore }: Per
                     {finalScore && (
                       <>
                         <span className='text-gray-600'> com nota final </span>
-                        <span className='font-semibold text-green-700'>{finalScore}</span>
+                        <span className='font-semibold text-green-700'>{finalScore.toFixed(2)}</span>
                       </>
                     )}
                   </div>

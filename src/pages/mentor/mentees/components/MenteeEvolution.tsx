@@ -2,8 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import CollaboratorHistoryChart from '../../../manager/collaborators/components/CollaboratorHistoryChart';
 import CollaboratorCycleHistory from '../../../manager/collaborators/components/CollaboratorCycleHistory';
-import EvaluationService from '../../../../services/EvaluationService';
-import ManagerService from '../../../../services/ManagerService';
+import MentorService, { MenteeCompletePerformance } from '../../../../services/MentorService';
 import DetailedScoreCard from '../../../../components/cards/DetailedScoreCard';
 import ImprovePercentageCard from '../../../../components/cards/ImprovePercentageCard';
 import EvaluationsFinishedCard from '../../../../components/cards/EvaluationsFinishedCard';
@@ -11,84 +10,100 @@ import { CustomSelect } from '../../../../components/CustomSelect';
 
 const MenteeEvolution = () => {
   const { id: menteeId } = useParams<{ id: string }>();
-  const [performanceHistory, setPerformanceHistory] = useState<PerformanceHistoryDto>();
+  const [menteeData, setMenteeData] = useState<MenteeCompletePerformance | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedCycle, setSelectedCycle] = useState<string>('');
   const [availableCycles, setAvailableCycles] = useState<string[]>([]);
 
+  // Buscar ciclos disponíveis e definir o ciclo ativo como padrão
   useEffect(() => {
-    const fetchActiveCycle = async () => {
+    const fetchCycles = async () => {
       try {
-        const activeCycle = await ManagerService.getActiveCycle();
-        setSelectedCycle(activeCycle.name);
+        const cycles = await MentorService.getAllCycles();
+        const cycleNames = cycles.filter(cycle => cycle.status !== 'UPCOMING').map(cycle => cycle.name);
+        setAvailableCycles(cycleNames);
+
+        // Definir ciclo ativo como padrão
+        const activeCycle = cycles.find(cycle => cycle.status === 'ACTIVE');
+        if (activeCycle) {
+          setSelectedCycle(activeCycle.name);
+        } else if (cycleNames.length > 0) {
+          setSelectedCycle(cycleNames[0]);
+        }
       } catch (err) {
-        console.error('Erro ao carregar ciclo ativo:', err);
+        console.error('Erro ao carregar ciclos:', err);
       }
     };
-    fetchActiveCycle();
+    fetchCycles();
   }, []);
 
+  // Buscar dados de performance quando menteeId ou selectedCycle mudar
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        // TODO: Implementar endpoint específico para buscar performance history do mentee
-        // Por enquanto, usando o mesmo endpoint do colaborador
-        const data = await EvaluationService.getPerformanceHistory();
-        setPerformanceHistory(data);
+      if (!menteeId || !selectedCycle) return;
 
-        // Extrair ciclos únicos dos dados de performance e ordenar do mais recente para o mais antigo
-        const cycles = data.performanceData
-          .map(p => p.cycle)
-          .filter((cycle, index, self) => self.indexOf(cycle) === index);
-        setAvailableCycles(cycles);
+      setLoading(true);
+      try {
+        const data = await MentorService.getMenteeCompletePerformance(menteeId, selectedCycle);
+        setMenteeData(data);
       } catch (err) {
-        console.error('Erro ao carregar histórico de performance do mentee:', err);
+        console.error('Erro ao carregar dados completos do mentee:', err);
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, [menteeId]);
-
-  // Efeito separado para definir o ciclo padrão quando os dados chegam
-  useEffect(() => {
-    if (availableCycles.length > 0 && !selectedCycle) {
-      setSelectedCycle(availableCycles[0]);
-    }
-  }, [availableCycles, selectedCycle]);
+  }, [menteeId, selectedCycle]);
 
   const cardData = useMemo(() => {
-    const completedCycles = performanceHistory?.performanceData.filter(p => typeof p.finalScore === 'number');
-
-    // dados do ciclo mais recente
-    const mostRecentCycle = performanceHistory?.performanceData[0];
-    const recentScore = mostRecentCycle ? mostRecentCycle.finalScore : null;
-    const recentCycleName = mostRecentCycle?.cycle;
-
-    // calculo de crescimento entre os dois últimos ciclos concluídos
-    let growth = null;
-    let comparisonCycleName = 'anterior';
-    if (completedCycles != undefined && completedCycles.length >= 2) {
-      const lastCompletedScore = completedCycles[0].finalScore!;
-      const previousCompletedScore = completedCycles[1].finalScore!;
-      growth = lastCompletedScore - previousCompletedScore;
-      comparisonCycleName = completedCycles[1].cycle;
+    if (!menteeData) {
+      return {
+        recentScore: null,
+        recentCycleName: selectedCycle,
+        growth: null,
+        comparisonCycleName: 'anterior',
+        totalEvaluations: 0,
+      };
     }
 
-    // numero total de avaliações
-    const totalEvaluations = performanceHistory?.assessmentsSubmittedCount ?? 0;
+    // Usar os dados já calculados no backend
+    const recentScore = menteeData.performance.committeeOverallScore;
+    const growth = menteeData.performance.performanceGrowth;
+    const totalEvaluations = menteeData.performance.totalAssessmentsCompleted;
 
     return {
       recentScore,
-      recentCycleName,
+      recentCycleName: selectedCycle,
       growth,
-      comparisonCycleName,
+      comparisonCycleName: 'anterior',
       totalEvaluations,
     };
-  }, [performanceHistory]);
+  }, [menteeData, selectedCycle]);
+
+  // Transformar dados do backend para o formato esperado pelos gráficos
+  const performanceDataForCharts = useMemo(() => {
+    if (!menteeData) return [];
+
+    return menteeData.cycleMeans.map(cycle => ({
+      cycle: cycle.cycle,
+      selfScore: {
+        BEHAVIOR: cycle.selfAssessmentMean,
+        EXECUTION: cycle.selfAssessmentMean,
+        MANAGEMENT: cycle.selfAssessmentMean,
+      },
+      managerScore: {
+        BEHAVIOR: cycle.managerBehaviorMean,
+        EXECUTION: cycle.managerExecutionMean,
+        MANAGEMENT: cycle.managerBehaviorMean,
+      },
+      finalScore: cycle.overallScore,
+      assessments360Mean: cycle.assessments360Mean,
+    }));
+  }, [menteeData]);
 
   const handleCycleChange = (value: string) => {
     setSelectedCycle(value);
+    // Os dados serão recarregados automaticamente pelo useEffect que observa selectedCycle
   };
 
   if (loading) {
@@ -140,8 +155,8 @@ const MenteeEvolution = () => {
 
       {/* Gráficos */}
       <div className='px-4 pb-4 md:px-8 md:pb-4'>
-        <CollaboratorHistoryChart performanceHistory={performanceHistory?.performanceData ?? []} />
-        <CollaboratorCycleHistory performanceHistory={performanceHistory?.performanceData ?? []} />
+        <CollaboratorHistoryChart performanceHistory={performanceDataForCharts} />
+        <CollaboratorCycleHistory performanceHistory={performanceDataForCharts} />
       </div>
     </div>
   );
