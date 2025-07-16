@@ -12,9 +12,14 @@ const SideMenu = ({ isExpanded, toggleSidebar }: SideMenuProps) => {
   const { user, logout } = useAuth();
   const userRoles = user?.roles || [];
 
-  const accessibleMenuItems = SIDE_MENU_CONFIG.filter(item =>
-    item.allowedRoles.some(allowedRole => userRoles.includes(allowedRole)),
-  );
+  const accessibleMenuItems = SIDE_MENU_CONFIG.filter(item => {
+    console.log(
+      item.allowedRoles.some(allowedRole => userRoles.includes(allowedRole)),
+      item,
+      'teste sidemenu',
+    );
+    return item.allowedRoles.some(allowedRole => userRoles.includes(allowedRole));
+  });
 
   const userInitials = user?.name
     .split(' ')

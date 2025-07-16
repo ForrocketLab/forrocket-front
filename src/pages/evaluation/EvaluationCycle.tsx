@@ -1,206 +1,160 @@
-import { useState, useEffect } from 'react';
-import Topbar from '../../components/TopBar';
-import Evaluation360 from '../../components/evaluation/360evaluation/360Evaluation';
-import Mentoring from '../../components/evaluation/mentoring/Mentoring';
-import SelfEvaluation from '../../components/evaluation/selfevaluation/SelfEvaluation';
-import RefCollaborator from '../../components/evaluation/referencias/RefCollaborator';
-import { useEvaluation } from '../../contexts/EvaluationProvider';
-import EvaluationService, { type SelfAssessmentResponse } from '../../services/EvaluationService';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import { useEffect, useState } from 'react';
+import CreateEvaluationHeader from '../../components/CreateEvaluationHeader';
+import { useGlobalToast } from '../../hooks/useGlobalToast';
+import { TabItem } from '../manager/collaborators/components/TabNavigation';
+import EvaluationsForm from '../../components/EvaluationForm';
+import Evaluation360 from './Evaluation360';
+import MentoringEvaluation from './MentoringEvaluation';
+import ReferencesEvaluation from './ReferenceAssessment';
+import EvaluationService from '../../services/EvaluationService';
+import { EvaluationProvider } from '../../contexts/EvaluationContext';
+import { useEvaluation, useEvaluationCompletion } from '../../hooks/useEvaluation';
 
-const NAV_BUTTONS = ['Autoavaliação', 'Avaliação 360', 'Mentoring', 'Referências'] as const;
-type NavButtonType = typeof NAV_BUTTONS[number];
+const TABS: TabItem[] = [
+  { id: 'self-assessment', label: 'Autoavaliação' },
+  { id: '360assessment', label: 'Avaliação 360' },
+  { id: 'mentoring', label: 'Mentoring' },
+  { id: 'references', label: 'Referências' },
+];
 
-const EvaluationPage = () => {
-  const [activeButton, setActiveButton] = useState<NavButtonType>('Autoavaliação');
-  const [selfAssessmentData, setSelfAssessmentData] = useState<SelfAssessmentResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
+const EvaluationPageContent = () => {
+  const toast = useGlobalToast();
+  const [activeTab, setActiveTab] = useState('self-assessment');
+  const [currentCycle, setCurrentCycle] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { state } = useEvaluation();
+  const completionStatus = useEvaluationCompletion();
 
-  const { 
-    isSelfEvaluationComplete, 
-    isMentoringComplete,
-    isEvaluation360Complete,
-    evaluations360,
-    isReferenceFeedbackComplete 
-  } = useEvaluation();
+  // Função para submeter avaliação final
+  const handleSubmitAssessment = async () => {
+    const allComplete = Object.values(completionStatus).every(Boolean);
 
-  // Função para transformar dados do backend para o formato esperado pelo frontend
-  const transformBackendDataToFrontend = (backendData: any): SelfAssessmentResponse => {
-    const emptyCriterion = { score: null, justification: '' };
-    
-    // Inicializar com valores vazios
-    const postureCriteria = {
-      sentimentoDeDono: { ...emptyCriterion },
-      resilienciaNasAdversidades: { ...emptyCriterion },
-      organizacaoNoTrabalho: { ...emptyCriterion },
-      capacidadeDeAprender: { ...emptyCriterion },
-      serTeamPlayer: { ...emptyCriterion },
-    };
-
-    const executionCriteria = {
-      entregarComQualidade: { ...emptyCriterion },
-      atenderAosPrazos: { ...emptyCriterion },
-      fazerMaisComMenos: { ...emptyCriterion },
-      pensarForaDaCaixa: { ...emptyCriterion },
-    };
-
-    const peopleAndManagementCriteria = {
-      gente: { ...emptyCriterion },
-      resultados: { ...emptyCriterion },
-      evolucaoDaRocketCorp: { ...emptyCriterion },
-    };
-
-    // Mapear os critérios do backend para o frontend
-    const criterionMapping: Record<string, { group: 'posture' | 'execution' | 'people', key: string }> = {
-      'sentimento-de-dono': { group: 'posture', key: 'sentimentoDeDono' },
-      'resiliencia-adversidades': { group: 'posture', key: 'resilienciaNasAdversidades' },
-      'organizacao-trabalho': { group: 'posture', key: 'organizacaoNoTrabalho' },
-      'capacidade-aprender': { group: 'posture', key: 'capacidadeDeAprender' },
-      'team-player': { group: 'posture', key: 'serTeamPlayer' },
-      'entregar-qualidade': { group: 'execution', key: 'entregarComQualidade' },
-      'atender-prazos': { group: 'execution', key: 'atenderAosPrazos' },
-      'fazer-mais-menos': { group: 'execution', key: 'fazerMaisComMenos' },
-      'pensar-fora-caixa': { group: 'execution', key: 'pensarForaDaCaixa' },
-      'gestao-gente': { group: 'people', key: 'gente' },
-      'gestao-resultados': { group: 'people', key: 'resultados' },
-      'evolucao-rocket': { group: 'people', key: 'evolucaoDaRocketCorp' },
-    };
-
-    // Preencher os dados baseado nas respostas do backend
-    if (backendData.answers) {
-      backendData.answers.forEach((answer: any) => {
-        const mapping = criterionMapping[answer.criterionId];
-        if (mapping) {
-          const criterion = { score: answer.score, justification: answer.justification || '' };
-          
-          if (mapping.group === 'posture') {
-            (postureCriteria as any)[mapping.key] = criterion;
-          } else if (mapping.group === 'execution') {
-            (executionCriteria as any)[mapping.key] = criterion;
-          } else if (mapping.group === 'people') {
-            (peopleAndManagementCriteria as any)[mapping.key] = criterion;
-          }
-        }
-      });
-    }
-
-    return {
-      id: backendData.id,
-      cycle: backendData.cycle,
-      status: backendData.status,
-      createdAt: backendData.createdAt,
-      updatedAt: backendData.updatedAt,
-      postureCriteria,
-      executionCriteria,
-      peopleAndManagementCriteria,
-    };
-  };
-
-  // Buscar dados da autoavaliação do servidor
-  useEffect(() => {
-    const loadSelfAssessmentData = async () => {
-      try {
-        setIsLoading(true);
-        setLoadError(null);
-        
-        const cycleId = "2025.1"; // Ciclo ativo - poderia vir de um contexto
-        const evaluationsData = await EvaluationService.getUserEvaluationsByCycle(cycleId);
-        
-        if (evaluationsData.selfAssessment) {
-          console.log('📥 Dados brutos do servidor:', evaluationsData.selfAssessment);
-          
-          // Transformar os dados do formato do backend para o formato do frontend
-          const transformedData = transformBackendDataToFrontend(evaluationsData.selfAssessment);
-          console.log('📊 Dados transformados para o frontend:', transformedData);
-          
-          setSelfAssessmentData(transformedData);
-        } else {
-          console.log('📋 Nenhuma autoavaliação encontrada no servidor para o ciclo', cycleId);
-          setSelfAssessmentData(null);
-        }
-      } catch (error) {
-        console.error('❌ Erro ao carregar autoavaliação:', error);
-        setLoadError(error instanceof Error ? error.message : 'Erro desconhecido');
-        setSelfAssessmentData(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadSelfAssessmentData();
-  }, []);
-
-  // Verificação do estado de conclusão de cada módulo
-  const selfEvalCompleted = isSelfEvaluationComplete();
-  const mentoringCompleted = isMentoringComplete();
-  const all360EvaluationsCompleted = evaluations360.length > 0 && evaluations360.every(e => isEvaluation360Complete(e.collaborator.id));
-  const referencesCompleted = isReferenceFeedbackComplete();
-
-  // O botão é desabilitado se QUALQUER uma das seções estiver incompleta
-  const isFinalSaveDisabled = !selfEvalCompleted || !mentoringCompleted || !all360EvaluationsCompleted || !referencesCompleted;
-
-  const handleSaveAndSubmit = () => {
-    if (isFinalSaveDisabled) {
-      alert("Por favor, preencha todas as seções obrigatórias da avaliação.");
+    if (!allComplete) {
+      toast.error('Avaliações incompletas', 'Por favor, complete todas as avaliações antes de enviar.');
       return;
     }
-    // Lógica para coletar TODOS os dados do contexto e enviar para a API
-    console.log("Todos os dados prontos para serem enviados!");
-    alert("Avaliação enviada com sucesso!");
+
+    if (isSubmitting) {
+      return; // Prevenir múltiplos cliques
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      console.log('🚀 Iniciando envio de todas as avaliações...');
+
+      // 1. Salvar autoavaliação
+      if (Object.keys(state.selfAssessment).length > 0) {
+        console.log('📝 Salvando autoavaliação:', state.selfAssessment);
+        await EvaluationService.saveSelfAssessment(state.selfAssessment);
+        console.log('✅ Autoavaliação salva com sucesso');
+      }
+
+      // 2. Salvar avaliações 360
+      if (Object.keys(state.evaluation360).length > 0) {
+        console.log('🎯 Salvando avaliações 360:', state.evaluation360);
+
+        // Filtrar apenas avaliações com dados válidos e preparar array para batch
+        const validEvaluations360 = Object.entries(state.evaluation360)
+          .filter(([, data]) => data.rating > 0 && data.strengths && data.improvements)
+          .map(([evaluatedUserId, data]) => ({
+            id: evaluatedUserId,
+            rating: data.rating,
+            strengths: data.strengths,
+            improvements: data.improvements,
+            workAgainMotivation: data.workAgainMotivation || '',
+          }));
+
+        if (validEvaluations360.length > 0) {
+          // Salvar todas as avaliações 360 em uma única requisição batch
+          await EvaluationService.saveEvaluations360Batch(validEvaluations360);
+          console.log('✅ Avaliações 360 salvas com sucesso');
+        }
+      }
+
+      // 3. Salvar avaliações de mentoria
+      if (Object.keys(state.mentoring).length > 0) {
+        console.log('🎓 Salvando avaliações de mentoria:', state.mentoring);
+
+        // Filtrar apenas avaliações com dados válidos
+        const validMentoringEvaluations = Object.entries(state.mentoring).filter(
+          ([, data]) => data.rating > 0 && data.justification.trim(),
+        );
+
+        if (validMentoringEvaluations.length > 0) {
+          // Como há apenas uma avaliação de mentoria, pegar a primeira
+          const [, mentorData] = validMentoringEvaluations[0];
+          await EvaluationService.updateMentorAssessment({
+            rating: mentorData.rating,
+            justification: mentorData.justification,
+          });
+          console.log('✅ Avaliações de mentoria salvas com sucesso');
+        }
+      }
+
+      // 4. Salvar referências
+      if (state.references.length > 0) {
+        console.log('📋 Salvando referências:', state.references);
+
+        // Filtrar apenas referências com justificação preenchida
+        const validReferences = state.references.filter(ref => ref.justification.trim());
+
+        if (validReferences.length > 0) {
+          await EvaluationService.saveAllReferenceFeedbacks(validReferences);
+          console.log('✅ Referências salvas com sucesso');
+        }
+      }
+
+      console.log('🎉 Todas as avaliações foram enviadas com sucesso!');
+      toast.success('Avaliações enviadas', 'Todas as suas avaliações foram enviadas para análise.');
+    } catch (error) {
+      console.error('Erro ao enviar avaliações:', error);
+      toast.error('Erro ao enviar', 'Não foi possível enviar as avaliações. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // Renderizar conteúdo com base no estado de carregamento
-  const renderContent = () => {
-    if (activeButton === 'Autoavaliação') {
-      if (isLoading) {
-        return (
-          <div className="flex justify-center items-center min-h-[400px]">
-            <LoadingSpinner />
-            <span className="ml-3 text-gray-600">Carregando autoavaliação...</span>
-          </div>
-        );
+  useEffect(() => {
+    const fetchActiveCycle = async () => {
+      try {
+        const { name } = await EvaluationService.getActiveCycle();
+        setCurrentCycle(name);
+      } catch (err) {
+        console.error('Erro ao buscar ciclo ativo:', err);
       }
-      
-      if (loadError) {
-        return (
-          <div className="flex justify-center items-center min-h-[400px]">
-            <div className="text-center">
-              <p className="text-red-600 mb-4">❌ Erro ao carregar autoavaliação</p>
-              <p className="text-gray-600 text-sm">{loadError}</p>
-              <button 
-                onClick={() => window.location.reload()} 
-                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              >
-                Tentar novamente
-              </button>
-            </div>
-          </div>
-        );
-      }
-      
-      return <SelfEvaluation initialSelfAssessmentData={selfAssessmentData} cycleId="2025.1" />;
-    }
-    
-    if (activeButton === 'Avaliação 360') return <Evaluation360 />;
-    if (activeButton === 'Mentoring') return <Mentoring />;
-    if (activeButton === 'Referências') return <RefCollaborator />;
-    
-    return null;
-  };
+    };
+    fetchActiveCycle();
+  }, []);
+
+  const allEvaluationsComplete = Object.values(completionStatus).every(Boolean);
 
   return (
-    <div className="min-h-screen bg-[#F1F1F1]">
-      <Topbar
-        onSave={handleSaveAndSubmit}
-        isSaveDisabled={isFinalSaveDisabled}
-        activeButton={activeButton}
-        onNavButtonClick={setActiveButton}
+    <div className='min-h-screen bg-[#F1F1F1]'>
+      <CreateEvaluationHeader
+        isAssessmentSubmitted={false}
+        currentCycle={currentCycle}
+        onSubmit={handleSubmitAssessment}
+        tabs={TABS}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        isComplete={allEvaluationsComplete}
       />
-      <main className="bg-[#F1F1F1]">
-        {renderContent()}
+      <main className='bg-[#F1F1F1]'>
+        {activeTab === 'self-assessment' && <EvaluationsForm />}
+        {activeTab === '360assessment' && <Evaluation360 />}
+        {activeTab === 'mentoring' && <MentoringEvaluation />}
+        {activeTab === 'references' && <ReferencesEvaluation />}
       </main>
     </div>
+  );
+};
+
+const EvaluationPage = () => {
+  return (
+    <EvaluationProvider>
+      <EvaluationPageContent />
+    </EvaluationProvider>
   );
 };
 
