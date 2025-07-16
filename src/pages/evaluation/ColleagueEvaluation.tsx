@@ -57,10 +57,14 @@ export const ColleagueEvaluation = ({
 
         {/* Rating section */}
         <div className='mb-6'>
-          <p className='text-sm text-gray-700 mb-3'>Dê uma avaliação de 1 a 5 ao colaborador</p>
-          <div className='flex flex-col lg:flex-row items-start lg:items-center gap-4'>
-            <div className='flex items-center gap-2'>
-              <StarRating rating={rating} onRatingChange={onRatingChange} size='lg' />
+          <div className='flex flex-col lg:flex-row justify-between lg:items-start gap-4'>
+            <div className='flex-1'>
+              <label className='text-sm font-medium text-gray-700 block mb-2'>
+                Dê uma avaliação de 1 a 5 ao colaborador
+              </label>
+              <div className='flex items-center gap-2'>
+                <StarRating rating={rating} onRatingChange={onRatingChange} size='lg' />
+              </div>
             </div>
             <div className='w-full lg:w-96'>
               <label htmlFor={`work-again-${id}`} className='text-sm font-medium text-gray-700 block mb-2'>

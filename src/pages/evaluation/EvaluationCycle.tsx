@@ -139,7 +139,6 @@ const EvaluationPageContent = () => {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         isComplete={allEvaluationsComplete}
-        completionStatus={completionStatus}
       />
       <main className='bg-[#F1F1F1]'>
         {activeTab === 'self-assessment' && <EvaluationsForm />}
