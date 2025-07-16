@@ -1,150 +1,158 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useAuth } from '../../../hooks/useAuth';
 import CollaboratorHistoryChart from './components/CollaboratorHistoryChart';
 import CollaboratorCycleHistory from './components/CollaboratorCycleHistory';
-import EvaluationService from '../../../services/EvaluationService';
-import ManagerService from '../../../services/ManagerService';
 import DetailedScoreCard from '../../../components/cards/DetailedScoreCard';
 import ImprovePercentageCard from '../../../components/cards/ImprovePercentageCard';
 import EvaluationsFinishedCard from '../../../components/cards/EvaluationsFinishedCard';
+import { CustomSelect } from '../../../components/CustomSelect';
+import EvaluationService, { CollaboratorCompletePerformance } from '../../../services/EvaluationService';
 
 const CollaboratorEvolution = () => {
-  const { user } = useAuth();
-  const [performanceHistory, setPerformanceHistory] = useState<PerformanceHistoryDto>();
+  const [menteeData, setMenteeData] = useState<CollaboratorCompletePerformance | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedCycle, setSelectedCycle] = useState<string>('');
   const [availableCycles, setAvailableCycles] = useState<string[]>([]);
 
+  // Buscar ciclos disponíveis e definir o ciclo ativo como padrão
   useEffect(() => {
-    const fetchActiveCycle = async () => {
+    const fetchCycles = async () => {
       try {
-        const activeCycle = await ManagerService.getActiveCycle();
-        setSelectedCycle(activeCycle.name);
+        const cycles = await EvaluationService.getAllCycles();
+        const cycleNames = cycles.filter(cycle => cycle.status !== 'UPCOMING').map(cycle => cycle.name);
+        setAvailableCycles(cycleNames);
+
+        // Definir ciclo ativo como padrão
+        const activeCycle = await EvaluationService.getActiveCycle();
+        if (activeCycle) {
+          setSelectedCycle(activeCycle.name);
+        } else if (cycleNames.length > 0) {
+          setSelectedCycle(cycleNames[0]);
+        }
       } catch (err) {
-        console.error('Erro ao carregar ciclo ativo:', err);
+        console.error('Erro ao carregar ciclos:', err);
       }
     };
-    fetchActiveCycle();
+    fetchCycles();
   }, []);
 
+  // Buscar dados de performance quando menteeId ou selectedCycle mudar
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const data = await EvaluationService.getPerformanceHistory();
-        setPerformanceHistory(data);
-
-        // Extrair ciclos únicos dos dados de performance e ordenar do mais recente para o mais antigo
-        const cycles = data.performanceData
-          .map(p => p.cycle)
-          .filter((cycle, index, self) => self.indexOf(cycle) === index);
-        setAvailableCycles(cycles);
+        const data = await EvaluationService.getCompletePerformance(selectedCycle);
+        setMenteeData(data);
       } catch (err) {
-        console.error('Erro ao carregar histórico de performance:', err);
+        console.error('Erro ao carregar dados completos do mentee:', err);
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, []);
-
-  // Efeito separado para definir o ciclo padrão quando os dados chegam
-  useEffect(() => {
-    if (availableCycles.length > 0 && !selectedCycle) {
-      setSelectedCycle(availableCycles[0]);
-    }
-  }, [availableCycles, selectedCycle]);
+  }, [selectedCycle]);
 
   const cardData = useMemo(() => {
-    const completedCycles = performanceHistory?.performanceData.filter(p => typeof p.finalScore === 'number');
-
-    // dados do ciclo mais recente
-    const mostRecentCycle = performanceHistory?.performanceData[0];
-    const recentScore = mostRecentCycle ? mostRecentCycle.finalScore : null;
-    const recentCycleName = mostRecentCycle?.cycle;
-
-    // calculo de crescimento entre os dois últimos ciclos concluídos
-    let growth = null;
-    let comparisonCycleName = 'anterior';
-    if (completedCycles != undefined && completedCycles.length >= 2) {
-      const lastCompletedScore = completedCycles[0].finalScore!;
-      const previousCompletedScore = completedCycles[1].finalScore!;
-      growth = lastCompletedScore - previousCompletedScore;
-      comparisonCycleName = completedCycles[1].cycle;
+    if (!menteeData) {
+      return {
+        recentScore: null,
+        recentCycleName: selectedCycle,
+        growth: null,
+        comparisonCycleName: 'anterior',
+        totalEvaluations: 0,
+      };
     }
 
-    // numero total de avaliações
-    const totalEvaluations = performanceHistory?.assessmentsSubmittedCount ?? 0;
+    // Usar os dados já calculados no backend
+    const recentScore = menteeData.performance.committeeOverallScore;
+    const growth = menteeData.performance.performanceGrowth;
+    const totalEvaluations = menteeData.performance.totalAssessmentsCompleted;
 
     return {
       recentScore,
-      recentCycleName,
+      recentCycleName: selectedCycle,
       growth,
-      comparisonCycleName,
+      comparisonCycleName: 'anterior',
       totalEvaluations,
     };
-  }, [performanceHistory]);
+  }, [menteeData, selectedCycle]);
 
-  console.log('loading', loading);
+  // Transformar dados do backend para o formato esperado pelos gráficos
+  const performanceDataForCharts = useMemo(() => {
+    if (!menteeData) return [];
 
-  const handleCycleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedCycle(event.target.value);
+    return menteeData.cycleMeans.map((cycle: any) => ({
+      cycle: cycle.cycle,
+      selfScore: {
+        BEHAVIOR: cycle.selfAssessmentMean,
+        EXECUTION: cycle.selfAssessmentMean,
+        MANAGEMENT: cycle.selfAssessmentMean,
+      },
+      managerScore: {
+        BEHAVIOR: cycle.managerBehaviorMean,
+        EXECUTION: cycle.managerExecutionMean,
+        MANAGEMENT: cycle.managerBehaviorMean,
+      },
+      finalScore: cycle.overallScore,
+      assessments360Mean: cycle.assessments360Mean,
+    }));
+  }, [menteeData]);
+
+  const handleCycleChange = (value: string) => {
+    setSelectedCycle(value);
+    // Os dados serão recarregados automaticamente pelo useEffect que observa selectedCycle
   };
 
-  return (
-    <div className="bg-gray-50 p-4 sm:p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-              Minha evolução
-            </h1>
-            <p className="text-gray-600 mt-1 text-sm sm:text-base">
-              Acompanhe sua evolução de performance ao longo do tempo
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <label htmlFor='cycle-select' className='text-sm font-medium text-gray-700'>
-              Ciclo:
-            </label>
-            <select
-              id='cycle-select'
-              value={selectedCycle}
-              onChange={handleCycleChange}
-              className='px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white'
-            >
-              {availableCycles.map(cycle => (
-                <option key={cycle} value={cycle}>
-                  {cycle}
-                </option>
-              ))}
-            </select>
-          </div>
+  if (loading) {
+    return (
+      <div className='bg-gray-100 min-h-screen flex items-center justify-center'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4'></div>
+          <p className='text-gray-600'>Carregando evolução do mentee...</p>
         </div>
-        {/* Cards de métricas */}
-        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6'>
-          <DetailedScoreCard
-            title='Sua Nota Atual'
-            description={`Nota final do ciclo realizado em ${cardData.recentCycleName}.`}
-            score={cardData.recentScore}
-          />
-          <ImprovePercentageCard
-            title='Crescimento'
-            description={`Em comparação ao ciclo ${cardData.comparisonCycleName}`}
-            percentage={cardData.growth}
-          />
-          <EvaluationsFinishedCard
-            title='Avaliações realizadas'
-            description='Total de avaliações'
-            count={cardData.totalEvaluations}
-          />
-        </div>
+      </div>
+    );
+  }
 
-        {/* Gráficos */}
-        <div className='space-y-6'>
-          <CollaboratorHistoryChart performanceHistory={performanceHistory?.performanceData ?? []} />
-          <CollaboratorCycleHistory performanceHistory={performanceHistory?.performanceData ?? []} />
+  return (
+    <div className='bg-gray-100 min-h-screen'>
+      {/* Header */}
+      <div className='bg-white shadow-md p-6'>
+        <div className='flex justify-between items-center'>
+          <h1 className='text-2xl font-bold text-gray-900'>Evolução - {selectedCycle || 'Carregando...'}</h1>
+          <CustomSelect
+            id='cycle-select'
+            value={selectedCycle}
+            onChange={handleCycleChange}
+            options={availableCycles.map(cycle => ({ value: cycle, label: cycle }))}
+            label='Ciclo:'
+            placeholder='Selecione um ciclo...'
+          />
         </div>
+      </div>
+
+      {/* Cards de estatísticas */}
+      <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 p-4 md:p-8'>
+        <DetailedScoreCard
+          title='Nota Atual'
+          description={`Nota final do ciclo realizado em ${cardData.recentCycleName}.`}
+          score={cardData.recentScore}
+        />
+        <ImprovePercentageCard
+          title='Crescimento'
+          description={`Em comparação ao ciclo ${cardData.comparisonCycleName}`}
+          percentage={cardData.growth}
+        />
+        <EvaluationsFinishedCard
+          title='Avaliações realizadas'
+          description='Total de avaliações'
+          count={cardData.totalEvaluations}
+        />
+      </div>
+
+      {/* Gráficos */}
+      <div className='px-4 pb-4 md:px-8 md:pb-4'>
+        <CollaboratorHistoryChart performanceHistory={performanceDataForCharts} />
+        <CollaboratorCycleHistory performanceHistory={performanceDataForCharts} />
       </div>
     </div>
   );

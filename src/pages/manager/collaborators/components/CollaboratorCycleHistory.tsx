@@ -1,7 +1,21 @@
 import CycleEvaluationCard from './CycleEvaluationCard';
 
 interface CollaboratorCycleHistoryProps {
-  performanceHistory: PerformanceDataDto[];
+  performanceHistory: Array<{
+    cycle: string;
+    selfScore: {
+      BEHAVIOR: number | null;
+      EXECUTION: number | null;
+      MANAGEMENT: number | null;
+    };
+    managerScore: {
+      BEHAVIOR: number | null;
+      EXECUTION: number | null;
+      MANAGEMENT: number | null;
+    };
+    finalScore: number | null;
+    assessments360Mean: number | null;
+  }>;
 }
 
 const CollaboratorCycleHistory = ({ performanceHistory }: CollaboratorCycleHistoryProps) => {
