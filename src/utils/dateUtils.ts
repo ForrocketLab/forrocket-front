@@ -18,7 +18,13 @@ export const formatDate = (dateValue: any): string => {
     
     // Lidar com diferentes tipos de entrada
     if (typeof dateValue === 'string') {
-      date = new Date(dateValue);
+      // Se a string já está no formato ISO, usar diretamente
+      if (dateValue.includes('T') || dateValue.includes('Z')) {
+        date = new Date(dateValue);
+      } else {
+        // Tentar parsear como data local
+        date = new Date(dateValue);
+      }
     } else if (dateValue instanceof Date) {
       date = dateValue;
     } else if (typeof dateValue === 'object' && dateValue !== null) {
