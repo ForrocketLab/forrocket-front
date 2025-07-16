@@ -1,4 +1,4 @@
-import { useState, type FC, type ComponentType } from 'react';
+import { useState, useEffect, useRef, useCallback, type FC, type ComponentType } from 'react';
 import {
   useForm,
   type SubmitHandler,
@@ -6,11 +6,20 @@ import {
   type FieldError,
   type RegisterOptions,
 } from 'react-hook-form';
-import { useNavigate, Link } from 'react-router-dom';
-import AuthService from '../../services/AuthService';
+import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock } from 'lucide-react';
-import { ROLES } from '../../types/roles';
 import { useAuth } from '../../hooks/useAuth';
+import { LoginErrorModal } from '../../components/LoginErrorModal';
+
+declare global {
+  interface Window {
+    loginModalState: { isOpen: boolean; message: string };
+  }
+}
+
+if (typeof window !== 'undefined' && !window.loginModalState) {
+  window.loginModalState = { isOpen: false, message: '' };
+}
 
 type LoginFormInputs = {
   email: string;
@@ -33,9 +42,39 @@ interface FormButtonProps {
 }
 
 const LoginPage: FC = () => {
-  const { login } = useAuth(); // Pegue a função login do contexto!
+  const { login, isAuthenticated, user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+
   const [loading, setLoading] = useState(false);
-  const [apiError, setApiError] = useState('');
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const modalState = useRef({ isOpen: false, message: '' });
+
+  const openErrorModal = useCallback((message: string) => {
+    window.loginModalState = { isOpen: true, message };
+    modalState.current = { isOpen: true, message };
+    setShowErrorModal(true);
+    setErrorMessage(message);
+    setTimeout(() => {
+      setShowErrorModal(true);
+      setErrorMessage(message);
+    }, 0);
+  }, []);
+
+  const closeErrorModal = useCallback(() => {
+    window.loginModalState = { isOpen: false, message: '' };
+    modalState.current = { isOpen: false, message: '' };
+    setShowErrorModal(false);
+    setErrorMessage('');
+  }, []);
+
+  useEffect(() => {
+    if (window.loginModalState.isOpen && !showErrorModal) {
+      setShowErrorModal(true);
+      setErrorMessage(window.loginModalState.message);
+    }
+  }, [showErrorModal]);
 
   const {
     register,
@@ -48,16 +87,37 @@ const LoginPage: FC = () => {
     },
   });
 
-  const onLogin: SubmitHandler<LoginFormInputs> = async data => {
+  useEffect(() => {
+    
+  }, [isAuthenticated, user, navigate]);
+
+  if (authLoading) {
+    return (
+      <div className='flex items-center justify-center min-h-screen'>
+        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-green-600'></div>
+        <span className='ml-2'>Verificando autenticação...</span>
+      </div>
+    );
+  }
+
+  const onLogin: SubmitHandler<LoginFormInputs> = async (data, event) => {
+    event?.preventDefault();
     setLoading(true);
-    setApiError('');
+    closeErrorModal();
+
     try {
       await login(data);
-    } catch (err) {
+    } catch (err: any) {
       if (err instanceof Error) {
-        setApiError(err.message);
+        let displayMessage = err.message;
+        if (displayMessage === 'Credenciais inválidas') {
+          displayMessage = 'Email ou senha incorretos.';
+        } else if (displayMessage === 'Network Error' || displayMessage.includes('Failed to fetch')) {
+          displayMessage = 'Erro de conexão. Verifique sua internet ou tente novamente mais tarde.';
+        }
+        openErrorModal(displayMessage);
       } else {
-        setApiError('Ocorreu um erro desconhecido.');
+        openErrorModal('Ocorreu um erro desconhecido. Por favor, tente novamente.');
       }
     } finally {
       setLoading(false);
@@ -92,7 +152,6 @@ const LoginPage: FC = () => {
 
   return (
     <main className='flex min-h-screen bg-white'>
-      {/*Onboard*/}
       <div className='relative hidden w-1/2 flex-col items-center justify-center text-white md:flex'>
         <div
           className='absolute inset-0 bg-cover bg-center'
@@ -117,7 +176,6 @@ const LoginPage: FC = () => {
         </div>
       </div>
 
-      {/*Formulário*/}
       <div className='flex w-full items-center justify-center p-8 md:w-1/2'>
         <div className='w-full max-w-md space-y-8'>
           <div>
@@ -130,7 +188,7 @@ const LoginPage: FC = () => {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit(onLogin)} className='mt-8 space-y-6'>
+          <form onSubmit={handleSubmit(onLogin)} className='mt-8 space-y-6' noValidate>
             <div className='space-y-4 rounded-md'>
               <FormInput
                 id='email'
@@ -166,18 +224,18 @@ const LoginPage: FC = () => {
 
             <div className='flex items-center justify-between'>
               <div className='text-sm'>
-                <a href='#' className='font-medium text-green-600 hover:text-green-500'>
+                <Link to='/forgot-password' className='font-medium text-green-600 hover:text-green-500'>
                   Esqueceu sua senha?
-                </a>
+                </Link>
               </div>
             </div>
-
-            {apiError && <p className='text-center text-sm text-red-600'>{apiError}</p>}
 
             <FormButton text='Login' loading={loading} />
           </form>
         </div>
       </div>
+
+      <LoginErrorModal isOpen={showErrorModal} onClose={closeErrorModal} errorMessage={errorMessage} />
     </main>
   );
 };

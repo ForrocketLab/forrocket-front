@@ -15,6 +15,7 @@ import {
   getPDIOverdueDays
 } from '../../../types/pdis';
 import PDIService from '../../../services/PDIService';
+import { formatDate } from '../../../utils/dateUtils';
 
 interface PDICardProps {
   pdi: PDISummary;
@@ -23,12 +24,22 @@ interface PDICardProps {
 }
 
 const PDICard: React.FC<PDICardProps> = ({ pdi, onDelete, onRefresh }) => {
+  const navigate = useNavigate();
+  const toast = useGlobalToast();
   const [showMenu, setShowMenu] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showStatusConfirm, setShowStatusConfirm] = useState<{ status: PDIStatus; action: string } | null>(null);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const toast = useGlobalToast();
+
+  // Debug temporário para verificar as datas
+  console.log('PDICard - Dados do PDI:', {
+    id: pdi.id,
+    title: pdi.title,
+    startDate: pdi.startDate,
+    startDateType: typeof pdi.startDate,
+    endDate: pdi.endDate,
+    endDateType: typeof pdi.endDate
+  });
 
   const handleView = () => {
     navigate(`/pdis/${pdi.id}`);
@@ -100,10 +111,6 @@ const PDICard: React.FC<PDICardProps> = ({ pdi, onDelete, onRefresh }) => {
   const canArchive = pdi.status === 'NOT_STARTED' || pdi.status === 'IN_PROGRESS' || pdi.status === 'COMPLETED';
   const canReactivate = pdi.status === 'ARCHIVED';
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
-
   return (
     <div className={`bg-white rounded-xl shadow-sm transition-all duration-200 hover:shadow-lg flex flex-col h-full ${
       isOverdue 
@@ -137,7 +144,7 @@ const PDICard: React.FC<PDICardProps> = ({ pdi, onDelete, onRefresh }) => {
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-gray-500" />
               <span className="text-sm text-gray-600 font-medium">
-                {formatDate(pdi.startDate)} - {formatDate(pdi.endDate)}
+                {pdi.startDate && typeof pdi.startDate === 'string' ? formatDate(pdi.startDate) : 'Data não informada'} - {pdi.endDate && typeof pdi.endDate === 'string' ? formatDate(pdi.endDate) : 'Data não informada'}
               </span>
             </div>
           </div>

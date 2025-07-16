@@ -13,12 +13,23 @@ export const formatDate = (dateValue: any): string => {
     return 'Não informado';
   }
   
+  // Se for um objeto vazio {}, retornar Não informado
+  if (typeof dateValue === 'object' && dateValue !== null && Object.keys(dateValue).length === 0) {
+    return 'Não informado';
+  }
+  
   try {
     let date: Date;
     
     // Lidar com diferentes tipos de entrada
     if (typeof dateValue === 'string') {
-      date = new Date(dateValue);
+      // Se a string já está no formato ISO, usar diretamente
+      if (dateValue.includes('T') || dateValue.includes('Z')) {
+        date = new Date(dateValue);
+      } else {
+        // Tentar parsear como data local
+        date = new Date(dateValue);
+      }
     } else if (dateValue instanceof Date) {
       date = dateValue;
     } else if (typeof dateValue === 'object' && dateValue !== null) {

@@ -2,6 +2,7 @@ import { createContext, useState, useEffect, type FC, type ReactNode } from 'rea
 import { useNavigate } from 'react-router-dom';
 import AuthService from '../services/AuthService';
 import { ROLES } from '../types/roles';
+import type { UserProfile, LoginCredentials } from '../types/auth';
 
 export interface AuthContextType {
   isAuthenticated: boolean;
@@ -12,12 +13,10 @@ export interface AuthContextType {
   logout: () => void;
 }
 
-// Props para o Provider
 interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Contexto com um valor padrão.
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
@@ -29,20 +28,21 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const validateToken = async () => {
-      const token = AuthService.getToken();
-      
-      if (token) {
+      const storedToken = AuthService.getToken();
+
+      if (storedToken) {
         try {
-          // Se o token existe, busca os dados do usuário
           const userProfile = await AuthService.getProfile();
-          setUser(userProfile); // Restaura a sessão do usuário
-        } catch (error) {
-          // Se o token for inválido/expirado, o getProfile falhará.
-          // O authService já deve fazer o logout.
-          console.error('Sessão inválida, limpando token:', error);
+          setUser(userProfile);
+          setToken(storedToken);
+        } catch {
+          AuthService.logout();
+          setUser(null);
+          setToken(null);
         }
       }
-      setLoading(false); // Finaliza o carregamento
+
+      setLoading(false);
     };
 
     validateToken();
@@ -50,23 +50,19 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (data: LoginCredentials) => {
     setLoading(true);
-    try {
-      console.log('🔐 Iniciando login com:', data.email);
-      await AuthService.login(data);
-      console.log('✅ Login realizado com sucesso');
+    setApiError(null);
 
+    try {
+      await AuthService.login(data);
       const userProfile = await AuthService.getProfile();
-      console.log('👤 Perfil do usuário:', userProfile);
 
       setUser(userProfile);
+      setToken(AuthService.getToken());
 
       const dashboardPath = getPathByRoles(userProfile.roles || []);
-      console.log('🚀 Redirecionando para:', dashboardPath);
-
       navigate(dashboardPath, { replace: true });
-    } catch (err) {
-      console.error('❌ Falha no processo de login:', err);
-      // Re-lança o erro para o LoginPage poder pegar no catch e exibir a mensagem de erro
+    } catch (err: any) {
+      setApiError(err.message || 'Erro ao fazer login. Verifique suas credenciais.');
       throw err;
     } finally {
       setLoading(false);
@@ -74,50 +70,40 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('authToken');
+    AuthService.logout();
     setUser(null);
     setToken(null);
     navigate('/login');
   };
 
-  const value = {
-    isAuthenticated: !!user,
-    user,
-    loading,
-    apiError,
-    login,
-    logout,
-  };
-
   const getPathByRoles = (roles: string[]): string => {
-    console.log('🔍 Verificando roles:', roles);
-    console.log('🔍 ROLES.COMMITTEE:', ROLES.COMMITTEE);
-    
     if (roles.includes(ROLES.ADMIN)) return '/admin';
     if (roles.includes(ROLES.RH)) return '/rh';
     if (roles.includes(ROLES.COMMITTEE)) return '/committee';
     if (roles.includes(ROLES.MANAGER)) return '/manager/dashboard';
-    if (roles.includes(ROLES.COLLABORATOR)) return '/'; // Rota para colaborador
-    return '/login'; // Fallback
+    if (roles.includes(ROLES.COLLABORATOR)) return '/';
+    return '/login';
   };
 
   if (loading) {
     return (
-      <div style={{ 
-        padding: '20px', 
-        textAlign: 'center', 
-        backgroundColor: '#f0f0f0',
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center'
-      }}>
+      <div
+        style={{
+          padding: '20px',
+          textAlign: 'center',
+          backgroundColor: '#f0f0f0',
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#085F60]"></div>
         <div style={{ marginTop: '20px' }}>Verificando autenticação...</div>
       </div>
     );
   }
 
-  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ isAuthenticated: !!user, user, loading, apiError, login, logout }}>{children}</AuthContext.Provider>;
 };

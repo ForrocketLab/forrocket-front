@@ -1,30 +1,46 @@
-import { useState, useEffect, useContext } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useContext } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../contexts/AuthProvider';
 import AdminService, { type CycleData, type UserData } from '../../services/AdminService';
 import { useGlobalToast } from '../../hooks/useGlobalToast';
+import { useAuth } from '../../hooks/useAuth';
+import { ROLES } from '../../types/roles';
 import { 
+  Shield, 
   Users, 
+  Calendar, 
+  BarChart3, 
+  Clock, 
+  AlertTriangle, 
   RefreshCw, 
-  Calendar,
-  Zap,
-  Shield,
-  BarChart3,
-  Clock,
-  AlertTriangle,
-  CheckCircle,
   XCircle,
-  FileText
+  Settings,
+  FileText,
+  Activity
 } from 'lucide-react';
 
 const AdminHomePage = () => {
-  const auth = useContext(AuthContext);
+  const auth = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [activeCycle, setActiveCycle] = useState<CycleData | null>(null);
   const [allCycles, setAllCycles] = useState<CycleData[]>([]);
   const [users, setUsers] = useState<UserData[]>([]);
   const [error, setError] = useState<string | null>(null);
   const { success: showSuccessToast, error: showErrorToast } = useGlobalToast();
+
+  // Verificar autorização
+  if (!auth || !auth.isAuthenticated) {
+    navigate('/login');
+    return null;
+  }
+
+  // Verificar se o usuário tem role de Admin
+  const hasAdminRole = auth.user?.roles?.some(role => role === ROLES.ADMIN);
+  if (!hasAdminRole) {
+    navigate('/unauthorized');
+    return null;
+  }
 
   useEffect(() => {
     loadDashboardData();
@@ -91,10 +107,6 @@ const AdminHomePage = () => {
       default: return status;
     }
   };
-
-  if (!auth || !auth.isAuthenticated) {
-    return <div className="flex justify-center items-center h-64">Não autorizado</div>;
-  }
 
   if (loading) {
     return (
@@ -287,7 +299,7 @@ const AdminHomePage = () => {
           <div className="bg-white rounded-lg p-6 shadow-sm hover:shadow-orange-600 transition-all duration-200">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-orange-100 rounded-lg">
-                <Zap className="h-6 w-6 text-orange-600" />
+                <Activity className="h-6 w-6 text-orange-600" />
               </div>
               <div className="text-sm text-gray-500">Avançado</div>
             </div>

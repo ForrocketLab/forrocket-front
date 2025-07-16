@@ -3,8 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Calendar, BookOpen, CheckCircle, Clock, AlertCircle, Archive, MoreVertical, TrendingUp, Target, AlertTriangle } from 'lucide-react';
 import { useGlobalToast } from '../../hooks/useGlobalToast';
 import PDIService from '../../services/PDIService';
+import { formatDate, debugFormatDate } from '../../utils/dateUtils';
 import type { PDIResponse, PDIActionResponse } from '../../types/pdis';
 import { getStatusLabel, getStatusColor, getPriorityLabel, getPriorityColor, getProgressColor, getActionStatusOptions } from '../../types/pdis';
+import { isValidDate } from '../../utils/dateUtils';
 
 const PDIDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -44,6 +46,20 @@ const PDIDetailsPage: React.FC = () => {
       setIsLoading(true);
       setError(null);
       const data = await PDIService.getPDIById(id);
+      
+      // Debug: Log dos dados recebidos
+      console.log('PDI Data received:', data);
+      console.log('PDI startDate:', data.startDate, typeof data.startDate);
+      console.log('PDI endDate:', data.endDate, typeof data.endDate);
+      console.log('PDI actions:', data.actions);
+      
+      if (data.actions && data.actions.length > 0) {
+        data.actions.forEach((action, index) => {
+          console.log(`Action ${index} deadline:`, action.deadline, typeof action.deadline);
+          console.log(`Action ${index} completedAt:`, action.completedAt, typeof action.completedAt);
+        });
+      }
+      
       setPdi(data);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar PDI';
@@ -62,10 +78,6 @@ const PDIDetailsPage: React.FC = () => {
 
   const handleBack = () => {
     navigate('/pdis');
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
   };
 
   const getActionStatusIcon = (status: string) => {
@@ -111,7 +123,18 @@ const PDIDetailsPage: React.FC = () => {
 
   const isActionOverdue = (deadline: string, status: string) => {
     if (status === 'COMPLETED') return false;
-    return new Date(deadline) < new Date();
+    
+    // Verificar se a data é válida antes de comparar
+    if (!isValidDate(deadline)) return false;
+    
+    const deadlineDate = new Date(deadline);
+    const today = new Date();
+    
+    // Remove as horas para comparar apenas datas
+    deadlineDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    
+    return deadlineDate.getTime() < today.getTime();
   };
 
   const handleActionStatusChange = async (actionId: string, newStatus: string) => {

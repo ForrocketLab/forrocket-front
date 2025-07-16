@@ -161,67 +161,68 @@ const ClimateAssessmentConfig: React.FC = () => {
 
   // Renderização principal: sempre mostrar cards se houver dados, senão mensagem padrão de erro
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      {/* Header sem dropdown de ciclo */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+      {/* Header */}
+      <div className="mb-6 sm:mb-8">
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
               Clima Organizacional
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">
               Configure e monitore a avaliação de clima organizacional
             </p>
-            {/* Dropdown removido */}
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <button
               onClick={() => setShowCriteriaModal(true)}
-              className="flex items-center gap-2 px-3 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors"
+              className="flex items-center justify-center gap-2 px-3 py-2.5 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors"
             >
               <HelpCircle className="w-4 h-4" />
               <span className="text-sm font-medium">Critérios</span>
             </button>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center gap-2">
               <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
               <span className="text-sm text-gray-500">Sistema de Clima</span>
             </div>
           </div>
         </div>
       </div>
-      {/* Cards de estatísticas e análise de sentimento como antes */}
+
       {/* Controles de Ativação */}
-      <div className="bg-white rounded-xl p-6 mb-8 shadow-sm border">
+      <div className="bg-white rounded-xl p-4 sm:p-6 mb-6 sm:mb-8 shadow-sm border border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <Settings className="w-5 h-5 text-gray-600" />
           Controles de Ativação
         </h2>
         
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <button
             onClick={() => toggleAssessment(true)}
             disabled={saving || config?.isActive}
-            className="flex items-center justify-center gap-2 px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium"
+            className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium"
           >
             {saving ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
             ) : (
               <Play className="w-4 h-4" />
             )}
-            {saving ? 'Ativando...' : 'Ativar Avaliação'}
+            <span className="hidden sm:inline">{saving ? 'Ativando...' : 'Ativar Avaliação'}</span>
+            <span className="sm:hidden">{saving ? 'Ativando...' : 'Ativar'}</span>
           </button>
           
           <button
             onClick={() => toggleAssessment(false)}
             disabled={saving || !config?.isActive}
-            className="flex items-center justify-center gap-2 px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium"
+            className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium"
           >
             {saving ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
             ) : (
               <Square className="w-4 h-4" />
             )}
-            {saving ? 'Desativando...' : 'Desativar Avaliação'}
+            <span className="hidden sm:inline">{saving ? 'Desativando...' : 'Desativar Avaliação'}</span>
+            <span className="sm:hidden">{saving ? 'Desativando...' : 'Desativar'}</span>
           </button>
         </div>
         
@@ -242,8 +243,8 @@ const ClimateAssessmentConfig: React.FC = () => {
       </div>
 
       {/* Status Card */}
-      <div className="bg-white rounded-xl p-6 mb-8 shadow-sm border">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-white rounded-xl p-4 sm:p-6 mb-6 sm:mb-8 shadow-sm border border-gray-200">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <BarChart3 className="w-5 h-5 text-orange-600" />
             Status da Avaliação
@@ -258,36 +259,36 @@ const ClimateAssessmentConfig: React.FC = () => {
         </div>
         
         {config ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Users className="w-5 h-5 text-blue-600" />
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">Ciclo Atual</p>
-                <p className="text-lg font-bold text-blue-600">{config.cycle}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-900 truncate">Ciclo Atual</p>
+                <p className="text-lg font-bold text-blue-600 truncate">{config.cycle}</p>
               </div>
             </div>
             
             <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Settings className="w-5 h-5 text-purple-600" />
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">Configurado por</p>
-                <p className="text-lg font-bold text-purple-600">{config.activatedByUserName}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-900 truncate">Configurado por</p>
+                <p className="text-lg font-bold text-purple-600 truncate">{config.activatedByUserName}</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg sm:col-span-2 lg:col-span-1">
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Clock className="w-5 h-5 text-orange-600" />
               </div>
-                                  <div>
-                <p className="text-sm font-medium text-gray-900">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-900 truncate">
                   {config.isActive ? 'Ativada em' : 'Desativada em'}
                 </p>
-                <p className="text-lg font-bold text-orange-600">
+                <p className="text-lg font-bold text-orange-600 truncate">
                   {formatDate(config.isActive ? config.activatedAt : (config.deactivatedAt || config.activatedAt))}
                 </p>
               </div>
@@ -303,73 +304,74 @@ const ClimateAssessmentConfig: React.FC = () => {
         )}
       </div>
 
-        {/* Estatísticas */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border mb-8">
-        <div className="flex items-center justify-between mb-6">
+      {/* Estatísticas */}
+      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-teal-600" />
             Estatísticas da Avaliação
           </h2>
           <button
             onClick={refreshStats}
-            className="flex items-center gap-2 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors text-sm font-medium"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors text-sm font-medium"
           >
             <RefreshCw className="w-4 h-4" />
-            Atualizar
+            <span className="hidden sm:inline">Atualizar</span>
+            <span className="sm:hidden">Atualizar</span>
           </button>
         </div>
         
         {stats ? (
           <>
             {/* Cards de métricas */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 sm:p-6 rounded-xl border border-blue-200">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-                    <Users className="w-6 h-6 text-white" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-blue-600">{stats.eligibleUsers}</div>
-                    <div className="text-sm text-blue-700">Total</div>
+                    <div className="text-xl sm:text-2xl font-bold text-blue-600">{stats.eligibleUsers}</div>
+                    <div className="text-xs text-blue-700">Total</div>
                   </div>
                 </div>
                 <p className="text-sm font-medium text-blue-900">Colaboradores</p>
               </div>
               
-              <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200">
+              <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 sm:p-6 rounded-xl border border-green-200">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
-                    <CheckCircle className="w-6 h-6 text-white" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                    <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-green-600">{stats.submittedAssessments}</div>
-                    <div className="text-sm text-green-700">Submetidas</div>
+                    <div className="text-xl sm:text-2xl font-bold text-green-600">{stats.submittedAssessments}</div>
+                    <div className="text-xs text-green-700">Submetidas</div>
                   </div>
                 </div>
                 <p className="text-sm font-medium text-green-900">Avaliações Finalizadas</p>
               </div>
               
-              <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-xl border border-yellow-200">
+              <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 sm:p-6 rounded-xl border border-yellow-200">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center">
-                    <Clock className="w-6 h-6 text-white" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-500 rounded-lg flex items-center justify-center">
+                    <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-yellow-600">{stats.draftAssessments}</div>
-                    <div className="text-sm text-yellow-700">Rascunhos</div>
+                    <div className="text-xl sm:text-2xl font-bold text-yellow-600">{stats.draftAssessments}</div>
+                    <div className="text-xs text-yellow-700">Rascunhos</div>
                   </div>
                 </div>
                 <p className="text-sm font-medium text-yellow-900">Avaliações Pendentes</p>
               </div>
               
-              <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200">
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 sm:p-6 rounded-xl border border-purple-200">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
-                    <BarChart3 className="w-6 h-6 text-white" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+                    <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-purple-600">{stats.completionRate.toFixed(1)}%</div>
-                    <div className="text-sm text-purple-700">Taxa</div>
+                    <div className="text-xl sm:text-2xl font-bold text-purple-600">{stats.completionRate.toFixed(1)}%</div>
+                    <div className="text-xs text-purple-700">Taxa</div>
                   </div>
                 </div>
                 <p className="text-sm font-medium text-purple-900">Taxa de Participação</p>
@@ -397,14 +399,14 @@ const ClimateAssessmentConfig: React.FC = () => {
             {/* Estatísticas por critério */}
             <div>
               <h3 className="text-md font-semibold text-gray-900 mb-4">Média por Critério</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {Object.entries(stats.criteriaStats).map(([criterion, data]) => (
                   <div key={criterion} className="bg-gray-50 p-4 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700 capitalize">
+                      <span className="text-sm font-medium text-gray-700 capitalize truncate">
                         {criterion.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
                       </span>
-                      <span className="text-lg font-bold text-gray-900">
+                      <span className="text-lg font-bold text-gray-900 ml-2">
                         {data.average.toFixed(1)}
                       </span>
                     </div>
@@ -430,24 +432,23 @@ const ClimateAssessmentConfig: React.FC = () => {
             </div>
             <p className="text-gray-500">Nenhuma estatística disponível para o ciclo atual</p>
           </div>
-                    )}
+        )}
       </div>
 
-
-
       {/* Análise de Sentimento */}
-      <div className="mt-8">
+      <div className="mt-6 sm:mt-8">
         <ClimateSentimentAnalysisCard bordered />
       </div>
 
       {/* Modal de Critérios */}
       {showCriteriaModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <HelpCircle className="w-6 h-6 text-indigo-600" />
-                Critérios da Avaliação de Clima Organizacional
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2">
+                <HelpCircle className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600" />
+                <span className="hidden sm:inline">Critérios da Avaliação de Clima Organizacional</span>
+                <span className="sm:hidden">Critérios de Clima</span>
               </h2>
               <button 
                 onClick={() => setShowCriteriaModal(false)} 
@@ -457,7 +458,7 @@ const ClimateAssessmentConfig: React.FC = () => {
               </button>
             </div>
             
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 space-y-6">
               {/* Introdução */}
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                 <div className="flex items-start gap-3">
@@ -478,12 +479,12 @@ const ClimateAssessmentConfig: React.FC = () => {
               {/* Critérios */}
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Critérios de Avaliação</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="flex items-start gap-4 p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-lg border border-red-200">
-                    <div className="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Heart className="w-6 h-6 text-white" />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                  <div className="flex items-start gap-3 sm:gap-4 p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-lg border border-red-200">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <h4 className="font-semibold text-red-900 mb-2">Relacionamento com a Liderança</h4>
                       <p className="text-sm text-red-700 leading-relaxed mb-3">
                         Avalia a qualidade da comunicação, feedback, suporte e desenvolvimento 
@@ -496,11 +497,11 @@ const ClimateAssessmentConfig: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-4 p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
-                    <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Users2 className="w-6 h-6 text-white" />
+                  <div className="flex items-start gap-3 sm:gap-4 p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Users2 className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <h4 className="font-semibold text-blue-900 mb-2">Relacionamento com Colegas</h4>
                       <p className="text-sm text-blue-700 leading-relaxed mb-3">
                         Mede a colaboração, respeito e trabalho em equipe entre os membros 
@@ -513,11 +514,11 @@ const ClimateAssessmentConfig: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-4 p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg border border-yellow-200">
-                    <div className="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Award className="w-6 h-6 text-white" />
+                  <div className="flex items-start gap-3 sm:gap-4 p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg border border-yellow-200">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Award className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <h4 className="font-semibold text-yellow-900 mb-2">Reconhecimento e Valorização</h4>
                       <p className="text-sm text-yellow-700 leading-relaxed mb-3">
                         Avalia como a organização reconhece e valoriza o trabalho dos 
@@ -530,11 +531,11 @@ const ClimateAssessmentConfig: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-4 p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
-                    <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Workflow className="w-6 h-6 text-white" />
+                  <div className="flex items-start gap-3 sm:gap-4 p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Workflow className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <h4 className="font-semibold text-green-900 mb-2">Carga de Trabalho e Equilíbrio</h4>
                       <p className="text-sm text-green-700 leading-relaxed mb-3">
                         Mede o equilíbrio entre vida profissional e pessoal, gestão de 
@@ -559,7 +560,7 @@ const ClimateAssessmentConfig: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-indigo-900 mb-2">Como Avaliar</p>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-indigo-700">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm text-indigo-700">
                         <div>
                           <strong>1 - Muito Insatisfeito:</strong> Aspecto muito negativo, precisa de atenção imediata
                         </div>
@@ -572,7 +573,7 @@ const ClimateAssessmentConfig: React.FC = () => {
                         <div>
                           <strong>4 - Satisfeito:</strong> Aspecto positivo, funciona bem
                         </div>
-                        <div>
+                        <div className="sm:col-span-2">
                           <strong>5 - Muito Satisfeito:</strong> Aspecto excelente, funciona perfeitamente
                         </div>
                       </div>
