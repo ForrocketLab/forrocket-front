@@ -250,7 +250,7 @@ const CycleManagement: React.FC = () => {
     <div className="min-h-screen bg-gray-50 p-6">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               <Calendar className="h-7 w-7 text-teal-600" />
@@ -260,7 +260,7 @@ const CycleManagement: React.FC = () => {
               Gerencie todos os ciclos de avaliação - {cycles.length} ciclos cadastrados
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <button
               onClick={loadCycles}
               disabled={loading}
@@ -308,7 +308,7 @@ const CycleManagement: React.FC = () => {
       )}
 
       {/* Cycles Table */}
-      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg font-medium text-gray-900">Todos os Ciclos</h3>
         </div>
@@ -443,7 +443,7 @@ const CycleManagement: React.FC = () => {
                     value={createFormData.name}
                     onChange={(e) => setCreateFormData(prev => ({ ...prev, name: e.target.value }))}
                     placeholder="Ex: 2025.1"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     required
                   />
                 </div>
@@ -458,7 +458,7 @@ const CycleManagement: React.FC = () => {
                       type="datetime-local"
                       value={createFormData.startDate}
                       onChange={(e) => setCreateFormData(prev => ({ ...prev, startDate: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     />
                   </div>
                   <div>
@@ -469,7 +469,7 @@ const CycleManagement: React.FC = () => {
                       type="datetime-local"
                       value={createFormData.endDate}
                       onChange={(e) => setCreateFormData(prev => ({ ...prev, endDate: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -487,7 +487,7 @@ const CycleManagement: React.FC = () => {
                         type="datetime-local"
                         value={createFormData.assessmentDeadline}
                         onChange={(e) => setCreateFormData(prev => ({ ...prev, assessmentDeadline: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -498,7 +498,7 @@ const CycleManagement: React.FC = () => {
                         type="datetime-local"
                         value={createFormData.managerDeadline}
                         onChange={(e) => setCreateFormData(prev => ({ ...prev, managerDeadline: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -509,7 +509,7 @@ const CycleManagement: React.FC = () => {
                         type="datetime-local"
                         value={createFormData.equalizationDeadline}
                         onChange={(e) => setCreateFormData(prev => ({ ...prev, equalizationDeadline: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                       />
                     </div>
                   </div>
@@ -520,7 +520,7 @@ const CycleManagement: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="px-4 py-2 text-gray-700 border-gray-300 rounded-lg hover:bg-gray-50"
                 >
                   Cancelar
                 </button>

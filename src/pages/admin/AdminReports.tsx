@@ -220,7 +220,7 @@ const AdminReports: React.FC = () => {
     <div className="min-h-screen bg-gray-50 p-6">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               <BarChart3 className="h-7 w-7 text-teal-600" />
@@ -230,7 +230,7 @@ const AdminReports: React.FC = () => {
               Métricas completas do sistema e análise de performance
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <button
               onClick={loadMetrics}
               disabled={loading}
@@ -253,7 +253,7 @@ const AdminReports: React.FC = () => {
       {/* Metrics Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {/* Total Users */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
+        <div className="bg-white rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-600">Total de Usuários</h3>
             <Users className="h-5 w-5 text-blue-600" />
@@ -267,7 +267,7 @@ const AdminReports: React.FC = () => {
         </div>
 
         {/* Total Cycles */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
+        <div className="bg-white rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-600">Total de Ciclos</h3>
             <Calendar className="h-5 w-5 text-purple-600" />
@@ -282,7 +282,7 @@ const AdminReports: React.FC = () => {
 
         {/* Self Assessment Progress */}
         {evaluationMetrics && (
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
+          <div className="bg-white rounded-lg p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-medium text-gray-600">Autoavaliações</h3>
               <Target className="h-5 w-5 text-green-600" />
@@ -298,7 +298,7 @@ const AdminReports: React.FC = () => {
 
         {/* Manager Assessment Progress */}
         {evaluationMetrics && (
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
+          <div className="bg-white rounded-lg p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-medium text-gray-600">Avaliações Gestor</h3>
               <Activity className="h-5 w-5 text-orange-600" />
@@ -316,7 +316,7 @@ const AdminReports: React.FC = () => {
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {/* Users by Role */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
+        <div className="bg-white rounded-lg p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-gray-900 mb-6">Distribuição por Role</h3>
           <div className="space-y-4">
             {Object.entries(metrics.usersByRole).map(([role, count]) => {
@@ -340,7 +340,7 @@ const AdminReports: React.FC = () => {
         </div>
 
         {/* Users by Business Unit */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
+        <div className="bg-white rounded-lg p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-gray-900 mb-6">Distribuição por Unidade</h3>
           <div className="space-y-4">
             {Object.entries(metrics.usersByBusinessUnit).map(([unit, count]) => {
@@ -366,7 +366,7 @@ const AdminReports: React.FC = () => {
 
       {/* Evaluation Progress Details */}
       {evaluationMetrics && (
-        <div className="bg-white rounded-lg p-6 shadow-sm border mb-8">
+        <div className="bg-white rounded-lg p-6 shadow-sm mb-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-6">Progresso Detalhado das Avaliações</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -508,7 +508,7 @@ const AdminReports: React.FC = () => {
 
       {/* Active Cycle Info */}
       {activeCycle && (
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
+        <div className="bg-white rounded-lg p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-gray-900 mb-6">Informações do Ciclo Ativo</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
