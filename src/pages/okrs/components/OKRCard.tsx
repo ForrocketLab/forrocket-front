@@ -213,9 +213,9 @@ const OKRCard: React.FC<OKRCardProps> = ({ okr, onDelete, onRefresh }) => {
           <p className="text-sm text-gray-600">
             <span className="font-semibold text-gray-800">{okr.completedObjectives} de {okr.objectivesCount}</span> objetivos concluídos
           </p>
-          <div className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 mt-1">
             Atualizado {formatDate(okr.updatedAt)}
-          </div>
+          </p>
         </div>
       </div>
 

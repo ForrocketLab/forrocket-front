@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Calendar, BookOpen, CheckCircle, Clock, AlertCircle, Archive, MoreVertical, TrendingUp, Target, AlertTriangle } from 'lucide-react';
 import { useGlobalToast } from '../../hooks/useGlobalToast';
 import PDIService from '../../services/PDIService';
+import { formatDate } from '../../utils/dateUtils';
 import type { PDIResponse, PDIActionResponse } from '../../types/pdis';
 import { getStatusLabel, getStatusColor, getPriorityLabel, getPriorityColor, getProgressColor, getActionStatusOptions } from '../../types/pdis';
 import { formatDate } from '../../utils/dateUtils';

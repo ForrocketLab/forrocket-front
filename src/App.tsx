@@ -38,6 +38,9 @@ import PDIDetailsPage from './pages/pdis/PDIDetailsPage';
 import PDIForm from './pages/pdis/PDIForm';
 import CollaboratorEvolution from './pages/manager/collaborators/CollaboratorEvolution';
 import SimpleMarkdownTest from './components/SimpleMarkdownTest';
+import MentorDashboardPage from './pages/mentor/dashboard/MentorDashboard';
+import MentorMentees from './pages/mentor/mentees/MentorMentees';
+import MenteeEvaluationDetails from './pages/mentor/mentees/MenteeEvaluationDetails';
 import ProjectPage from './pages/leader/projects/ProjectPage';
 
 function App() {
@@ -96,6 +99,12 @@ function App() {
                 <Route path='/manager/brutal-facts' element={<ManagerBrutalFacts />} />
               </Route>
 
+              <Route element={<ProtectedRoute allowedRoles={[ROLES.MENTOR]} />}>
+                <Route path='/mentor/dashboard' element={<MentorDashboardPage />} />
+                <Route path='/mentor/mentees' element={<MentorMentees />} />
+                <Route path='/mentor/mentees/:id/evaluations' element={<MenteeEvaluationDetails />} />
+              </Route>
+
               <Route element={<ProtectedRoute allowedRoles={[ROLES.COLLABORATOR]} />}>
                 <Route path='/dashboard' element={<h1>Gestor</h1>} />
               </Route>
@@ -105,8 +114,6 @@ function App() {
                 <Route path='/pdis/:id' element={<PDIDetailsPage />} />
                 <Route path='/pdis/:id/edit' element={<PDIForm />} />
               </Route>
-
-
 
               <Route element={<ProtectedRoute allowedRoles={[ROLES.LEADER]} />}>
                 <Route path='/leader/projects' element={<ProjectPage />} />

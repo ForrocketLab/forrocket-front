@@ -89,6 +89,20 @@ export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
     allowedRoles: [ROLES.LEADER],
   },
 
+  // ===== MENTOR =====
+  {
+    path: '/mentor/dashboard',
+    label: 'Dashboard Mentor',
+    icon: BarChart3,
+    allowedRoles: [ROLES.MENTOR],
+  },
+  {
+    path: '/mentor/mentees',
+    label: 'Meus Mentorados',
+    icon: Users,
+    allowedRoles: [ROLES.MENTOR],
+  },
+
   // ===== RH =====
   {
     path: '/rh',
