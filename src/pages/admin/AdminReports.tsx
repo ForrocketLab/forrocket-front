@@ -230,21 +230,20 @@ const AdminReports: React.FC = () => {
               Métricas completas do sistema e análise de performance
             </p>
           </div>
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <button
+              onClick={exportReport}
+              className="bg-teal-600 hover:bg-teal-700 text-white px-4 sm:px-6 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium"
+            >
+              <Download className="h-4 w-4" />
+              <span>Exportar Relatório</span>
+            </button>
             <button
               onClick={loadMetrics}
               disabled={loading}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+              className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 flex items-center justify-center"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              Atualizar
-            </button>
-            <button
-              onClick={exportReport}
-              className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center gap-2"
-            >
-              <Download className="h-4 w-4" />
-              Exportar Relatório
             </button>
           </div>
         </div>
