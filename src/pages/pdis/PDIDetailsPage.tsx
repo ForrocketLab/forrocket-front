@@ -6,6 +6,7 @@ import PDIService from '../../services/PDIService';
 import { formatDate } from '../../utils/dateUtils';
 import type { PDIResponse, PDIActionResponse } from '../../types/pdis';
 import { getStatusLabel, getStatusColor, getPriorityLabel, getPriorityColor, getProgressColor, getActionStatusOptions } from '../../types/pdis';
+import { isValidDate } from '../../utils/dateUtils';
 
 const PDIDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -108,7 +109,18 @@ const PDIDetailsPage: React.FC = () => {
 
   const isActionOverdue = (deadline: string, status: string) => {
     if (status === 'COMPLETED') return false;
-    return new Date(deadline) < new Date();
+    
+    // Verificar se a data é válida antes de comparar
+    if (!isValidDate(deadline)) return false;
+    
+    const deadlineDate = new Date(deadline);
+    const today = new Date();
+    
+    // Remove as horas para comparar apenas datas
+    deadlineDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    
+    return deadlineDate.getTime() < today.getTime();
   };
 
   const handleActionStatusChange = async (actionId: string, newStatus: string) => {
