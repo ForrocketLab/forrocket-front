@@ -217,21 +217,63 @@ export interface MenteeManagerAssessments {
  * Feedback 360 detalhado de um mentorado
  */
 export interface MenteeFeedback360 {
-  collaboratorId: string;
-  collaboratorName: string;
+  id: string;
   cycle: string;
-  feedback360: Array<{
+  status: 'DRAFT' | 'SUBMITTED';
+  createdAt: Record<string, unknown>;
+  updatedAt: Record<string, unknown>;
+  submittedAt: Record<string, unknown>;
+  overallScore: number;
+  strengths: string;
+  improvements: string;
+  periodWorked: string | null;
+  motivationToWorkAgain:
+    | 'STRONGLY_AGREE'
+    | 'PARTIALLY_AGREE'
+    | 'NEUTRAL'
+    | 'PARTIALLY_DISAGREE'
+    | 'STRONGLY_DISAGREE'
+    | null;
+  author: {
     id: string;
-    evaluatorId: string;
-    evaluatorName: string;
-    evaluatorJobTitle: string;
+    name: string;
+    email: string;
+    jobTitle: string;
+  };
+}
+
+/**
+ * Detalhes completos de um mentorado - resposta da API /evaluations/collaborator/mentee/{menteeId}
+ */
+export interface MenteeDetails {
+  id: string;
+  name: string;
+  jobTitle: string;
+  seniority: string;
+  selfAssessment: {
+    [criterionId: string]: {
+      score: number;
+      justification: string;
+    };
+  };
+  selfAssessmentStatus: 'PENDING' | 'DRAFT' | 'SUBMITTED';
+  cycle: string;
+  received360Assessments: Array<{
+    id: string;
     overallScore: number;
     strengths: string;
     improvements: string;
+    motivationToWorkAgain: string | null;
+    status: 'DRAFT' | 'SUBMITTED';
+    author: {
+      id: string;
+      name: string;
+      jobTitle: string;
+      seniority: string;
+    };
+    createdAt: string;
     submittedAt: string;
   }>;
-  averageScore: number | null;
-  totalFeedbacks: number;
 }
 
 // =============================================
@@ -245,16 +287,16 @@ export interface MenteeFeedback360 {
 class MentorService {
   /**
    * Busca o dashboard principal do mentor
-   * @param cycle Ciclo de avaliação
+   * @param cycle Ciclo de avaliação (obrigatório)
    * @returns Dados do dashboard do mentor
    */
-  static async getMentorDashboard(cycle?: string): Promise<MentorDashboardResponse> {
+  static async getMentorDashboard(cycle: string): Promise<MentorDashboardResponse> {
     try {
       const response = await api.get<MentorDashboardResponse>('/mentor/dashboard', {
         headers: {
           Authorization: `Bearer ${AuthService.getToken()}`,
         },
-        params: cycle ? { cycle } : undefined,
+        params: { cycle },
       });
       return response.data;
     } catch (error) {
@@ -290,16 +332,16 @@ class MentorService {
   /**
    * Busca avaliações 360 recebidas por um mentorado específico
    * @param collaboratorId ID do colaborador mentorado
-   * @param cycle Ciclo de avaliação (opcional)
+   * @param cycle Ciclo de avaliação (obrigatório)
    * @returns Avaliações 360 do mentorado
    */
-  static async getMentee360Assessments(collaboratorId: string, cycle?: string): Promise<MenteeAssessment360[]> {
+  static async getMentee360Assessments(collaboratorId: string, cycle: string): Promise<MenteeAssessment360[]> {
     try {
       const response = await api.get<MenteeAssessment360[]>(`/mentor/collaborator/${collaboratorId}/360-assessments`, {
         headers: {
           Authorization: `Bearer ${AuthService.getToken()}`,
         },
-        params: cycle ? { cycle } : undefined,
+        params: { cycle },
       });
       return response.data;
     } catch (error) {
@@ -314,10 +356,10 @@ class MentorService {
   /**
    * Busca métricas de performance de um mentorado específico
    * @param collaboratorId ID do colaborador mentorado
-   * @param cycle Ciclo de avaliação (opcional)
+   * @param cycle Ciclo de avaliação (obrigatório)
    * @returns Métricas de performance do mentorado
    */
-  static async getMenteePerformanceMetrics(collaboratorId: string, cycle?: string): Promise<MenteePerformanceMetrics> {
+  static async getMenteePerformanceMetrics(collaboratorId: string, cycle: string): Promise<MenteePerformanceMetrics> {
     try {
       const response = await api.get<MenteePerformanceMetrics>(
         `/mentor/collaborator/${collaboratorId}/performance-metrics`,
@@ -325,7 +367,7 @@ class MentorService {
           headers: {
             Authorization: `Bearer ${AuthService.getToken()}`,
           },
-          params: cycle ? { cycle } : undefined,
+          params: { cycle },
         },
       );
       return response.data;
@@ -363,9 +405,10 @@ class MentorService {
   /**
    * Busca a performance completa de um mentorado específico
    * @param collaboratorId ID do colaborador mentorado
+   * @param cycle Ciclo de avaliação (obrigatório)
    * @returns Performance completa do mentorado
    */
-  static async getMenteeCompletePerformance(collaboratorId: string): Promise<MenteeCompletePerformance> {
+  static async getMenteeCompletePerformance(collaboratorId: string, cycle: string): Promise<MenteeCompletePerformance> {
     try {
       const response = await api.get<MenteeCompletePerformance>(
         `/mentor/collaborator/${collaboratorId}/complete-performance`,
@@ -373,6 +416,7 @@ class MentorService {
           headers: {
             Authorization: `Bearer ${AuthService.getToken()}`,
           },
+          params: { cycle },
         },
       );
       return response.data;
@@ -388,16 +432,16 @@ class MentorService {
   /**
    * Busca todas as avaliações (recebidas e enviadas) de um mentorado específico
    * @param collaboratorId ID do colaborador mentorado
-   * @param cycle Ciclo de avaliação (opcional)
+   * @param cycle Ciclo de avaliação (obrigatório)
    * @returns Avaliações do mentorado
    */
-  static async getMenteeAssessments(collaboratorId: string, cycle?: string): Promise<MenteeAssessments> {
+  static async getMenteeAssessments(collaboratorId: string, cycle: string): Promise<MenteeAssessments> {
     try {
       const response = await api.get<MenteeAssessments>(`/mentor/collaborator/${collaboratorId}/assessments`, {
         headers: {
           Authorization: `Bearer ${AuthService.getToken()}`,
         },
-        params: cycle ? { cycle } : undefined,
+        params: { cycle },
       });
       return response.data;
     } catch (error) {
@@ -412,16 +456,16 @@ class MentorService {
   /**
    * Busca a autoavaliação de um mentorado específico
    * @param collaboratorId ID do colaborador mentorado
-   * @param cycle Ciclo de avaliação (opcional)
+   * @param cycle Ciclo de avaliação (obrigatório)
    * @returns Autoavaliação do mentorado
    */
-  static async getMenteeSelfAssessment(collaboratorId: string, cycle?: string): Promise<MenteeSelfAssessment> {
+  static async getMenteeSelfAssessment(collaboratorId: string, cycle: string): Promise<MenteeSelfAssessment> {
     try {
       const response = await api.get<MenteeSelfAssessment>(`/mentor/collaborator/${collaboratorId}/self-assessment`, {
         headers: {
           Authorization: `Bearer ${AuthService.getToken()}`,
         },
-        params: cycle ? { cycle } : undefined,
+        params: { cycle },
       });
       return response.data;
     } catch (error) {
@@ -436,10 +480,10 @@ class MentorService {
   /**
    * Busca avaliações de gestores recebidas por um mentorado específico
    * @param collaboratorId ID do colaborador mentorado
-   * @param cycle Ciclo de avaliação (opcional)
+   * @param cycle Ciclo de avaliação (obrigatório)
    * @returns Avaliações de gestores do mentorado
    */
-  static async getMenteeManagerAssessments(collaboratorId: string, cycle?: string): Promise<MenteeManagerAssessments> {
+  static async getMenteeManagerAssessments(collaboratorId: string, cycle: string): Promise<MenteeManagerAssessments> {
     try {
       const response = await api.get<MenteeManagerAssessments>(
         `/mentor/collaborator/${collaboratorId}/manager-assessments`,
@@ -447,7 +491,7 @@ class MentorService {
           headers: {
             Authorization: `Bearer ${AuthService.getToken()}`,
           },
-          params: cycle ? { cycle } : undefined,
+          params: { cycle },
         },
       );
       return response.data;
@@ -463,22 +507,44 @@ class MentorService {
   /**
    * Busca feedback 360 detalhado de um mentorado específico
    * @param collaboratorId ID do colaborador mentorado
-   * @param cycle Ciclo de avaliação (opcional)
+   * @param cycle Ciclo de avaliação (obrigatório)
    * @returns Feedback 360 do mentorado
    */
-  static async getMenteeFeedback360(collaboratorId: string, cycle?: string): Promise<MenteeFeedback360> {
+  static async getMenteeFeedback360(collaboratorId: string, cycle: string): Promise<MenteeFeedback360[]> {
     try {
-      const response = await api.get<MenteeFeedback360>(`/mentor/collaborator/${collaboratorId}/feedback-360`, {
+      const response = await api.get<MenteeFeedback360[]>(`/mentor/collaborator/${collaboratorId}/feedback-360`, {
         headers: {
           Authorization: `Bearer ${AuthService.getToken()}`,
         },
-        params: cycle ? { cycle } : undefined,
+        params: { cycle },
       });
       return response.data;
     } catch (error) {
       console.error(`Erro ao buscar feedback 360 para o mentorado ${collaboratorId}:`, error);
       if (error instanceof AxiosError && error.response) {
         throw new Error(error.response.data.message || 'Falha ao buscar feedback 360 do mentorado.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  /**
+   * Busca detalhes completos de um mentorado
+   * @param menteeId - ID do mentorado
+   * @returns Promise<MenteeDetails> - Detalhes do mentorado
+   */
+  static async getMenteeDetails(menteeId: string): Promise<MenteeDetails> {
+    try {
+      const response = await api.get<MenteeDetails>(`/evaluations/collaborator/mentee/${menteeId}`, {
+        headers: {
+          Authorization: `Bearer ${AuthService.getToken()}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Erro ao buscar detalhes do mentorado ${menteeId}:`, error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar detalhes do mentorado.');
       }
       throw new Error('Ocorreu um erro de rede. Tente novamente.');
     }
