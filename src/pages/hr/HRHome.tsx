@@ -1,17 +1,33 @@
-import { useState, useEffect, useContext } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useContext } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../contexts/AuthProvider';
 import HRService, { type HRDashboardResponse, type BusinessUnitProgress } from '../../services/HRService';
 import { useGlobalToast } from '../../hooks/useGlobalToast';
+import { useAuth } from '../../hooks/useAuth';
+import { ROLES } from '../../types/roles';
 
 const HRHomePage = () => {
-  const auth = useContext(AuthContext);
+  const auth = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<HRDashboardResponse | null>(null);
   const [cycleDetails, setCycleDetails] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<string>('all');
   const { error: showErrorToast } = useGlobalToast();
+
+  // Verificar autorização
+  if (!auth || !auth.isAuthenticated) {
+    navigate('/login');
+    return null;
+  }
+
+  // Verificar se o usuário tem role de RH
+  const hasRHRole = auth.user?.roles?.some(role => role === ROLES.RH);
+  if (!hasRHRole) {
+    navigate('/unauthorized');
+    return null;
+  }
 
   useEffect(() => {
     loadDashboardData();
@@ -67,10 +83,6 @@ const HRHomePage = () => {
       cycleProgress
     };
   };
-
-  if (!auth || !auth.isAuthenticated) {
-    return <div className="flex justify-center items-center h-64">Não autorizado</div>;
-  }
 
   if (loading) {
     return (

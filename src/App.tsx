@@ -7,6 +7,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { ROLES } from './types/roles';
 import MainLayout from './components/MainLayout';
 import NotFoundPage from './pages/not-found/NotFound';
+import UnauthorizedPage from './pages/unauthorized/UnauthorizedPage';
 import CommitteePage from './pages/committee/Committee';
 import EqualizacoesPage from './pages/committee/Equalizacoes';
 import ToastContainer from './components/ToastContainer';
@@ -53,7 +54,7 @@ function App() {
           <Routes>
             {/* Rotas Públicas */}
             <Route path='/login' element={<LoginPage />} />
-            <Route path='/unauthorized' element={<h1>Não autorizado</h1>} />
+            <Route path='/unauthorized' element={<UnauthorizedPage />} />
 
             {/* Rotas protegidas com layout padrão (SideMenu incluso) */}
             <Route element={<MainLayout />}>
