@@ -15,6 +15,7 @@ import {
   getPDIOverdueDays
 } from '../../../types/pdis';
 import PDIService from '../../../services/PDIService';
+import { formatDate } from '../../../utils/dateUtils';
 
 interface PDICardProps {
   pdi: PDISummary;
@@ -99,10 +100,6 @@ const PDICard: React.FC<PDICardProps> = ({ pdi, onDelete, onRefresh }) => {
   const canComplete = pdi.status === 'IN_PROGRESS';
   const canArchive = pdi.status === 'NOT_STARTED' || pdi.status === 'IN_PROGRESS' || pdi.status === 'COMPLETED';
   const canReactivate = pdi.status === 'ARCHIVED';
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
 
   return (
     <div className={`bg-white rounded-xl shadow-sm transition-all duration-200 hover:shadow-lg flex flex-col h-full ${
