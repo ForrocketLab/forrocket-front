@@ -46,12 +46,25 @@ class PDIService {
           ? Math.round((completedActions / totalActions) * 100)
           : 0;
 
+      // Garantir que as datas sejam strings válidas
+      const startDate = pdi.startDate && typeof pdi.startDate === 'string' 
+        ? pdi.startDate 
+        : pdi.startDate && pdi.startDate instanceof Date 
+          ? pdi.startDate.toISOString()
+          : null;
+      
+      const endDate = pdi.endDate && typeof pdi.endDate === 'string' 
+        ? pdi.endDate 
+        : pdi.endDate && pdi.endDate instanceof Date 
+          ? pdi.endDate.toISOString()
+          : null;
+
       return {
         id: pdi.id,
         title: pdi.title,
         description: pdi.description,
-        startDate: pdi.startDate,
-        endDate: pdi.endDate,
+        startDate: startDate,
+        endDate: endDate,
         status: pdi.status,
         actionsCount: totalActions,
         completedActions: completedActions,

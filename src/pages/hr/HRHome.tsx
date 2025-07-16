@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { AuthContext } from '../../contexts/AuthProvider';
 import HRService, { type HRDashboardResponse, type BusinessUnitProgress } from '../../services/HRService';
 import { useGlobalToast } from '../../hooks/useGlobalToast';
+import { formatDate } from '../../utils/dateUtils';
 
 const HRHomePage = () => {
   const auth = useContext(AuthContext);
@@ -95,25 +96,24 @@ const HRHomePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
+    <div className="bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
               Olá, {auth.user?.name?.split(' ')[0] || 'RH'}
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">
               Acompanhe o progresso das avaliações em tempo real
             </p>
           </div>
         </div>
-      </div>
 
       {/* Cards de métricas principais */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Preenchimento de avaliação */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
+        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-600">Preenchimento de avaliação</h3>
             <div className="text-xs text-gray-500">
@@ -173,7 +173,7 @@ const HRHomePage = () => {
         </div>
 
         {/* Avaliações pendentes */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
+        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-600">Avaliações pendentes</h3>
             <div className="p-2 bg-red-100 rounded-lg">
@@ -191,7 +191,7 @@ const HRHomePage = () => {
         </div>
 
         {/* Fechamento de ciclo */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
+        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-600">Fechamento de ciclo</h3>
             <div className={`p-2 rounded-lg ${(() => {
@@ -273,7 +273,7 @@ const HRHomePage = () => {
                     dias restantes para o fechamento do ciclo{' '}
                     <strong>{dashboardData.activeCycle.name}</strong>
                     {dashboardData.activeCycle.startDate && (
-                      <> (até {new Date(dashboardData.activeCycle.endDate).toLocaleDateString('pt-BR')})</>
+                      <> (até {formatDate(dashboardData.activeCycle.endDate)})</>
                     )}
                   </>
                 );
@@ -352,7 +352,7 @@ const HRHomePage = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Lista de Colaboradores */}
-        <div className="bg-white rounded-lg shadow-sm border">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-900">Colaboradores</h2>
@@ -401,7 +401,7 @@ const HRHomePage = () => {
         </div>
 
         {/* Gráfico de Preenchimento por Área */}
-        <div className="bg-white rounded-lg shadow-sm border">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Preenchimento por Unidade</h2>
@@ -517,7 +517,8 @@ const HRHomePage = () => {
           </div>
         </div>
       </div>
-    </div>
+        </div>
+      </div>
   );
 };
 

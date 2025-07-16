@@ -5,6 +5,7 @@ import { useGlobalToast } from '../../../hooks/useGlobalToast';
 import type { OKRSummary } from '../../../types/okrs';
 import { getStatusLabel, getStatusColor, getProgressColor, OKRStatus } from '../../../types/okrs';
 import OKRService from '../../../services/OKRService';
+import { formatDate } from '../../../utils/dateUtils';
 
 interface OKRCardProps {
   okr: OKRSummary;
@@ -212,9 +213,9 @@ const OKRCard: React.FC<OKRCardProps> = ({ okr, onDelete, onRefresh }) => {
           <p className="text-sm text-gray-600">
             <span className="font-semibold text-gray-800">{okr.completedObjectives} de {okr.objectivesCount}</span> objetivos concluídos
           </p>
-          <p className="text-xs text-gray-500 mt-1">
-            Atualizado {new Date(okr.updatedAt).toLocaleDateString('pt-BR')}
-          </p>
+          <div className="text-xs text-gray-500">
+            Atualizado {formatDate(okr.updatedAt)}
+          </div>
         </div>
       </div>
 

@@ -98,8 +98,8 @@ Gerado em: ${new Date(analysis.generatedAt).toLocaleString('pt-BR')}
   };
 
   return (
-    <div className={`bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg ${bordered ? 'border-2 border-black' : 'border border-blue-200'} p-6`}>
-      <div className='flex items-center justify-between mb-4'>
+    <div className={`bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-gray-200 p-4 sm:p-6`}>
+      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4'>
         <div className='flex items-center gap-3'>
           <div className='w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center'>
             <Brain className='w-5 h-5 text-white' />
@@ -114,10 +114,11 @@ Gerado em: ${new Date(analysis.generatedAt).toLocaleString('pt-BR')}
           <button
             onClick={handleGenerateAnalysis}
             disabled={isLoading}
-            className='flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
+            className='flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
           >
             <Sparkles className='w-4 h-4' />
-            🚀 Iniciar Análise IA
+            <span className="hidden sm:inline">🚀 Iniciar Análise IA</span>
+            <span className="sm:hidden">🚀 Análise IA</span>
           </button>
         )}
 
@@ -125,7 +126,8 @@ Gerado em: ${new Date(analysis.generatedAt).toLocaleString('pt-BR')}
           <div className='flex items-center gap-2'>
             <div className='flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm'>
               <CheckCircle className='w-4 h-4' />
-              Já Gerado
+              <span className="hidden sm:inline">Já Gerado</span>
+              <span className="sm:hidden">Gerado</span>
             </div>
           </div>
         )}
@@ -136,7 +138,7 @@ Gerado em: ${new Date(analysis.generatedAt).toLocaleString('pt-BR')}
         <div className='flex items-center justify-center py-8'>
           <div className='flex items-center gap-3'>
             <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600'></div>
-            <span className='text-gray-600'>Gerando análise de sentimento...</span>
+            <span className='text-gray-600 text-sm sm:text-base'>Gerando análise de sentimento...</span>
           </div>
         </div>
       )}
@@ -145,8 +147,8 @@ Gerado em: ${new Date(analysis.generatedAt).toLocaleString('pt-BR')}
       {!analysis && !isLoading && (
         <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
           <div className='flex items-start gap-3'>
-            <Clock className='w-5 h-5 text-blue-600 mt-0.5' />
-            <div>
+            <Clock className='w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0' />
+            <div className="min-w-0 flex-1">
               <h4 className='text-sm font-medium text-blue-900 mb-1'>⏳ Análise não gerada ainda</h4>
               <p className='text-sm text-blue-800 mb-3'>
                 Clique em "🚀 Iniciar Análise IA" para criar uma análise inteligente do clima organizacional.
@@ -180,23 +182,23 @@ Gerado em: ${new Date(analysis.generatedAt).toLocaleString('pt-BR')}
         <div className='space-y-4'>
           {/* Header Info */}
           <div className='bg-white rounded-lg p-4 border border-blue-100'>
-            <div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-center'>
+            <div className='grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-center'>
               <div>
-                <div className={`text-2xl font-bold ${getSentimentColor(analysis.overallSentimentScore)}`}>
+                <div className={`text-xl sm:text-2xl font-bold ${getSentimentColor(analysis.overallSentimentScore)}`}>
                   {analysis.overallSentimentScore}
                 </div>
                 <div className='text-xs text-gray-600'>Score Sentimento</div>
               </div>
               <div>
-                <div className='text-2xl font-bold text-green-600'>{analysis.totalAssessments}</div>
+                <div className='text-xl sm:text-2xl font-bold text-green-600'>{analysis.totalAssessments}</div>
                 <div className='text-xs text-gray-600'>Total Avaliações</div>
               </div>
               <div>
-                <div className='text-2xl font-bold text-purple-600'>{analysis.cycle}</div>
+                <div className='text-xl sm:text-2xl font-bold text-purple-600'>{analysis.cycle}</div>
                 <div className='text-xs text-gray-600'>Ciclo</div>
               </div>
               <div>
-                <div className={`text-2xl font-bold ${getSentimentColor(analysis.overallSentimentScore)}`}>
+                <div className={`text-xl sm:text-2xl font-bold ${getSentimentColor(analysis.overallSentimentScore)}`}>
                   {getSentimentLabel(analysis.overallSentimentScore)}
                 </div>
                 <div className='text-xs text-gray-600'>Clima</div>
@@ -206,10 +208,11 @@ Gerado em: ${new Date(analysis.generatedAt).toLocaleString('pt-BR')}
 
           {/* AI Analysis */}
           <div className='bg-white rounded-lg p-4 border border-blue-100'>
-            <div className='flex items-center justify-between mb-3'>
+            <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3'>
               <h4 className='text-md font-semibold text-gray-900 flex items-center gap-2'>
                 <Brain className='w-4 h-4 text-blue-600' />
-                Análise da Inteligência Artificial
+                <span className="hidden sm:inline">Análise da Inteligência Artificial</span>
+                <span className="sm:hidden">Análise IA</span>
               </h4>
               <div className='flex items-center gap-2'>
                 <button
@@ -228,25 +231,33 @@ Gerado em: ${new Date(analysis.generatedAt).toLocaleString('pt-BR')}
                   {/* Análise de Sentimento */}
                   <div>
                     <h5 className='font-semibold text-blue-800 mb-2'>📊 Análise de Sentimento</h5>
-                    <MarkdownRenderer content={analysis.sentimentAnalysis} />
+                    <div className="text-sm text-blue-700">
+                      <MarkdownRenderer content={analysis.sentimentAnalysis} />
+                    </div>
                   </div>
 
                   {/* Pontos Fortes */}
                   <div>
                     <h5 className='font-semibold text-green-800 mb-2'>✅ Pontos Fortes</h5>
-                    <MarkdownRenderer content={analysis.strengths} />
+                    <div className="text-sm text-green-700">
+                      <MarkdownRenderer content={analysis.strengths} />
+                    </div>
                   </div>
 
                   {/* Áreas de Preocupação */}
                   <div>
                     <h5 className='font-semibold text-orange-800 mb-2'>⚠️ Áreas de Preocupação</h5>
-                    <MarkdownRenderer content={analysis.areasOfConcern} />
+                    <div className="text-sm text-orange-700">
+                      <MarkdownRenderer content={analysis.areasOfConcern} />
+                    </div>
                   </div>
 
                   {/* Dicas de Melhoria */}
                   <div>
                     <h5 className='font-semibold text-purple-800 mb-2'>💡 Dicas para Melhorar</h5>
-                    <MarkdownRenderer content={analysis.improvementTips} />
+                    <div className="text-sm text-purple-700">
+                      <MarkdownRenderer content={analysis.improvementTips} />
+                    </div>
                   </div>
                 </div>
               </div>

@@ -159,10 +159,15 @@ const HRImport: FC = () => {
 
   return (
     <>
-      <div className='p-6 bg-gray-50 min-h-screen'>
+      <div className='bg-gray-50 p-6'>
         <div className='max-w-7xl mx-auto'>
-          <h1 className='text-2xl font-bold text-gray-900'>Importar Histórico</h1>
-          <p className='text-gray-600 mt-1'>Envie o histórico dos colaboradores para o sistema.</p>
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+            <div>
+              <h1 className='text-xl sm:text-2xl font-bold text-gray-900'>Importar Histórico</h1>
+              <p className='text-gray-600 mt-1 text-sm sm:text-base'>Envie o histórico dos colaboradores para o sistema.</p>
+            </div>
+          </div>
 
           <div className='mt-6 bg-white border border-gray-200 rounded-lg shadow-sm'>
             <div className='p-6'>

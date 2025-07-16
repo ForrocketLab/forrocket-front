@@ -15,6 +15,8 @@ import {
   UsersRound,
   Target,
   TrendingUp,
+  Cloud,
+  Heart,
 } from 'lucide-react';
 import SchoolIcon from '@mui/icons-material/School';
 
@@ -115,7 +117,7 @@ export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
   {
     path: '/rh/clima-organizacional',
     label: 'Clima Organizacional',
-    icon: LuTrendingUp,
+    icon: Heart,
     allowedRoles: [ROLES.RH],
   },
 

@@ -5,6 +5,7 @@ import { useGlobalToast } from '../../hooks/useGlobalToast';
 import PDIService from '../../services/PDIService';
 import type { PDIResponse, PDIActionResponse } from '../../types/pdis';
 import { getStatusLabel, getStatusColor, getPriorityLabel, getPriorityColor, getProgressColor, getActionStatusOptions } from '../../types/pdis';
+import { formatDate } from '../../utils/dateUtils';
 
 const PDIDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -64,10 +65,6 @@ const PDIDetailsPage: React.FC = () => {
     navigate('/pdis');
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
-
   const getActionStatusIcon = (status: string) => {
     switch (status) {
       case 'COMPLETED':
@@ -111,7 +108,13 @@ const PDIDetailsPage: React.FC = () => {
 
   const isActionOverdue = (deadline: string, status: string) => {
     if (status === 'COMPLETED') return false;
-    return new Date(deadline) < new Date();
+    
+    // Verificar se a data é válida
+    if (!deadline) return false;
+    const deadlineDate = new Date(deadline);
+    if (isNaN(deadlineDate.getTime())) return false;
+    
+    return deadlineDate < new Date();
   };
 
   const handleActionStatusChange = async (actionId: string, newStatus: string) => {
