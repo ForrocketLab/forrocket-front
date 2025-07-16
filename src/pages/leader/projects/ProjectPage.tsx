@@ -83,30 +83,41 @@ const ProjectPage = () => {
   }
 
   return (
-    <div className="bg-gray-100 min-h-screen">
-      <div className="bg-white shadow-md flex mb-4 p-6 justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard de Projetos</h1>
-        <div className="flex items-center gap-3">
-          <FaProjectDiagram className="text-gray-500" />
-          <select
-            value={selectedProjectId}
-            onChange={handleProjectChange}
-            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#064b4c]"
-            aria-label="Selecione um projeto"
-            disabled={projectList.length === 0}
-          >
-            {projectList.length > 0 ? (
-              projectList.map(project => (
-                <option key={project.projectId} value={project.projectId}>
-                  {project.projectName}
-                </option>
-              ))
-            ) : (
-              <option>Nenhum projeto encontrado</option>
-            )}
-          </select>
+    <div className="bg-gray-50 p-4 sm:p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 mb-6">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+              Meus projetos
+            </h1>
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">
+              Acompanhe o progresso e produtividade dos seus projetos
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="flex items-center gap-3">
+              <FaProjectDiagram className="text-gray-500 w-5 h-5" />
+              <select
+                value={selectedProjectId}
+                onChange={handleProjectChange}
+                className="px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                aria-label="Selecione um projeto"
+                disabled={projectList.length === 0}
+              >
+                {projectList.length > 0 ? (
+                  projectList.map(project => (
+                    <option key={project.projectId} value={project.projectId}>
+                      {project.projectName}
+                    </option>
+                  ))
+                ) : (
+                  <option>Nenhum projeto encontrado</option>
+                )}
+              </select>
+            </div>
+          </div>
         </div>
-      </div>
       
       {loadingDetails ? (
         <div className="text-center p-8">Carregando detalhes do projeto...</div>
@@ -114,11 +125,11 @@ const ProjectPage = () => {
         <div className="text-center p-8 text-red-600 bg-red-100 rounded-lg">{error}</div>
       ) : selectedProjectData ? (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 mx-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div className="md:col-span-1">
               <ProjectInfoCard 
                 title="Data de Conclusão Prevista"
-                description={<>Data final prevista para a entrega <br /> de todas as tarefas do projeto.</>}
+                description="Data final prevista para a entrega de todas as tarefas do projeto."
                 value={new Date(selectedProjectData.EndDate).toLocaleDateString('pt-BR',
                   {
                     day: '2-digit',
@@ -139,7 +150,7 @@ const ProjectPage = () => {
             </div>
           </div>
 
-          <div className="bg-white p-4 rounded-lg shadow-md mb-6 mx-3">
+          <div className="bg-white p-4 rounded-lg shadow-md mb-6">
             <h3 className="text-md font-semibold text-gray-800 mb-2">Progresso do Projeto</h3>
             <div className="w-full bg-gray-200 rounded-full h-4">
               <div
@@ -153,17 +164,18 @@ const ProjectPage = () => {
 
           {/* Renderização condicional para o gráfico */}
           {loadingChart ? (
-             <div className="text-center p-8 bg-white rounded-lg shadow-md mx-3">Carregando dados do gráfico...</div>
+             <div className="text-center p-8 bg-white rounded-lg shadow-md">Carregando dados do gráfico...</div>
           ) : (
              <ProductivityChart data={burndownData} />
           )}
         </>
       ) : (
-        <div className="text-center p-8 bg-white rounded-lg shadow-md mx-3">
+        <div className="text-center p-8 bg-white rounded-lg shadow-md">
           <p>Selecione um projeto para visualizar os detalhes.</p>
         </div>
       )}
-    </div>
+        </div>
+      </div>
   );
 };
 

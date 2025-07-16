@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useAuth } from '../../../hooks/useAuth';
 import CollaboratorHistoryChart from './components/CollaboratorHistoryChart';
 import CollaboratorCycleHistory from './components/CollaboratorCycleHistory';
 import EvaluationService from '../../../services/EvaluationService';
@@ -8,6 +9,7 @@ import ImprovePercentageCard from '../../../components/cards/ImprovePercentageCa
 import EvaluationsFinishedCard from '../../../components/cards/EvaluationsFinishedCard';
 
 const CollaboratorEvolution = () => {
+  const { user } = useAuth();
   const [performanceHistory, setPerformanceHistory] = useState<PerformanceHistoryDto>();
   const [loading, setLoading] = useState(true);
   const [selectedCycle, setSelectedCycle] = useState<string>('');
@@ -89,12 +91,19 @@ const CollaboratorEvolution = () => {
   };
 
   return (
-    <div className='bg-gray-100 min-h-screen'>
-      {/* Header */}
-      <div className='bg-white shadow-md p-6 mb-6'>
-        <div className='flex justify-between items-center'>
-          <h1 className='text-2xl font-bold text-gray-900'>Evolução de {selectedCycle || 'Carregando...'}</h1>
-          <div className='flex items-center gap-2'>
+    <div className="bg-gray-50 p-4 sm:p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+              Minha evolução
+            </h1>
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">
+              Acompanhe sua evolução de performance ao longo do tempo
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
             <label htmlFor='cycle-select' className='text-sm font-medium text-gray-700'>
               Ciclo:
             </label>
@@ -102,7 +111,7 @@ const CollaboratorEvolution = () => {
               id='cycle-select'
               value={selectedCycle}
               onChange={handleCycleChange}
-              className='px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white'
+              className='px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white'
             >
               {availableCycles.map(cycle => (
                 <option key={cycle} value={cycle}>
@@ -112,29 +121,30 @@ const CollaboratorEvolution = () => {
             </select>
           </div>
         </div>
-      </div>
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 p-4 md:p-8'>
-        <DetailedScoreCard
-          title='Sua Nota Atual'
-          description={`Nota final do ciclo realizado em ${cardData.recentCycleName}.`}
-          score={cardData.recentScore}
-        />
-        <ImprovePercentageCard
-          title='Crescimento'
-          description={`Em comparação ao ciclo ${cardData.comparisonCycleName}`}
-          percentage={cardData.growth}
-        />
-        <EvaluationsFinishedCard
-          title='Avaliações realizadas'
-          description='Total de avaliações'
-          count={cardData.totalEvaluations}
-        />
-      </div>
+        {/* Cards de métricas */}
+        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6'>
+          <DetailedScoreCard
+            title='Sua Nota Atual'
+            description={`Nota final do ciclo realizado em ${cardData.recentCycleName}.`}
+            score={cardData.recentScore}
+          />
+          <ImprovePercentageCard
+            title='Crescimento'
+            description={`Em comparação ao ciclo ${cardData.comparisonCycleName}`}
+            percentage={cardData.growth}
+          />
+          <EvaluationsFinishedCard
+            title='Avaliações realizadas'
+            description='Total de avaliações'
+            count={cardData.totalEvaluations}
+          />
+        </div>
 
-      <div className='px-4 pb-4 md:px-8 md:pb-4'>
-        <CollaboratorHistoryChart performanceHistory={performanceHistory?.performanceData ?? []} />
-
-        <CollaboratorCycleHistory performanceHistory={performanceHistory?.performanceData ?? []} />
+        {/* Gráficos */}
+        <div className='space-y-6'>
+          <CollaboratorHistoryChart performanceHistory={performanceHistory?.performanceData ?? []} />
+          <CollaboratorCycleHistory performanceHistory={performanceHistory?.performanceData ?? []} />
+        </div>
       </div>
     </div>
   );
