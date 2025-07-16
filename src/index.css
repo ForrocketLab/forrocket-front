@@ -1,8 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');
 @import 'tailwindcss';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Sobrescrever a fonte padrão do Tailwind */
+:root {
+  --default-font-family: 'Manrope', system-ui, sans-serif;
+}
+
+/* Aplicar Manrope como fonte padrão */
+* {
+  font-family: 'Manrope', system-ui, sans-serif;
+}
+
+/* Garantir que a fonte Manrope seja aplicada a elementos específicos */
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+div,
+button,
+input,
+textarea,
+select,
+.text-xs,
+.text-sm,
+.text-base,
+.text-lg,
+.text-xl,
+.text-2xl,
+.text-3xl,
+.text-4xl,
+.text-5xl,
+.text-6xl {
+  font-family: 'Manrope', system-ui, sans-serif !important;
+}
 
 /* Animações para os toasts */
 @keyframes progress {
@@ -61,7 +96,8 @@
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -70,7 +106,8 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(8, 95, 96, 0.3);
   }
   50% {
@@ -92,7 +129,7 @@
 
 /* Gradientes personalizados */
 .bg-gradient-rpe {
-  background: linear-gradient(135deg, #085F60 0%, #0D9488 50%, #10B981 100%);
+  background: linear-gradient(135deg, #085f60 0%, #0d9488 50%, #10b981 100%);
 }
 
 .bg-gradient-card {
