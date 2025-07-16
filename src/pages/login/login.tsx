@@ -167,12 +167,6 @@ const LoginPage: FC = () => {
             O Sistema RPE oferece plataforma completa para gestão de desempenho, facilitando avaliações e impulsionando
             o crescimento profissional.
           </p>
-          <Link
-            to='/signup'
-            className='rounded-full border-2 border-white px-10 py-3 font-bold uppercase tracking-wider transition-all duration-300 hover:bg-white hover:text-green-800'
-          >
-            Cadastre-se
-          </Link>
         </div>
       </div>
 
@@ -180,12 +174,6 @@ const LoginPage: FC = () => {
         <div className='w-full max-w-md space-y-8'>
           <div>
             <h2 className='text-center text-4xl font-bold text-gray-900'>Faça seu Login</h2>
-            <p className='mt-2 text-center text-sm text-gray-600'>
-              Não tem uma conta?
-              <Link to='/signup' className='font-medium text-green-600 hover:text-green-500 ml-1'>
-                Comece por aqui
-              </Link>
-            </p>
           </div>
 
           <form onSubmit={handleSubmit(onLogin)} className='mt-8 space-y-6' noValidate>
