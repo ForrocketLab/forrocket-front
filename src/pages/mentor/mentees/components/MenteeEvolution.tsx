@@ -7,6 +7,7 @@ import ManagerService from '../../../../services/ManagerService';
 import DetailedScoreCard from '../../../../components/cards/DetailedScoreCard';
 import ImprovePercentageCard from '../../../../components/cards/ImprovePercentageCard';
 import EvaluationsFinishedCard from '../../../../components/cards/EvaluationsFinishedCard';
+import { CustomSelect } from '../../../../components/CustomSelect';
 
 const MenteeEvolution = () => {
   const { id: menteeId } = useParams<{ id: string }>();
@@ -86,8 +87,8 @@ const MenteeEvolution = () => {
     };
   }, [performanceHistory]);
 
-  const handleCycleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedCycle(event.target.value);
+  const handleCycleChange = (value: string) => {
+    setSelectedCycle(value);
   };
 
   if (loading) {
@@ -104,31 +105,22 @@ const MenteeEvolution = () => {
   return (
     <div className='bg-gray-100 min-h-screen'>
       {/* Header */}
-      <div className='bg-white shadow-md p-6 mb-6'>
+      <div className='bg-white shadow-md p-6'>
         <div className='flex justify-between items-center'>
           <h1 className='text-2xl font-bold text-gray-900'>Evolução - {selectedCycle || 'Carregando...'}</h1>
-          <div className='flex items-center gap-2'>
-            <label htmlFor='cycle-select' className='text-sm font-medium text-gray-700'>
-              Ciclo:
-            </label>
-            <select
-              id='cycle-select'
-              value={selectedCycle}
-              onChange={handleCycleChange}
-              className='px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white'
-            >
-              {availableCycles.map(cycle => (
-                <option key={cycle} value={cycle}>
-                  {cycle}
-                </option>
-              ))}
-            </select>
-          </div>
+          <CustomSelect
+            id='cycle-select'
+            value={selectedCycle}
+            onChange={handleCycleChange}
+            options={availableCycles.map(cycle => ({ value: cycle, label: cycle }))}
+            label='Ciclo:'
+            placeholder='Selecione um ciclo...'
+          />
         </div>
       </div>
 
       {/* Cards de estatísticas */}
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 p-4 md:p-8'>
+      <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 p-4 md:p-8'>
         <DetailedScoreCard
           title='Nota Atual'
           description={`Nota final do ciclo realizado em ${cardData.recentCycleName}.`}

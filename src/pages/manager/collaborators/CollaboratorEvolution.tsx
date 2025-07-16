@@ -91,7 +91,7 @@ const CollaboratorEvolution = () => {
   return (
     <div className='bg-gray-100 min-h-screen'>
       {/* Header */}
-      <div className='bg-white shadow-md p-6 mb-6'>
+      <div className='bg-white shadow-md p-6'>
         <div className='flex justify-between items-center'>
           <h1 className='text-2xl font-bold text-gray-900'>Evolução de {selectedCycle || 'Carregando...'}</h1>
           <div className='flex items-center gap-2'>
@@ -113,7 +113,7 @@ const CollaboratorEvolution = () => {
           </div>
         </div>
       </div>
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 p-4 md:p-8'>
+      <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 p-4 md:p-8'>
         <DetailedScoreCard
           title='Sua Nota Atual'
           description={`Nota final do ciclo realizado em ${cardData.recentCycleName}.`}
