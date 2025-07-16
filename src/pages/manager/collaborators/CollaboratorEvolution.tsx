@@ -80,7 +80,7 @@ const CollaboratorEvolution = () => {
   const performanceDataForCharts = useMemo(() => {
     if (!menteeData) return [];
 
-    return menteeData.cycleMeans.map(cycle => ({
+    return menteeData.cycleMeans.map((cycle: any) => ({
       cycle: cycle.cycle,
       selfScore: {
         BEHAVIOR: cycle.selfAssessmentMean,
