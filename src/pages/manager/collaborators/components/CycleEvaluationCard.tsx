@@ -15,12 +15,8 @@ const CycleEvaluationCard = ({ cycle, selfScore, managerScore, finalScore }: Per
     (managerScore?.EXECUTION !== null && managerScore?.BEHAVIOR !== null) ||
     (selfScore?.EXECUTION !== null && selfScore?.BEHAVIOR !== null);
 
-  const isComplete =
-    finalScore !== null &&
-    managerScore?.EXECUTION !== null &&
-    managerScore?.BEHAVIOR !== null &&
-    selfScore?.EXECUTION !== null &&
-    selfScore?.BEHAVIOR !== null;
+  // Considera concluído quando há nota final do comitê (equalização)
+  const isComplete = finalScore !== null;
 
   const status = isComplete ? 'Concluído' : 'Em andamento';
 
@@ -111,7 +107,7 @@ const CycleEvaluationCard = ({ cycle, selfScore, managerScore, finalScore }: Per
 
               <div>
                 <div className='flex justify-between items-center mb-2'>
-                  <span className='text-sm text-gray-600'>Avaliação final - Execução</span>
+                  <span className='text-sm text-gray-600'>Avaliação do Gestor - Execução</span>
                   <span className='text-sm font-medium text-[#419958]'>{managerScore?.EXECUTION || '-'}</span>
                 </div>
                 <div className='h-2 bg-gray-200 rounded-full'>
@@ -124,7 +120,7 @@ const CycleEvaluationCard = ({ cycle, selfScore, managerScore, finalScore }: Per
 
               <div>
                 <div className='flex justify-between items-center mb-2'>
-                  <span className='text-sm text-gray-600'>Avaliação final - Postura</span>
+                  <span className='text-sm text-gray-600'>Avaliação do Gestor - Postura</span>
                   <span className='text-sm font-medium text-[#F5B030]'>{managerScore?.BEHAVIOR || '-'}</span>
                 </div>
                 <div className='h-2 bg-gray-200 rounded-full'>
