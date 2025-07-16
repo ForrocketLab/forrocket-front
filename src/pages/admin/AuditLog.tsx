@@ -178,7 +178,7 @@ const AuditLogPage: React.FC = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
+        <div className="bg-white rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-600">Total de Logs</h3>
             <Database className="h-5 w-5 text-blue-600" />
@@ -187,7 +187,7 @@ const AuditLogPage: React.FC = () => {
           <p className="text-sm text-gray-500">Registros no sistema</p>
         </div>
 
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
+        <div className="bg-white rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-600">Logs Hoje</h3>
             <Clock className="h-5 w-5 text-green-600" />
@@ -196,7 +196,7 @@ const AuditLogPage: React.FC = () => {
           <p className="text-sm text-gray-500">Nas últimas 24h</p>
         </div>
 
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
+        <div className="bg-white rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-600">Usuários Ativos (Logs)</h3>
             <User className="h-5 w-5 text-purple-600" />
@@ -205,7 +205,7 @@ const AuditLogPage: React.FC = () => {
           <p className="text-sm text-gray-500">Com atividade recente</p>
         </div>
 
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
+        <div className="bg-white rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-600">Requisições Logadas</h3>
             <FileText className="h-5 w-5 text-orange-600" />
@@ -217,7 +217,7 @@ const AuditLogPage: React.FC = () => {
 
       {/* Gráfico Top Endpoints */}
       <div className="mb-8">
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
+        <div className="bg-white rounded-lg p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Top 5 Endpoints de API</h2>
           {topApiEndpoints.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -255,7 +255,7 @@ const AuditLogPage: React.FC = () => {
       </div>
 
       {/* Audit Log Table */}
-      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">Logs de Atividade Recente</h2>
         </div>

@@ -209,7 +209,7 @@ const PhaseControl: React.FC = () => {
       </div>
 
       {/* Current Cycle Status */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border mb-8">
+      <div className="bg-white rounded-lg p-6 shadow-sm mb-8">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Status Atual do Ciclo</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -242,12 +242,12 @@ const PhaseControl: React.FC = () => {
       </div>
 
       {/* Phase Controls */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border mb-8">
+      <div className="bg-white rounded-lg p-6 shadow-sm mb-8">
         <h2 className="text-lg font-semibold text-gray-900 mb-6">Controlar Fases</h2>
         
         {/* Quick Next Phase */}
         {getNextPhase() && (
-          <div className="mb-8 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="mb-8 p-4 bg-green-50 border-green-200 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-medium text-green-800 mb-1">Próxima Fase Sugerida</h3>
@@ -334,7 +334,7 @@ const PhaseControl: React.FC = () => {
       </div>
 
       {/* Phase Flow Diagram */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border">
+      <div className="bg-white rounded-lg p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900 mb-6">Fluxo de Fases</h2>
         
         <div className="flex items-center justify-center">

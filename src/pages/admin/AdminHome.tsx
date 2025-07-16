@@ -132,7 +132,7 @@ const AdminHomePage = () => {
       {/* Status Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {/* Ciclo Ativo */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
+        <div className="bg-white rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-600">Ciclo Ativo</h3>
             <Calendar className="h-5 w-5 text-teal-600" />
@@ -163,7 +163,7 @@ const AdminHomePage = () => {
         </div>
 
         {/* Total de Usuários */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
+        <div className="bg-white rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-600">Total de Usuários</h3>
             <Users className="h-5 w-5 text-blue-600" />
@@ -177,7 +177,7 @@ const AdminHomePage = () => {
         </div>
 
         {/* Total de Ciclos */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
+        <div className="bg-white rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-600">Total de Ciclos</h3>
             <BarChart3 className="h-5 w-5 text-purple-600" />
@@ -191,7 +191,7 @@ const AdminHomePage = () => {
         </div>
 
         {/* Dias Restantes do Ciclo Ativo */}
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
+        <div className="bg-white rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-600">Dias Restantes</h3>
             <Clock className="h-5 w-5 text-orange-600" />
@@ -236,7 +236,7 @@ const AdminHomePage = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Gerenciamento de Usuários */}
         <Link to="/admin/users" className="group">
-          <div className="bg-white rounded-lg p-6 shadow-sm border hover:shadow-md transition-all duration-200 group-hover:border-blue-200">
+          <div className="bg-white rounded-lg p-6 shadow-sm hover:shadow-blue-800 transition-all duration-200">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-blue-100 rounded-lg">
                 <Users className="h-6 w-6 text-blue-600" />
@@ -260,7 +260,7 @@ const AdminHomePage = () => {
 
         {/* Gerenciamento de Ciclos */}
         <Link to="/admin/cycles" className="group">
-          <div className="bg-white rounded-lg p-6 shadow-sm border hover:shadow-md transition-all duration-200 group-hover:border-green-200">
+          <div className="bg-white rounded-lg p-6 shadow-sm hover:shadow-green-600 transition-all duration-200">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-green-100 rounded-lg">
                 <Calendar className="h-6 w-6 text-green-600" />
@@ -284,7 +284,7 @@ const AdminHomePage = () => {
 
         {/* Controle de Fases */}
         <Link to="/admin/phase-control" className="group">
-          <div className="bg-white rounded-lg p-6 shadow-sm border hover:shadow-md transition-all duration-200 group-hover:border-orange-200">
+          <div className="bg-white rounded-lg p-6 shadow-sm hover:shadow-orange-600 transition-all duration-200">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-orange-100 rounded-lg">
                 <Zap className="h-6 w-6 text-orange-600" />
@@ -308,7 +308,7 @@ const AdminHomePage = () => {
 
         {/* Relatórios e Analytics */}
         <Link to="/admin/reports" className="group">
-          <div className="bg-white rounded-lg p-6 shadow-sm border hover:shadow-md transition-all duration-200 group-hover:border-purple-200">
+          <div className="bg-white rounded-lg p-6 shadow-sm hover:shadow-purple-900 transition-all duration-200">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-purple-100 rounded-lg">
                 <BarChart3 className="h-6 w-6 text-purple-600" />
@@ -331,8 +331,8 @@ const AdminHomePage = () => {
         </Link>
 
         {/* Audit Log */}
-        <Link to="/admin/audit-log" className="group">
-          <div className="bg-white rounded-lg p-6 shadow-sm border hover:shadow-md transition-all duration-200 group-hover:border-indigo-200">
+        <Link to="/admin/auditlog" className="group">
+          <div className="bg-white rounded-lg p-6 shadow-sm hover:shadow-indigo-800 transition-all duration-200">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-indigo-100 rounded-lg">
                 <FileText className="h-6 w-6 text-indigo-600" />

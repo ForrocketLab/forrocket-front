@@ -62,7 +62,8 @@ const SideMenu = ({ isExpanded, toggleSidebar }: SideMenuProps) => {
                 item.path === '/admin' ||
                 item.path === '/rh' ||
                 item.path === '/committee' ||
-                item.path === '/manager/dashboard'
+                item.path === '/manager/dashboard' ||
+                item.path === '/leader/projects'
               }
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-200 ${

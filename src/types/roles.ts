@@ -5,5 +5,5 @@ export enum ROLES {
   RH = 'rh',
   ADMIN = 'admin',
   MENTOR = 'mentor',
-  LEADER = 'líder',
+  LEADER = 'lider',
 }

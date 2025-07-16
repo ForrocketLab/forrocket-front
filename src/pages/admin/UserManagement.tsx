@@ -383,7 +383,7 @@ const UserManagement: React.FC = () => {
     <div className="min-h-screen bg-gray-50 p-6">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               <Users className="h-7 w-7 text-teal-600" />
@@ -393,7 +393,7 @@ const UserManagement: React.FC = () => {
               Gerencie todos os usuários do sistema - {users.length} usuários cadastrados
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <button
               onClick={loadUsers}
               disabled={loading}
@@ -414,7 +414,7 @@ const UserManagement: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border mb-6">
+      <div className="bg-white rounded-lg p-6 shadow-sm mb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
           {/* Busca */}
           <div className="lg:col-span-2">
@@ -518,7 +518,7 @@ const UserManagement: React.FC = () => {
       </div>
 
       {/* Users Table */}
-      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">

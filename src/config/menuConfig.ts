@@ -86,7 +86,6 @@ export const SIDE_MENU_CONFIG: MenuItemConfig[] = [
     icon: LuTrendingUp,
     allowedRoles: [ROLES.LEADER],
   },
-
   // ===== MENTOR =====
   {
     path: '/mentor/dashboard',
