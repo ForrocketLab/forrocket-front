@@ -658,18 +658,18 @@ const UserManagement: React.FC = () => {
 
       {/* View User Modal */}
       {showViewModal && selectedUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200/50">
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                 <User className="h-6 w-6 text-teal-600" />
                 Detalhes do Usuário
               </h2>
               <button
                 onClick={() => setShowViewModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="p-2 rounded-lg hover:bg-gray-100/80 transition-all duration-200"
               >
-                <XCircle className="h-6 w-6" />
+                <XCircle className="h-5 w-5 text-gray-500" />
               </button>
             </div>
 
