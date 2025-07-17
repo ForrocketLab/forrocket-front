@@ -17,10 +17,10 @@ import type {
   PerformanceData,
   TeamHistoricalPerformanceDto,
 } from '../../../types/brutalFacts';
-import ManagerService from '../../../services/ManagerService';
 import DetailedScoreCard from '../../../components/cards/DetailedScoreCard';
 import ImprovePercentageCard from '../../../components/cards/ImprovePercentageCard';
 import EvaluationsFinishedCard from '../../../components/cards/EvaluationsFinishedCard';
+import ManagerService from '../../../services/ManagerService';
 
 const ManagerBrutalFacts = () => {
   const [selectedMetric, setSelectedMetric] = useState('finalScore');
@@ -34,8 +34,7 @@ const ManagerBrutalFacts = () => {
   const [historicalLoading, setHistoricalLoading] = useState(false);
 
   const toast = useGlobalToast();
-  const currentCycle = '2025.1';
-
+  let currentCycle: string = '';
   // Opções para o filtro do gráfico
   const metricOptions = [
     { value: 'finalScore', label: 'Nota Final' },
@@ -47,6 +46,9 @@ const ManagerBrutalFacts = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        //perdao, to resolvendo bug faltando menos de uma hora do code freeze
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        currentCycle = (await ManagerService.getActiveCycle()).name;
         setLoading(true);
         setError(null);
 
@@ -75,18 +77,7 @@ const ManagerBrutalFacts = () => {
         } catch (historicalError) {
           console.warn('Erro ao carregar dados históricos:', historicalError);
           // Usa dados simulados se não conseguir carregar históricos
-          const fallbackData: PerformanceData[] = [
-            { cycle: '2023.1', finalScore: 3.8, selfScore: 3.5, managerScore: 4.1 },
-            { cycle: '2023.2', finalScore: 4.2, selfScore: 4.0, managerScore: 4.4 },
-            { cycle: '2024.1', finalScore: 4.0, selfScore: 3.8, managerScore: 4.2 },
-            {
-              cycle: currentCycle,
-              finalScore: metricsData.overallScoreAverage || 4.0,
-              selfScore: metricsData.teamPerformance.selfAssessmentTeamAverage,
-              managerScore: metricsData.teamPerformance.managerAssessmentTeamAverage,
-            },
-          ];
-          setHistoricalPerformanceData(fallbackData);
+          setHistoricalPerformanceData([]);
 
           toast.warning(
             'Dados principais carregados',
@@ -102,20 +93,14 @@ const ManagerBrutalFacts = () => {
         // Em caso de erro, usa dados mockados
         setProcessedCollaborators([]);
         // Dados de fallback para o gráfico
-        const fallbackData: PerformanceData[] = [
-          { cycle: '2023.1', finalScore: 3.8, selfScore: 3.5, managerScore: 4.1 },
-          { cycle: '2023.2', finalScore: 4.2, selfScore: 4.0, managerScore: 4.4 },
-          { cycle: '2024.1', finalScore: 4.0, selfScore: 3.8, managerScore: 4.2 },
-          { cycle: '2024.2', finalScore: 4.5, selfScore: 4.3, managerScore: 4.7 },
-        ];
-        setHistoricalPerformanceData(fallbackData);
+        setHistoricalPerformanceData([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [currentCycle]);
+  }, []);
 
   // Se ainda está carregando, mostra loading
   if (loading) {
