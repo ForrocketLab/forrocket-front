@@ -18,7 +18,11 @@ export interface SelfAssessmentData {
   };
 }
 
-const EvaluationForm = () => {
+interface EvaluationFormProps {
+  isReadOnly?: boolean;
+}
+
+const EvaluationForm = ({ isReadOnly = false }: EvaluationFormProps) => {
   // Removido useState de pillars, pois agora é derivado do contexto
   const [loading, setLoading] = useState(true);
   const { state, dispatch } = useEvaluation();
@@ -210,6 +214,7 @@ const EvaluationForm = () => {
               criteria={pillar.criteria}
               onCriteriaUpdate={(criteriaId, updates) => handleCriteriaUpdate(pillar.id, criteriaId, updates)}
               defaultOpen={index === 0}
+              isReadOnly={isReadOnly}
             />
           ))}
         </div>

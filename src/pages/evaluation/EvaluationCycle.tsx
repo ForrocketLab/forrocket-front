@@ -21,12 +21,20 @@ const EvaluationPageContent = () => {
   const toast = useGlobalToast();
   const [activeTab, setActiveTab] = useState('self-assessment');
   const [currentCycle, setCurrentCycle] = useState<string>('');
+  const [currentPhase, setCurrentPhase] = useState<string>('');
+  const [isReadOnly, setIsReadOnly] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { state } = useEvaluation();
   const completionStatus = useEvaluationCompletion();
 
   // Função para submeter avaliação final
   const handleSubmitAssessment = async () => {
+    // Prevenir submissão em modo read-only
+    if (isReadOnly) {
+      toast.error('Avaliação bloqueada', 'Não é possível enviar avaliações fora da fase de avaliações.');
+      return;
+    }
+
     const allComplete = Object.values(completionStatus).every(Boolean);
 
     if (!allComplete) {
@@ -118,8 +126,15 @@ const EvaluationPageContent = () => {
   useEffect(() => {
     const fetchActiveCycle = async () => {
       try {
-        const { name } = await EvaluationService.getActiveCycle();
-        setCurrentCycle(name);
+        // Buscar todos os ciclos para encontrar o ativo com a fase
+        const cycle = await EvaluationService.getActiveCycle();
+
+        if (cycle) {
+          setCurrentCycle(cycle.name);
+          setCurrentPhase(cycle.phase);
+          console.log('Ciclo ativo encontrado:', cycle.phase);
+          setIsReadOnly(cycle.phase !== 'ASSESSMENTS');
+        }
       } catch (err) {
         console.error('Erro ao buscar ciclo ativo:', err);
       }
@@ -139,12 +154,13 @@ const EvaluationPageContent = () => {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         isComplete={allEvaluationsComplete}
+        isReadOnly={isReadOnly}
       />
       <main className='bg-[#F1F1F1]'>
-        {activeTab === 'self-assessment' && <EvaluationsForm />}
-        {activeTab === '360assessment' && <Evaluation360 />}
-        {activeTab === 'mentoring' && <MentoringEvaluation />}
-        {activeTab === 'references' && <ReferencesEvaluation />}
+        {activeTab === 'self-assessment' && <EvaluationsForm isReadOnly={isReadOnly} />}
+        {activeTab === '360assessment' && <Evaluation360 isReadOnly={isReadOnly} />}
+        {activeTab === 'mentoring' && <MentoringEvaluation isReadOnly={isReadOnly} />}
+        {activeTab === 'references' && <ReferencesEvaluation isReadOnly={isReadOnly} />}
       </main>
     </div>
   );
