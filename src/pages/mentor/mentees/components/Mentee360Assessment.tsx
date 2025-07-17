@@ -93,7 +93,7 @@ const Mentee360Assessment = () => {
   }
 
   return (
-    <div className='min-h-screen bg-gray-50'>
+    <div className='min-h-screen bg-gray-50 px-6 p-4 md:p-8'>
       <div className='max-w-6xl'>
         {/* Cabeçalho da Página */}
         <div className='bg-white border border-gray-200 rounded-lg shadow-sm p-6 mb-6'>

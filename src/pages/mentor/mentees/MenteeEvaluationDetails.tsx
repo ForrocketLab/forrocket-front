@@ -147,7 +147,7 @@ const MenteeEvaluationDetails = () => {
         activeTab={activeTab}
         onTabChange={setActiveTab}
       />
-      <main className='px-6 p-4 md:p-8'>
+      <main>
         <ErrorBoundary>{activeTab === 'self-assessment' && <MenteeSelfAssessment />}</ErrorBoundary>
         <ErrorBoundary>{activeTab === '360-assessment' && <Mentee360Assessment />}</ErrorBoundary>
         <ErrorBoundary>{activeTab === 'evolution' && <MenteeEvolution />}</ErrorBoundary>

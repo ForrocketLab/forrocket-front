@@ -43,8 +43,6 @@ const ReadonlyPillarSection = ({
           .reduce((sum, c) => sum + assessmentMap[c.id].score, 0) / completedCriteria
       : 0;
 
-  const progressPercentage = criteria.length > 0 ? (completedCriteria / criteria.length) * 100 : 0;
-
   return (
     <div className='bg-white border border-gray-200 rounded-lg shadow-sm'>
       <div onClick={() => setIsOpen(!isOpen)} className='cursor-pointer hover:bg-gray-50 transition-colors p-4'>
@@ -188,7 +186,7 @@ const MenteeSelfAssessment = () => {
 
   // --- Renderização do componente com a nova estilização ---
   return (
-    <div className='min-h-screen bg-gray-50'>
+    <div className='min-h-screen bg-gray-50 px-6 p-4 md:p-8'>
       <div className='max-w-6xl'>
         {/* Pilares e Critérios */}
         <div className='space-y-6'>

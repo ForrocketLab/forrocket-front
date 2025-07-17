@@ -90,19 +90,21 @@ const BrutalFactsHeader = ({
     }
   };
   return (
-    <div className='bg-white shadow-sm border-b border-gray-200 px-6 py-4'>
+    <div className='px-6 py-4'>
       <div className='flex justify-between items-center'>
         {/* Título à esquerda */}
-        <div className='bg-white rounded-lg px-4 py-2'>
-          <h1 className='text-xl font-semibold text-gray-800'>Brutal Facts</h1>
+        <div>
+          <h1 className='text-xl sm:text-2xl font-bold text-gray-900'>Brutal Facts</h1>
+          <p className='text-gray-600 mt-1 text-sm sm:text-base'>
+            Análise detalhada do desempenho e evolução da sua equipe
+          </p>
         </div>
 
         {/* Botão de download com dropdown à direita */}
         <div className='relative' ref={dropdownRef}>
           <button
             onClick={() => setShowDropdown(!showDropdown)}
-            className='flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors duration-200 font-medium hover:cursor-pointer'
-            style={{ backgroundColor: '#08605F' }}
+            className='bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors font-medium'
           >
             <HiDownload className='text-lg' />
             Exportar

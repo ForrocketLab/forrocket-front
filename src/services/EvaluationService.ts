@@ -6,6 +6,7 @@ import type {
   Create360AssessmentPayload,
   CreateMentoringAssessmentPayload,
 } from '../types/evaluations';
+import { MenteeCompletePerformance } from './MentorService';
 
 export interface CriteriaDto {
   id: string;
@@ -138,6 +139,8 @@ export interface ReferenceAssessmentDto {
   referenceInitials: string;
   justification: string;
 }
+
+export type CollaboratorCompletePerformance = MenteeCompletePerformance;
 
 class EvaluationService {
   private getToken(): string {
@@ -966,6 +969,53 @@ class EvaluationService {
       }
 
       throw new Error('Erro ao salvar avaliações 360 em batch.');
+    }
+  }
+
+  /**
+   * Busca todos os ciclos disponíveis
+   * @returns Lista de todos os ciclos
+   */
+  async getAllCycles(): Promise<{ id: string; name: string; status: string; phase: string }[]> {
+    try {
+      const response = await api.get('/evaluation-cycles', {
+        headers: {
+          Authorization: `Bearer ${AuthService.getToken()}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar todos os ciclos:', error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar ciclos.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
+    }
+  }
+
+  /**
+   * Busca a performance completa do colaborador
+   * @param cycle Ciclo de avaliação (obrigatório)
+   * @returns Performance completa do colaborador logado
+   */
+  async getCompletePerformance(cycle: string): Promise<CollaboratorCompletePerformance> {
+    try {
+      const response = await api.get<CollaboratorCompletePerformance>(
+        `/evaluations/collaborator/complete-performance`,
+        {
+          headers: {
+            Authorization: `Bearer ${AuthService.getToken()}`,
+          },
+          params: { cycle },
+        },
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao buscar performance completa para o colaborador', error);
+      if (error instanceof AxiosError && error.response) {
+        throw new Error(error.response.data.message || 'Falha ao buscar performance completa do colaborador.');
+      }
+      throw new Error('Ocorreu um erro de rede. Tente novamente.');
     }
   }
 }

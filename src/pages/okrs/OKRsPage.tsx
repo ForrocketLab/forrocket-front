@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Target, Filter } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
 import { useGlobalToast } from '../../hooks/useGlobalToast';
 import OKRService from '../../services/OKRService';
 import type { OKRSummary } from '../../types/okrs';
@@ -8,6 +9,7 @@ import CreateOKRModal from './components/CreateOKRModal.tsx';
 import OKRStats from './components/OKRStats.tsx';
 
 const OKRsPage: React.FC = () => {
+  const { user } = useAuth();
   const [okrs, setOkrs] = useState<OKRSummary[]>([]);
   const [filteredOkrs, setFilteredOkrs] = useState<OKRSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -100,29 +102,28 @@ const OKRsPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white p-6">
+    <div className="bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">Meus OKRs</h1>
-              <p className="text-lg text-gray-600">
-                Defina e acompanhe seus objetivos e resultados-chave
-              </p>
-            </div>
-            <button
-              onClick={handleCreateOKR}
-              className="bg-[#085F60] hover:bg-[#064247] text-white px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-200 hover:scale-105 shadow-md font-semibold"
-            >
-              <Plus className="h-5 w-5" />
-              Novo OKR
-            </button>
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 mb-6">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Meus OKRs</h1>
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">
+              Defina e acompanhe seus objetivos e resultados-chave
+            </p>
           </div>
-
-          {/* Stats */}
-          <OKRStats okrs={okrs} />
+          <button
+            onClick={handleCreateOKR}
+            className="bg-teal-600 hover:bg-teal-700 text-white px-4 sm:px-6 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium"
+          >
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">Novo OKR</span>
+            <span className="sm:hidden">Novo</span>
+          </button>
         </div>
+
+        {/* Stats */}
+        <OKRStats okrs={okrs} />
 
         {/* Filters */}
         <div className="bg-gray-50 p-6 rounded-xl mb-8">
@@ -182,7 +183,7 @@ const OKRsPage: React.FC = () => {
             {okrs.length === 0 && (
               <button
                 onClick={handleCreateOKR}
-                className="bg-[#085F60] hover:bg-[#064247] text-white px-6 py-3 rounded-lg flex items-center gap-2 mx-auto transition-colors"
+                className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 mx-auto transition-colors"
               >
                 <Plus className="h-5 w-5" />
                 Criar Primeiro OKR

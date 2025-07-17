@@ -15,12 +15,27 @@ import {
 // Opções para o filtro
 const metricOptions = [
   { value: 'finalScore', label: 'Nota Final' },
-  { value: 'selfScore', label: 'Autoavaliação' },
-  { value: 'managerScore', label: 'Avaliação do Gestor' },
+  { value: 'assessments360Mean', label: 'Média do 360' },
+  { value: 'selfScore', label: 'Média de Autoavaliação' },
+  { value: 'managerScore', label: 'Média de Avaliação do Gestor' },
 ];
 
 interface CollaboratorHistoryChart {
-  performanceHistory: PerformanceDataDto[];
+  performanceHistory: Array<{
+    cycle: string;
+    selfScore: {
+      BEHAVIOR: number | null;
+      EXECUTION: number | null;
+      MANAGEMENT: number | null;
+    };
+    managerScore: {
+      BEHAVIOR: number | null;
+      EXECUTION: number | null;
+      MANAGEMENT: number | null;
+    };
+    finalScore: number | null;
+    assessments360Mean: number | null;
+  }>;
 }
 
 const CollaboratorHistoryChart = ({ performanceHistory }: CollaboratorHistoryChart) => {
@@ -30,24 +45,33 @@ const CollaboratorHistoryChart = ({ performanceHistory }: CollaboratorHistoryCha
   const chartData = useMemo(() => {
     return performanceHistory
       .map(item => {
-        const selfScores = [item.selfScore.BEHAVIOR, item.selfScore.EXECUTION].filter(s => s !== null) as number[];
-        const managerScores = [item.managerScore.BEHAVIOR, item.managerScore.EXECUTION].filter(
-          s => s !== null,
-        ) as number[];
-        const selfScoreAvg = selfScores.length > 0 ? selfScores.reduce((a, b) => a + b, 0) / selfScores.length : null;
+        // Calcular média de autoavaliação (converter null para 0)
+        const selfScores = [
+          item.selfScore.BEHAVIOR ?? 0,
+          item.selfScore.EXECUTION ?? 0,
+          item.selfScore.MANAGEMENT ?? 0,
+        ].filter(s => s > 0);
+        const selfScoreAvg = selfScores.length > 0 ? selfScores.reduce((a, b) => a + b, 0) / selfScores.length : 0;
+
+        // Calcular média de avaliação do gestor (converter null para 0)
+        const managerScores = [
+          item.managerScore.BEHAVIOR ?? 0,
+          item.managerScore.EXECUTION ?? 0,
+          item.managerScore.MANAGEMENT ?? 0,
+        ].filter(s => s > 0);
         const managerScoreAvg =
-          managerScores.length > 0 ? managerScores.reduce((a, b) => a + b, 0) / managerScores.length : null;
+          managerScores.length > 0 ? managerScores.reduce((a, b) => a + b, 0) / managerScores.length : 0;
 
         return {
           cycle: item.cycle,
-          finalScore: item.finalScore,
-          selfScore: selfScoreAvg,
-          managerScore: managerScoreAvg,
+          finalScore: parseFloat((item.finalScore ?? 0).toFixed(2)),
+          assessments360Mean: parseFloat((item.assessments360Mean ?? 0).toFixed(2)),
+          selfScore: parseFloat(selfScoreAvg.toFixed(2)),
+          managerScore: parseFloat(managerScoreAvg.toFixed(2)),
         };
       })
-      .filter(item => item[selectedMetric as keyof typeof item] !== null)
       .reverse();
-  }, [performanceHistory, selectedMetric]);
+  }, [performanceHistory]);
 
   const BAR_COLORS = ['#F5C130', '#24A19F', '#F5B030', '#419958'];
 
@@ -87,14 +111,20 @@ const CollaboratorHistoryChart = ({ performanceHistory }: CollaboratorHistoryCha
                 border: '1px solid #e5e7eb',
                 borderRadius: '0.5rem',
               }}
+              formatter={(value: number) => [value.toFixed(2), selectedMetricLabel]}
             />
             <Legend />
 
             <Bar dataKey={selectedMetric} name={selectedMetricLabel} barSize={40}>
               {/* Rótulo com o valor em cima de cada barra */}
-              <LabelList dataKey={selectedMetric} position='top' style={{ fill: '#042f2e', fontSize: 12 }} />
+              <LabelList
+                dataKey={selectedMetric}
+                position='top'
+                style={{ fill: '#042f2e', fontSize: 12 }}
+                formatter={(value: unknown) => (typeof value === 'number' ? value.toFixed(2) : String(value))}
+              />
 
-              {chartData.map((entry, index) => (
+              {chartData.map((_, index) => (
                 <Cell key={`cell-${index}`} fill={BAR_COLORS[index % BAR_COLORS.length]} />
               ))}
             </Bar>

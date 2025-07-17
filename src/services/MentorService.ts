@@ -92,23 +92,24 @@ export interface CycleAverage {
  * Performance completa de um mentorado
  */
 export interface MenteeCompletePerformance {
-  collaborator: {
-    id: string;
-    name: string;
-    email: string;
-    jobTitle: string;
-    seniority: string;
-    businessUnit: string;
+  performance: {
+    committeeOverallScore: number | null;
+    performanceGrowth: number | null;
+    totalAssessmentsCompleted: number;
+    assessmentBreakdown: {
+      selfAssessment: number;
+      assessments360: number;
+      mentoringAssessments: number;
+    };
   };
-  currentCycle: string;
-  performanceData: PerformanceHistoryDto;
-  trends: {
-    improving: boolean;
-    declining: boolean;
-    stable: boolean;
-    overallTrend: 'IMPROVING' | 'DECLINING' | 'STABLE';
-  };
-  recommendations: string[];
+  cycleMeans: Array<{
+    cycle: string;
+    selfAssessmentMean: number | null;
+    managerExecutionMean: number | null;
+    managerBehaviorMean: number | null;
+    assessments360Mean: number | null;
+    overallScore: number | null;
+  }>;
 }
 
 /**
