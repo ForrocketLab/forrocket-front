@@ -12,6 +12,7 @@ interface EvaluationCriteriaListProps {
   onToggleExpansion: (id: string) => void;
   onRatingChange: (id: string, score: number) => void;
   onJustificationChange: (id: string, justification: string) => void;
+  canEditFields: boolean;
 }
 
 const EvaluationCriteriaList = ({
@@ -24,6 +25,7 @@ const EvaluationCriteriaList = ({
   onToggleExpansion,
   onRatingChange,
   onJustificationChange,
+  canEditFields,
 }: EvaluationCriteriaListProps) => {
   return (
     <div className='bg-white rounded-lg shadow-sm border border-gray-200'>
@@ -105,8 +107,8 @@ const EvaluationCriteriaList = ({
                             key={starValue}
                             type='button'
                             onClick={() => onRatingChange(criterionId, starValue)}
-                            className={`transition-colors hover:scale-110 ${isAssessmentSubmitted ? 'cursor-not-allowed opacity-50' : ''}`}
-                            disabled={isAssessmentSubmitted}
+                            className={`transition-colors hover:scale-110 ${!canEditFields || isAssessmentSubmitted ? 'cursor-not-allowed opacity-50' : ''}`}
+                            disabled={!canEditFields || isAssessmentSubmitted}
                           >
                             <Star
                               className={`w-5 h-5 ${starValue <= managerScore ? 'text-teal-600 fill-current' : 'text-gray-300 hover:text-teal-400'}`}
@@ -121,8 +123,8 @@ const EvaluationCriteriaList = ({
                           placeholder='Justifique sua nota...'
                           value={managerAssessments[criterionId]?.justification || ''}
                           onChange={e => onJustificationChange(criterionId, e.target.value)}
-                          className={`w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm resize-none placeholder-gray-400 ${isAssessmentSubmitted ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                          disabled={isAssessmentSubmitted}
+                          className={`w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm resize-none placeholder-gray-400 ${!canEditFields || isAssessmentSubmitted ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                          disabled={!canEditFields || isAssessmentSubmitted}
                         />
                       </div>
                     </div>

@@ -667,18 +667,18 @@ const CycleManagement: React.FC = () => {
 
       {/* View Cycle Modal */}
       {showViewModal && selectedCycleForView && (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white/95 backdrop-blur-md rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200/50">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 <Eye className="h-6 w-6 text-teal-600" />
                 Detalhes do Ciclo: {selectedCycleForView.name}
               </h2>
               <button
                 onClick={() => setShowViewModal(false)}
-                className="p-2 rounded-lg hover:bg-gray-100/80 transition-all duration-200"
+                className="text-gray-400 hover:text-gray-600"
               >
-                <XCircle className="h-5 w-5 text-gray-500" />
+                <XCircle className="h-6 w-6" />
               </button>
             </div>
 

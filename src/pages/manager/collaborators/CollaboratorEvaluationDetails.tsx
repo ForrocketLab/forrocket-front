@@ -11,6 +11,11 @@ import ClientEvaluation from '../collaborators/components/ClientEvaluation';
 import type { DetailedSelfAssessment } from '../../../types/detailedEvaluations';
 import { POSTURE_CRITERIA_IDS, EXECUTION_CRITERIA_IDS, criteriaNames } from '../../../config/evaluationCriteria';
 
+// Constantes para as fases do ciclo
+const ASSESSMENTS = 'ASSESSMENTS';
+const MANAGER_REVIEWS = 'MANAGER_REVIEWS';
+const EQUALIZATION = 'EQUALIZATION';
+
 export interface ManagerCriterionState {
   score: number;
   justification: string;
@@ -40,6 +45,9 @@ const CollaboratorEvaluationDetails: FC = () => {
   const [managerOwnAssessment, setManagerOwnAssessment] = useState<ManagerAssessmentData | null>(null);
 
   const [activeTab, setActiveTab] = useState('evaluation');
+  const [cyclePhase, setCyclePhase] = useState<string>('');
+  const [canEditFields, setCanEditFields] = useState(false);
+  const [showSubmitButton, setShowSubmitButton] = useState(false);
 
   useEffect(() => {
     if (!collaboratorIdFromUrl) {
@@ -52,6 +60,19 @@ const CollaboratorEvaluationDetails: FC = () => {
       setError(null);
       try {
         const activeCycle: ActiveCycle = await ManagerService.getActiveCycle();
+        setCyclePhase(activeCycle.phase);
+
+        // Definir lógica de controle baseada na fase do ciclo
+        if (activeCycle.phase === MANAGER_REVIEWS) {
+          setCanEditFields(true);
+          setShowSubmitButton(true);
+        } else if (activeCycle.phase === ASSESSMENTS) {
+          setCanEditFields(false);
+          setShowSubmitButton(false);
+        } else if (activeCycle.phase === EQUALIZATION) {
+          setCanEditFields(false);
+          setShowSubmitButton(false);
+        }
 
         const [selfAssessment, dashboardData, historyData, ownManagerAssessment] = await Promise.all([
           ManagerService.getDetailedSelfAssessment(collaboratorIdFromUrl),
@@ -215,6 +236,8 @@ const CollaboratorEvaluationDetails: FC = () => {
         tabs={TABS}
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        showSubmitButton={showSubmitButton}
+        canEditFields={canEditFields}
       />
       <main className='px-6 p-4 md:p-8'>
         {activeTab === 'evaluation' && (
@@ -234,6 +257,7 @@ const CollaboratorEvaluationDetails: FC = () => {
               onToggleExpansion={toggleCriterionExpansion}
               onRatingChange={handleManagerRatingChange}
               onJustificationChange={handleManagerJustificationChange}
+              canEditFields={canEditFields}
             />
 
             <ExecutionCriteriaList
@@ -251,6 +275,7 @@ const CollaboratorEvaluationDetails: FC = () => {
               onToggleExpansion={toggleCriterionExpansion}
               onRatingChange={handleManagerRatingChange}
               onJustificationChange={handleManagerJustificationChange}
+              canEditFields={canEditFields}
             />
           </>
         )}

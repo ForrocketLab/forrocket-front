@@ -12,6 +12,7 @@ interface ExecutionCriteriaListProps {
   onToggleExpansion: (id: string) => void;
   onRatingChange: (id: string, score: number) => void;
   onJustificationChange: (id: string, justification: string) => void;
+  canEditFields: boolean;
 }
 
 const ExecutionCriteriaList = ({
@@ -24,6 +25,7 @@ const ExecutionCriteriaList = ({
   onToggleExpansion,
   onRatingChange,
   onJustificationChange,
+  canEditFields,
 }: ExecutionCriteriaListProps) => {
   return (
     <div className='bg-white rounded-lg shadow-sm border border-gray-200 mt-6'>
@@ -109,9 +111,9 @@ const ExecutionCriteriaList = ({
                             type='button'
                             onClick={() => onRatingChange(criterionId, starValue)}
                             className={`transition-colors hover:scale-110 ${
-                              isAssessmentSubmitted ? 'cursor-not-allowed opacity-50' : ''
+                              !canEditFields || isAssessmentSubmitted ? 'cursor-not-allowed opacity-50' : ''
                             }`}
-                            disabled={isAssessmentSubmitted}
+                            disabled={!canEditFields || isAssessmentSubmitted}
                           >
                             <Star
                               className={`w-5 h-5 ${
@@ -129,9 +131,9 @@ const ExecutionCriteriaList = ({
                           value={managerAssessments[criterionId]?.justification || ''}
                           onChange={e => onJustificationChange(criterionId, e.target.value)}
                           className={`w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm resize-none placeholder-gray-400 ${
-                            isAssessmentSubmitted ? 'bg-gray-100 cursor-not-allowed' : ''
+                            !canEditFields || isAssessmentSubmitted ? 'bg-gray-100 cursor-not-allowed' : ''
                           }`}
-                          disabled={isAssessmentSubmitted}
+                          disabled={!canEditFields || isAssessmentSubmitted}
                         />
                       </div>
                     </div>

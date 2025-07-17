@@ -10,6 +10,8 @@ interface EvaluationHeaderProps {
   tabs: TabItem[];
   activeTab: string;
   onTabChange: (tabId: string) => void;
+  showSubmitButton: boolean;
+  canEditFields: boolean;
 }
 
 const CollaboratorEvaluationHeader = ({
@@ -21,6 +23,8 @@ const CollaboratorEvaluationHeader = ({
   tabs,
   activeTab,
   onTabChange,
+  showSubmitButton,
+  canEditFields,
 }: EvaluationHeaderProps) => {
   return (
     <header className='bg-white shadow-sm'>
@@ -45,7 +49,7 @@ const CollaboratorEvaluationHeader = ({
             <span className='text-sm font-semibold text-gray-900'>{collaboratorName}</span>
             <span className='text-xs text-gray-500'>{collaboratorJobTitle}</span>
           </div>
-          {!isAssessmentSubmitted && (
+          {showSubmitButton && !isAssessmentSubmitted && (
             <button
               onClick={onSubmit}
               className='bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors'
