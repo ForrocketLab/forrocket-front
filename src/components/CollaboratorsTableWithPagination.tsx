@@ -71,8 +71,18 @@ const CollaboratorsTableWithPagination: FC<CollaboratorsTableWithPaginationProps
   const processedData = useMemo(() => {
     setIsLoading(true);
 
+    // --- Início da modificação: Remover duplicatas ---
+    const uniqueCollaboratorsMap = new Map<string, DashboardSubordinate>();
+    collaborators.forEach(col => {
+      if (col.id) { 
+        uniqueCollaboratorsMap.set(col.id, col);
+      }
+    });
+    let uniqueCollaborators = Array.from(uniqueCollaboratorsMap.values());
+    // --- Fim da modificação ---
+
     // Aplicar filtros
-    let filteredCollaborators = collaborators;
+    let filteredCollaborators = uniqueCollaborators;
 
     // Filtro por status
     if (actualFilterStatus !== 'ALL') {
@@ -176,7 +186,6 @@ const CollaboratorsTableWithPagination: FC<CollaboratorsTableWithPaginationProps
     };
   }, [isFilterPopupOpen]);
 
-  // Handlers
   const handleSort = (column: 'name' | 'status' | 'position' | 'department') => {
     if (onSort) {
       onSort(column);
