@@ -9,6 +9,7 @@ interface EvaluationHeaderProps {
   activeTab: string;
   onTabChange: (tabId: string) => void;
   isComplete?: boolean;
+  isReadOnly?: boolean;
 }
 
 const CreateEvaluationHeader = ({
@@ -19,6 +20,7 @@ const CreateEvaluationHeader = ({
   activeTab,
   onTabChange,
   isComplete = false,
+  isReadOnly = false,
 }: EvaluationHeaderProps) => {
   return (
     <header className='bg-white shadow-sm'>
@@ -31,15 +33,21 @@ const CreateEvaluationHeader = ({
           {!isAssessmentSubmitted && (
             <button
               onClick={onSubmit}
-              disabled={!isComplete}
+              disabled={!isComplete || isReadOnly}
               className={`text-sm font-medium px-4 py-2 rounded-md transition-colors ${
-                isComplete
+                isComplete && !isReadOnly
                   ? 'bg-[#08605F] hover:bg-teal-700 text-white hover:cursor-pointer'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
-              title={isComplete ? 'Enviar todas as avaliações' : 'Complete todas as avaliações para enviar'}
+              title={
+                isReadOnly
+                  ? 'Não é possível enviar avaliações fora da fase de avaliações'
+                  : isComplete
+                    ? 'Enviar todas as avaliações'
+                    : 'Complete todas as avaliações para enviar'
+              }
             >
-              Concluir
+              {isReadOnly ? 'Bloqueado' : 'Concluir'}
               <IoSend className='inline-block ml-4' />
             </button>
           )}

@@ -9,6 +9,7 @@ interface ReferenceEvaluationProps {
   onJustificationChange: (justification: string) => void;
   onRemove: () => void;
   className?: string;
+  isReadOnly?: boolean;
 }
 
 export const ReferenceEvaluation = ({
@@ -20,6 +21,7 @@ export const ReferenceEvaluation = ({
   onJustificationChange,
   onRemove,
   className,
+  isReadOnly = false,
 }: ReferenceEvaluationProps) => {
   return (
     <div className={`bg-white border border-gray-200 rounded-lg shadow-sm ${className || ''}`}>
@@ -37,7 +39,10 @@ export const ReferenceEvaluation = ({
           </div>
           <button
             onClick={onRemove}
-            className='p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors'
+            disabled={isReadOnly}
+            className={`p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors ${
+              isReadOnly ? 'cursor-not-allowed opacity-50' : ''
+            }`}
             title='Remover'
           >
             <Trash2 className='h-4 w-4' />
@@ -54,7 +59,10 @@ export const ReferenceEvaluation = ({
             placeholder='Justifique sua nota'
             value={justification}
             onChange={e => onJustificationChange(e.target.value)}
-            className='w-full min-h-[100px] resize-none p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm'
+            disabled={isReadOnly}
+            className={`w-full min-h-[100px] resize-none p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm ${
+              isReadOnly ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+            }`}
           />
         </div>
       </div>

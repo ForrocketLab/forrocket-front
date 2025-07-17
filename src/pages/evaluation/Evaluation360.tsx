@@ -15,7 +15,7 @@ interface Colleague {
   workAgainMotivation: WorkAgainMotivation;
 }
 
-const Evaluation360 = () => {
+const Evaluation360 = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
   // Removido useState de colleagues, pois agora é derivado do contexto
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -156,7 +156,10 @@ const Evaluation360 = () => {
                 placeholder='Buscar por colaboradores'
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none'
+                disabled={isReadOnly}
+                className={`w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none ${
+                  isReadOnly ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                }`}
               />
             </div>
           </div>
@@ -189,6 +192,7 @@ const Evaluation360 = () => {
                 onWorkAgainMotivationChange={workAgainMotivation =>
                   handleColleagueUpdate(colleague.id, { workAgainMotivation })
                 }
+                isReadOnly={isReadOnly}
               />
             ))
           ) : (

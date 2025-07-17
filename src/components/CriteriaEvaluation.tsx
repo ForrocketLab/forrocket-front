@@ -9,6 +9,7 @@ interface CriteriaEvaluationProps {
   onRatingChange: (rating: number) => void;
   onJustificationChange: (justification: string) => void;
   className?: string;
+  isReadOnly?: boolean;
 }
 
 export const CriteriaEvaluation = ({
@@ -20,6 +21,7 @@ export const CriteriaEvaluation = ({
   onRatingChange,
   onJustificationChange,
   className,
+  isReadOnly = false,
 }: CriteriaEvaluationProps) => {
   return (
     <div
@@ -34,7 +36,7 @@ export const CriteriaEvaluation = ({
               {description && <p className='text-sm text-gray-600 mt-1'>{description}</p>}
             </div>
             <div className='flex items-center gap-3'>
-              <StarRating rating={rating} onRatingChange={onRatingChange} size='md' />
+              <StarRating rating={rating} onRatingChange={onRatingChange} size='md' disabled={isReadOnly} />
               <span className='text-sm font-medium textbg-[#08605F] min-w-[2rem]'>
                 {rating > 0 ? rating.toFixed(1) : '—'}
               </span>
@@ -51,7 +53,10 @@ export const CriteriaEvaluation = ({
               placeholder='Descreva os motivos que justificam sua avaliação...'
               value={justification}
               onChange={e => onJustificationChange(e.target.value)}
-              className='w-full min-h-[80px] resize-none p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#08605F] focus:border-[#08605F] outline-none'
+              disabled={isReadOnly}
+              className={`w-full min-h-[80px] resize-none p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#08605F] focus:border-[#08605F] outline-none ${
+                isReadOnly ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+              }`}
             />
           </div>
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, Users, Save } from 'lucide-react';
+import { Search, Users } from 'lucide-react';
 import { ReferenceEvaluation } from './ReferenceEvaluation';
 import EvaluationService, { ReferenceAssessmentDto } from '../../services/EvaluationService';
 import { useEvaluation } from '../../hooks/useEvaluation';
@@ -15,7 +15,7 @@ interface AvailableCollaborator {
   email?: string; // Adicionado para armazenar o email do colaborador
 }
 
-const ReferenceAssessment = () => {
+const ReferenceAssessment = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -101,25 +101,6 @@ const ReferenceAssessment = () => {
     dispatch({ type: 'UPDATE_REFERENCE_JUSTIFICATION', payload: { id: referenceId, justification } });
   };
 
-  // Função para salvar todas as referências no backend
-  const handleSaveAllReferences = async () => {
-    if (selectedReferences.length === 0) {
-      toast.error('Nenhuma referência', 'Adicione pelo menos uma referência para salvar.');
-      return;
-    }
-
-    setSaving(true);
-    try {
-      await EvaluationService.saveAllReferenceFeedbacks(selectedReferences);
-      toast.success('Referências salvas', 'Todas as referências foram salvas com sucesso.');
-    } catch (error) {
-      console.error('Erro ao salvar referências:', error);
-      toast.error('Erro ao salvar', 'Não foi possível salvar as referências. Tente novamente.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const handleRemoveReference = (referenceId: string) => {
     dispatch({ type: 'REMOVE_REFERENCE', payload: referenceId });
     // Remover toast de sucesso - remover silenciosamente
@@ -143,11 +124,14 @@ const ReferenceAssessment = () => {
                 }}
                 onFocus={() => setShowSearchResults(searchTerm.length > 0)}
                 onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
-                className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none'
+                disabled={isReadOnly}
+                className={`w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none ${
+                  isReadOnly ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                }`}
               />
 
               {/* Search Results Dropdown */}
-              {showSearchResults && searchTerm.length > 0 && (
+              {showSearchResults && searchTerm.length > 0 && !isReadOnly && (
                 <div className='absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 max-h-64 overflow-y-auto'>
                   {filteredAvailableCollaborators.length > 0 ? (
                     filteredAvailableCollaborators.map(collaborator => (
@@ -196,6 +180,7 @@ const ReferenceAssessment = () => {
                   justification={reference.justification}
                   onJustificationChange={justification => handleJustificationChange(reference.id, justification)}
                   onRemove={() => handleRemoveReference(reference.id)}
+                  isReadOnly={isReadOnly}
                 />
               </div>
             ))

@@ -18,6 +18,7 @@ interface PillarSectionProps {
   onCriteriaUpdate: (criteriaId: string, updates: Partial<Criteria>) => void;
   defaultOpen?: boolean;
   className?: string;
+  isReadOnly?: boolean;
 }
 
 export const PillarSection = ({
@@ -27,6 +28,7 @@ export const PillarSection = ({
   onCriteriaUpdate,
   defaultOpen = false,
   className,
+  isReadOnly = false,
 }: PillarSectionProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
@@ -94,6 +96,7 @@ export const PillarSection = ({
               justification={criterion.justification}
               onRatingChange={rating => onCriteriaUpdate(criterion.id, { rating })}
               onJustificationChange={justification => onCriteriaUpdate(criterion.id, { justification })}
+              isReadOnly={isReadOnly}
             />
           ))}
         </div>

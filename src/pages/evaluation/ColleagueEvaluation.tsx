@@ -15,6 +15,7 @@ interface ColleagueEvaluationProps {
   onImprovementsChange: (improvements: string) => void;
   onWorkAgainMotivationChange: (motivation: WorkAgainMotivation) => void;
   className?: string;
+  isReadOnly: boolean;
 }
 
 export const ColleagueEvaluation = ({
@@ -31,6 +32,7 @@ export const ColleagueEvaluation = ({
   onImprovementsChange,
   onWorkAgainMotivationChange,
   className,
+  isReadOnly,
 }: ColleagueEvaluationProps) => {
   const workAgainMotivationOptions = [
     { value: WorkAgainMotivation.STRONGLY_DISAGREE, label: 'Discordo Totalmente' },
@@ -63,7 +65,7 @@ export const ColleagueEvaluation = ({
                 Dê uma avaliação de 1 a 5 ao colaborador
               </label>
               <div className='flex items-center gap-2'>
-                <StarRating rating={rating} onRatingChange={onRatingChange} size='lg' />
+                <StarRating rating={rating} onRatingChange={onRatingChange} size='lg' disabled={isReadOnly} />
               </div>
             </div>
             <div className='w-full lg:w-96'>
@@ -74,7 +76,10 @@ export const ColleagueEvaluation = ({
                 id={`work-again-${id}`}
                 value={workAgainMotivation}
                 onChange={e => onWorkAgainMotivationChange(e.target.value as WorkAgainMotivation)}
-                className='w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm'
+                disabled={isReadOnly}
+                className={`w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm ${
+                  isReadOnly ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                }`}
               >
                 <option value=''>Selecione uma opção</option>
                 {workAgainMotivationOptions.map(option => (
@@ -98,7 +103,10 @@ export const ColleagueEvaluation = ({
               placeholder='Justifique sua nota'
               value={strengths}
               onChange={e => onStrengthsChange(e.target.value)}
-              className='w-full min-h-[100px] resize-none p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm'
+              disabled={isReadOnly}
+              className={`w-full min-h-[100px] resize-none p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm ${
+                isReadOnly ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+              }`}
             />
           </div>
           <div className='space-y-2'>
@@ -110,7 +118,10 @@ export const ColleagueEvaluation = ({
               placeholder='Justifique sua nota'
               value={improvements}
               onChange={e => onImprovementsChange(e.target.value)}
-              className='w-full min-h-[100px] resize-none p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm'
+              disabled={isReadOnly}
+              className={`w-full min-h-[100px] resize-none p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm ${
+                isReadOnly ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+              }`}
             />
           </div>
         </div>

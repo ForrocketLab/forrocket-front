@@ -170,6 +170,7 @@ class EvaluationService {
   }
 
   async create360Assessment(payload: Create360AssessmentPayload): Promise<void> {
+    console.log('to no create');
     try {
       await api.post('/evaluations/collaborator/360-assessment', payload, {
         headers: {
@@ -388,11 +389,12 @@ class EvaluationService {
 
         if (existingEvaluation) {
           // Se existe, atualizar
-          await api.patch('/evaluations/collaborator/360-assessment', sanitizedData);
+          // await api.patch('/evaluations/collaborator/360-assessment', sanitizedData);
           console.log('📊 Avaliação 360 atualizada com sucesso');
         } else {
           // Se não existe, criar
-          await api.post('/evaluations/collaborator/360-assessment', sanitizedData);
+          console.log('to no post embaixo do patch');
+          // await api.post('/evaluations/collaborator/360-assessment', sanitizedData);
           console.log('✨ Avaliação 360 criada com sucesso');
         }
       } catch (err) {
@@ -607,14 +609,14 @@ class EvaluationService {
     }
   }
 
-  async getActiveCycle(): Promise<{ name: string }> {
+  async getActiveCycle(): Promise<{ name: string; phase: string }> {
     try {
       const response = await api.get('/evaluation-cycles/active', {
         headers: {
           Authorization: `Bearer ${this.getToken()}`,
         },
       });
-      return { name: response.data.name };
+      return { name: response.data.name, phase: response.data.phase };
     } catch (error) {
       console.error('Erro ao buscar ciclo ativo:', error);
       if (error instanceof AxiosError && error.response?.status === 401) {
@@ -715,8 +717,9 @@ class EvaluationService {
   async saveSelfAssessment(assessmentData: Record<string, { score: number; justification: string }>): Promise<void> {
     try {
       // Payload para o backend (incluindo cycleId)
+      const { name } = await this.getActiveCycle();
       const payload = {
-        cycleId: '2025.1',
+        cycleId: name,
         ...assessmentData,
       };
 

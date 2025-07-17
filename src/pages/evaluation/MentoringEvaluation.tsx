@@ -4,7 +4,7 @@ import { StarRating } from '../../components/StarRating';
 import { useEvaluation } from '../../hooks/useEvaluation';
 import EvaluationService, { MentorAssessment } from '../../services/EvaluationService';
 
-const MentoringEvaluation = () => {
+const MentoringEvaluation = ({ isReadOnly = false }: { isReadOnly?: boolean }) => {
   // Removido useState de evaluations, pois agora é derivado do contexto
   const [searchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -121,6 +121,7 @@ const MentoringEvaluation = () => {
                       rating={evaluation.rating}
                       onRatingChange={rating => handleRatingChange(evaluation.id, rating)}
                       size='lg'
+                      disabled={isReadOnly}
                     />
                   </div>
 
@@ -131,7 +132,10 @@ const MentoringEvaluation = () => {
                       placeholder='Justificativa'
                       value={evaluation.justification}
                       onChange={e => handleEvaluationUpdate(evaluation.id, { justification: e.target.value })}
-                      className='w-full min-h-[100px] resize-none p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm'
+                      disabled={isReadOnly}
+                      className={`w-full min-h-[100px] resize-none p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm ${
+                        isReadOnly ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                      }`}
                     />
                   </div>
                 </div>
